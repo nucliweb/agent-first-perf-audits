@@ -48,7 +48,7 @@ Nunca `@latest`. Versiones exactas en `package.json` y en las imágenes.
 - **`shop-baseline`** y **`shop-candidate`**: la misma app construida desde dos refs git (`main` y la rama PR). La comparación A/B ocurre en la misma máquina y en la misma ejecución, lo que neutraliza la varianza entre portátiles.
 - **`thirdparty`**: mocks locales (analytics, chat, banner de promo, A/B testing) con latencia y coste de CPU configurables.
 - **`agents`**: Node 22, Chromium de Playwright, Chrome DevTools MCP, WebPerf Snippets y trace-engine-cli. Contiene el orquestador y los subagentes.
-- **`ollama`**: imagen con el modelo ya incluido.
+- **`ollama`**: imagen con el modelo ya incluido, en el perfil `llm`. El `.env` del repo lo activa; con `COMPOSE_PROFILES=lite` no se descarga ni se arranca.
 - **`ci`**: ejecuta el gate, escribe `report.json`, `report.md` y `report.html`, y sale con 0 o 1.
 
 ### Flujo de subagentes
@@ -95,7 +95,8 @@ Las cifras salen de `experiments/regressions/` (`npm run measure`), y su test co
 ├── README.md / README.ca.md / README.en.md
 ├── AGENTS.md                    # instrucciones para agentes; CLAUDE.md lo importa
 ├── PLAN.md
-├── compose.yaml                 # perfiles: default, lite
+├── compose.yaml                 # perfiles: llm (por defecto, desde .env) y lite
+├── .env                         # COMPOSE_PROFILES=llm
 ├── apps/shop/                   # e-commerce demo
 ├── apps/thirdparty/             # mocks
 ├── agents/
@@ -190,14 +191,17 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 
 - **Benchmark de modelos** en `experiments/models/`: cuatro modelos sobre las entradas reales de las ramas, en cuatro pasadas guardadas en `results/`. Se fija `llama3.2:3b` con el schema como salida estructurada. Las reglas deciden el veredicto, la métrica (una explicación por métrica regressed, ordenadas por cuántas veces superan su umbral) y, cuando un sospechoso de los traces aparece en el diff, la causa; sin regresión no se pregunta al LLM. Con todo eso, la causa correcta pasa de 9 a 14 de 15 respuestas. Documentado en Learnings ("El LLM explica, las reglas deciden") y en la página mapa "Por qué este stack".
 
+- **Servicio `ollama`** (`docker/ollama/Dockerfile`, imagen `ollama:llama3.2-3b`): `llama3.2:3b` dentro de la imagen, con el digest `a80c4f17acd5` comprobado en el build, y sin las librerías CUDA de la imagen oficial (unos 3,6 GB que en CPU no se usan). Con el modelo dentro ocupa 2,04 GB en `docker image inspect`, frente a 2,85 GB de la oficial sin modelo. `OLLAMA_NO_CLOUD=1` evita las consultas a ollama.com en la red sin salida. Perfil `llm` activado por el `.env` del repo; `agents` depende de `ollama` con `required: false`, así que con `COMPOSE_PROFILES=lite` arranca sin él. `agents/test/ollama.test.ts` comprueba que el modelo está en la imagen y responde JSON restringido por un schema; en `lite` se salta. Verificado en los dos perfiles: 7 tests en verde con `llm` y 5 más 2 saltados con `lite`. Sin el modelo cargado, el contenedor ocupa 23 MB; con el modelo, 2,7 GB con el contexto por defecto de 4.096 tokens (`docker stats`).
+
 ## Pendiente
 
-- Servicio `ollama` con `llama3.2:3b` dentro de la imagen, y `ci` tras el Judge, con los perfiles `default` y `lite`. En `lite`, el fichero de handoff para un agente externo.
+- `ci` tras el Judge, con los perfiles `llm` y `lite`. En `lite`, el fichero de handoff para un agente externo. El Judge pasa `num_ctx: 8192` en cada llamada, como el benchmark.
+- Probar la imagen `ollama` en amd64: allí las librerías de CPU son otras y no se ha comprobado que el `rm -rf cuda_*` deje todo lo necesario.
 - Llevar al Judge de `agents/` las reglas de `experiments/models` (`rules.mjs`, `suspects.mjs`, `match.mjs`, `normalize.mjs` y el prompt), sin duplicarlas.
 - El JSON restringido por el schema corta la frase en las comillas de `loading="lazy"`: probar si escaparlas en la entrada o pedir el código entre comillas invertidas lo evita.
 - Repetir la latencia del benchmark con la máquina en reposo: con otra carga, `llama3.2:3b` va de 9 a 37 s por explicación.
 - Traducir a catalán e inglés la página mapa y las secciones nuevas de Learnings.
-- Workflow de GHCR: publicar multiarch `agents`, `thirdparty` y una imagen `shop` por cada ref (`main` y las cuatro `pr/*`).
+- Workflow de GHCR: publicar multiarch `agents`, `thirdparty`, `ollama` y una imagen `shop` por cada ref (`main` y las cuatro `pr/*`).
 - Experimentos reproducibles de dos datos que hoy solo cuenta la página mapa, sin cifras: sin throttling de red la regresión de LCP no se ve, y sin preload el `lazy` del hero apenas cambia el LCP.
 - Experimento reproducible de la atribución con y sin `keepNames` (hoy solo hay un spike en el scratchpad), antes de llevarlo a Learnings como candidato: "si quieres que un agente atribuya, conserva los nombres".
 - `--workspace` en `agents/src/mcp/client.ts` cuando exista la carpeta de salida compartida con `ci`.

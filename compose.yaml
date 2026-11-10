@@ -3,6 +3,8 @@
 #   scripts/build-shop.sh main pr/lcp-hero-lazy
 #   CANDIDATE=pr-lcp-hero-lazy docker compose up -d
 #   docker compose run --rm agents
+# The lite profile, for machines with 8 GB, runs everything except the local LLM:
+#   COMPOSE_PROFILES=lite docker compose up -d
 # Every service runs on the lab network, which has no access to the internet.
 name: agent-first-perf-audits
 
@@ -32,6 +34,15 @@ services:
         condition: service_healthy
     networks: [lab]
 
+  # The local LLM of the Judge, with the model inside the image. The .env of the repo turns on
+  # the llm profile; with COMPOSE_PROFILES=lite there is no ollama to pull or start
+  ollama:
+    image: ghcr.io/nucliweb/agent-first-perf-audits/ollama:llama3.2-3b
+    profiles: [llm]
+    build:
+      context: docker/ollama
+    networks: [lab]
+
   agents:
     image: ghcr.io/nucliweb/agent-first-perf-audits/agents:main
     # Only with docker compose run: up starts the lab, not a Chromium that would share the CPU
@@ -44,11 +55,17 @@ services:
       BASELINE_URL: http://shop-baseline:3000
       CANDIDATE_URL: http://shop-candidate:3000
       THIRDPARTY_URL: http://thirdparty:4000
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2:3b
+      COMPOSE_PROFILES: ${COMPOSE_PROFILES:-}
     depends_on:
       shop-baseline:
         condition: service_healthy
       shop-candidate:
         condition: service_healthy
+      ollama:
+        condition: service_healthy
+        required: false
     networks: [lab]
 
 networks:
