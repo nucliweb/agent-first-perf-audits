@@ -128,3 +128,55 @@ En macOS se ejecutan los siete tests. En Linux se salta el del `TMPDIR`, porque 
 1. Un MCP pensado para el editor trae valores por defecto pensados para el editor. Revisa sus flags antes de meterlo en un pipeline.
 2. No des por hecho que el servidor ve tu entorno. Con stdio, pásale lo que necesite como flags o como variables explícitas.
 3. Escribe un test por cada valor por defecto que cambies. Si una versión nueva lo cambia, te enteras antes que tu pipeline.
+
+## El LLM explica, las reglas deciden
+
+### Contexto
+
+El Judge tiene que contar por qué falla una rama, no solo que falla. Para eso tiene un modelo local en Ollama, en CPU, que debe caber en un portátil de 16 GB junto a Chromium y el resto del laboratorio. Probamos cuatro candidatos de 1 a 3B (`llama3.2:3b`, `qwen3:1.7b`, `qwen2.5-coder:1.5b` y `gemma3:1b`) con la entrada real de cada rama de regresión: el veredicto del gate, el diff y los resúmenes de trace-engine-cli de la versión base y de la candidata.
+
+La primera versión le pedía al modelo todo: repetir el veredicto, elegir la métrica que más empeora y explicar la causa. Cada vez que algo fallaba, pasamos una parte más del trabajo a las reglas.
+
+### Qué probamos
+
+| Etapa | Qué hacen las reglas antes del LLM | `llama3.2:3b` nombra la causa |
+|---|---|---|
+| `llm` | Deciden el veredicto y qué métrica explicar | 9 de 15 |
+| `suspects` | Además, comparan los traces y dan al modelo los sospechosos: funciones y scripts nuevos o que crecen | 9 de 15 |
+| `rules` | Además, no preguntan al modelo si nada empeora, y relacionan cada sospechoso con la línea del diff que lo añade | 14 de 15 |
+
+Por el camino:
+
+- **El JSON se pide con el schema como salida estructurada.** Con el JSON descrito solo en el prompt, `qwen2.5-coder:1.5b` lo envolvía siempre en un bloque de código y no se podía procesar. Con el schema, los cuatro modelos devuelven JSON válido.
+- **La métrica la decide la regla.** Es lo que más fallaban los modelos. Además, `pr/loaf-cart-handler` empeora dos métricas por dos causas: el LCP por un script síncrono, `ab.js`, y el INP por un handler pesado, `recommendFor`. Una sola explicación no puede cubrir las dos, así que el Judge pide una por métrica.
+- **Las métricas se ordenan por cuántas veces superan su umbral, no por porcentaje.** El CLS de la versión base es 0, así que su porcentaje no existe.
+- **Los modelos pequeños ignoran las pistas.** Con `recommendFor` listado como sospechoso (80 ms en la candidata, 0 en la base), `llama3.2:3b` seguía culpando a `ab.js` del INP. Y en el refactor, con la regla diciendo que nada había empeorado, se inventaba una regresión del LCP.
+- **Lo que funcionó fue que la regla encontrara la causa.** `recommendFor` y `ab.js` aparecen literalmente en las líneas añadidas del diff. Cuando la regla da al modelo el sospechoso y su línea, el modelo solo tiene que redactar.
+
+### Decisión
+
+- **El modelo del taller es `llama3.2:3b`.** Ollama le asigna 3,3 GB con un contexto de 8.192 tokens.
+- **Las reglas deciden el veredicto, la métrica y, cuando pueden, la causa.**
+- **El LLM la explica con el schema del veredicto.** Cuando nada empeora, el Judge responde sin preguntarle.
+
+El único fallo de la etapa `rules` no es de razonamiento. En una de las tres repeticiones de la rama del hero, la frase se corta en `loading=`, porque las comillas de `loading="lazy"` cortan la cadena del JSON restringido por el schema.
+
+### Compruébalo
+
+El experimento está en [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models). Las respuestas son deterministas (temperatura 0 y semilla fija) y están guardadas en `results/`, así que el test comprueba estas cifras sin necesitar Ollama:
+
+```bash
+cd experiments/models
+npm install
+npm test                          # reglas, puntuación y las cifras de cada etapa
+MODES=schema node bench.mjs       # el benchmark completo, con Ollama
+```
+
+La latencia depende mucho de la carga de la máquina. En la etapa `rules`, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal.
+
+### Cómo aplicarlo en tu plataforma
+
+1. Antes de preguntar a un LLM, pregúntate qué parte de la respuesta puede calcular el código. Esa parte no se la pidas.
+2. Pide el JSON con el schema como salida estructurada, no solo en el prompt.
+3. Si nada ha empeorado, no hay nada que explicar. No preguntes.
+4. Mide el acierto con un criterio estricto y con las respuestas guardadas. Un criterio generoso esconde lo que el modelo se inventa.

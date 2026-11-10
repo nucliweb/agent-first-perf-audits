@@ -39,7 +39,9 @@ Nunca `@latest`. Versiones exactas en `package.json` y en las imágenes.
 | `@modelcontextprotocol/client` | 2.4.0 | SDK v2, la misma línea que usa el servidor de WebPerf Snippets |
 | `typescript` | 7.0.2 | Solo para el typecheck; no va en la imagen |
 | `@types/node` | 22.20.5 | |
-| Modelo | Por decidir en el spike | Candidatos: `qwen3:1.7b` (sin thinking), `qwen2.5-coder:1.5b`, `llama3.2:3b`, `gemma3:1b` |
+| Modelo | `llama3.2:3b` | Elegido en `experiments/models` frente a `qwen3:1.7b`, `qwen2.5-coder:1.5b` y `gemma3:1b` |
+| Ollama | `ollama/ollama:0.40.13` | En CPU dentro de Docker; el JSON con el schema en `format` |
+| `ajv` | 8.20.0 | Valida las respuestas contra el schema del veredicto en el benchmark |
 
 ## Arquitectura (docker compose)
 
@@ -59,7 +61,7 @@ Nunca `@latest`. Versiones exactas en `package.json` y en las imágenes.
    - **Veredicto**: CLI de WebPerf Snippets con `--interact-script`, `--runs 5`, `--cpu 4`, `--network fast-4g`, `--baseline` y `--fail-on-regression`. El INP necesita `--workflow interaction`; el workflow por defecto no lo devuelve. El exit code es la decisión.
    - **Atribución**: `trace-engine-cli overview`, `interactions` y `tasks --tree bottom-up --top 5` sobre los traces de baseline y candidate.
    - **Explicación**: el LLM recibe el veredicto, las métricas, los selectores, los dos resúmenes de trace y el diff de la rama, y devuelve JSON (`verdict`, `metric`, `suspected_cause`, `evidence`, `confidence`). Si contradice a las reglas, ganan las reglas y se marca la discrepancia.
-   - **Perfil `lite`**: sin LLM, solo veredicto y atribución.
+   - **Perfil `lite`**: sin LLM local, para equipos de 8 GB. Da el mismo veredicto y la misma atribución, y además escribe un fichero para pasar a un agente, por ejemplo en el cloud: la misma entrada que recibiría el LLM local (veredicto, métricas, resúmenes de trace y diff), el prompt y el schema del veredicto. Así quien va con `lite` también obtiene la explicación. Hay que dejarlo claro en los requisitos, en el preflight y en la documentación, incluido que enviar el diff a un servicio externo es una decisión de cada equipo para su propio código.
 
 La medición es secuencial (un solo Chromium a la vez) para no contaminar las métricas por CPU compartida. El análisis puede ir en paralelo.
 
@@ -186,11 +188,17 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - **Ramas de regresión** `pr/lcp-hero-lazy`, `pr/cls-promo-banner`, `pr/loaf-cart-handler` y `pr/noop-refactor`, publicadas en el remoto. **Experimento** `experiments/regressions/`: construye `main` y las cuatro ramas, pasa el gate y comprueba los veredictos (3 fallos y 1 pass), en unos 5 minutos. Journey `agents/journeys/add-to-cart.json`.
 - **Capa de medida en Docker Compose**: `thirdparty`, `shop-baseline`, `shop-candidate` y `agents` en una red `lab` interna, sin salida a internet. Una imagen de la tienda por ref (`shop:main`, `shop:pr-lcp-hero-lazy`...), construida por `scripts/build-shop.sh` con el Dockerfile del árbol de trabajo; `BASELINE` y `CANDIDATE` eligen cuáles se comparan. `agents/test/compose.test.ts` comprueba los nombres de servicio, el LCP de las dos tiendas por MCP y que no hay salida a internet. El gate de la CLI dentro de Compose detecta `pr-lcp-hero-lazy` (LCP de 652 ms a 1,06 s) y `pr-loaf-cart-handler` (INP de 16 a 96 ms), los dos con exit 1. Imágenes: `shop` 81 MB y `thirdparty` 80 MB.
 
+- **Benchmark de modelos** en `experiments/models/`: cuatro modelos sobre las entradas reales de las ramas, en cuatro pasadas guardadas en `results/`. Se fija `llama3.2:3b` con el schema como salida estructurada. Las reglas deciden el veredicto, la métrica (una explicación por métrica regressed, ordenadas por cuántas veces superan su umbral) y, cuando un sospechoso de los traces aparece en el diff, la causa; sin regresión no se pregunta al LLM. Con todo eso, la causa correcta pasa de 9 a 14 de 15 respuestas. Documentado en Learnings ("El LLM explica, las reglas deciden") y en la página mapa "Por qué este stack".
+
 ## Pendiente
 
-- Servicios `ollama` (tras el benchmark de modelos) y `ci` (tras el Judge), con los perfiles `default` y `lite`.
+- Servicio `ollama` con `llama3.2:3b` dentro de la imagen, y `ci` tras el Judge, con los perfiles `default` y `lite`. En `lite`, el fichero de handoff para un agente externo.
+- Llevar al Judge de `agents/` las reglas de `experiments/models` (`rules.mjs`, `suspects.mjs`, `match.mjs`, `normalize.mjs` y el prompt), sin duplicarlas.
+- El JSON restringido por el schema corta la frase en las comillas de `loading="lazy"`: probar si escaparlas en la entrada o pedir el código entre comillas invertidas lo evita.
+- Repetir la latencia del benchmark con la máquina en reposo: con otra carga, `llama3.2:3b` va de 9 a 37 s por explicación.
+- Traducir a catalán e inglés la página mapa y las secciones nuevas de Learnings.
 - Workflow de GHCR: publicar multiarch `agents`, `thirdparty` y una imagen `shop` por cada ref (`main` y las cuatro `pr/*`).
-
+- Experimentos reproducibles de dos datos que hoy solo cuenta la página mapa, sin cifras: sin throttling de red la regresión de LCP no se ve, y sin preload el `lazy` del hero apenas cambia el LCP.
 - Experimento reproducible de la atribución con y sin `keepNames` (hoy solo hay un spike en el scratchpad), antes de llevarlo a Learnings como candidato: "si quieres que un agente atribuya, conserva los nombres".
 - `--workspace` en `agents/src/mcp/client.ts` cuando exista la carpeta de salida compartida con `ci`.
 - Medir el tamaño de descarga real de la imagen `agents` (con un solo Chromium, Docker Desktop muestra 1,51 GB y `docker image inspect`, 416 MB).
