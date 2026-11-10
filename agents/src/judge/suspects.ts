@@ -4,7 +4,8 @@
 //   LCP and INP: a function or a script that runs for long in the candidate and much less, or not
 //                at all, in the baseline (the bottom-up tasks of trace-engine-cli)
 //   CLS:         a layout shift cluster that the baseline does not have (trace-engine-cli shifts)
-import { splitRow } from "./normalize.mjs";
+import { splitRow } from "./normalize.ts";
+import type { ShiftSuspect, Suspect, Target, TaskSuspect, TraceSummaries } from "./types.ts";
 
 // A suspect runs for a long task's worth and clearly more than in the baseline. The tasks summary
 // lists the top 5 of each trace, so a task missing from the baseline ran for less than its fifth one.
@@ -12,13 +13,13 @@ const MIN_SELF_MS = 50;
 const MIN_GROWTH_MS = 30;
 const MIN_SCORE_GROWTH = 0.01;
 
-const unquote = (value) => (value === "null" ? null : value.replace(/^"(.*)"$/, "$1"));
+const unquote = (value: string) => (value === "null" ? null : value.replace(/^"(.*)"$/, "$1"));
 
-function tableRows(toon) {
+function tableRows(toon: string): Record<string, string | null>[] {
   const lines = toon.split("\n");
   const header = lines.findIndex((line) => /^\s*\w+\[\d+\]\{[^}]*\}:$/.test(line));
   if (header === -1) return [];
-  const columns = lines[header].match(/\{([^}]*)\}/)[1].split(",");
+  const columns = lines[header].match(/\{([^}]*)\}/)![1].split(",");
   return lines
     .slice(header + 1)
     .filter((line) => line.trim())
@@ -27,26 +28,26 @@ function tableRows(toon) {
 
 // The shop is served from another origin in each side and Vite hashes its bundle, so the code of
 // the app is known by its path without the hash; a third-party script keeps its whole URL
-function codeKey(url) {
+function codeKey(url: string) {
   const { origin, pathname, search } = new URL(url);
   return /^http:\/\/shop-/.test(origin) ? pathname.replace(/-[\w-]{8}(\.js)$/, "$1") : `${origin}${pathname}${search}`;
 }
 
-function taskSuspects(baselineTasks = "", candidateTasks = "") {
-  const selfOf = (rows) => {
-    const map = new Map();
+function taskSuspects(baselineTasks = "", candidateTasks = ""): TaskSuspect[] {
+  const selfOf = (rows: Record<string, string | null>[]) => {
+    const map = new Map<string, number>();
     for (const row of rows) if (row.url) map.set(`${row.functionName}|${codeKey(row.url)}`, Number(row.selfTimeMs));
     return map;
   };
   const baseline = selfOf(tableRows(baselineTasks));
   return tableRows(candidateTasks)
     .filter((row) => row.url)
-    .map((row) => {
-      const url = codeKey(row.url);
+    .map((row): TaskSuspect => {
+      const url = codeKey(row.url!);
       const selfTimeMs = Math.round(Number(row.selfTimeMs));
       const baselineSelfTimeMs = Math.round(baseline.get(`${row.functionName}|${url}`) ?? 0);
       const script = row.functionName === "ProfileCall";
-      return { kind: script ? "script" : "function", name: script ? url : row.functionName, url, line: Number(row.lineNumber), selfTimeMs, baselineSelfTimeMs };
+      return { kind: script ? "script" : "function", name: script ? url : row.functionName!, url, line: Number(row.lineNumber), selfTimeMs, baselineSelfTimeMs };
     })
     .filter((s) => s.selfTimeMs >= MIN_SELF_MS && s.selfTimeMs - s.baselineSelfTimeMs >= MIN_GROWTH_MS);
 }
@@ -57,7 +58,7 @@ function shiftsOf(toon = "") {
   return { score, nodes };
 }
 
-function shiftSuspects(baselineShifts, candidateShifts) {
+function shiftSuspects(baselineShifts?: string, candidateShifts?: string): ShiftSuspect[] {
   const baseline = shiftsOf(baselineShifts);
   const candidate = shiftsOf(candidateShifts);
   if (candidate.score - baseline.score < MIN_SCORE_GROWTH) return [];
@@ -66,7 +67,7 @@ function shiftSuspects(baselineShifts, candidateShifts) {
 }
 
 // target: { metric, scenario } of the rules, or null when nothing regressed
-export function suspectsFor(traces, target) {
+export function suspectsFor(traces: TraceSummaries, target: Pick<Target, "metric" | "scenario"> | null): Suspect[] {
   if (!target) return [];
   const sides = traces[target.scenario] ?? {};
   if (target.metric === "CLS") return shiftSuspects(sides.baseline?.shifts, sides.candidate?.shifts);

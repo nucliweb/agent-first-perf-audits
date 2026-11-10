@@ -9,8 +9,8 @@ const TABLE = /^(\s*)(\w+)\[(\d+)\]\{([^}]*)\}:$/;
 const KEY = /^(\s*)(- )?(\w+):/;
 
 // Splits a TOON row on its commas, keeping the commas inside double quotes
-export function splitRow(row) {
-  const cells = [];
+export function splitRow(row: string): string[] {
+  const cells: string[] = [];
   let cell = "";
   let quoted = false;
   for (const char of row) {
@@ -26,17 +26,18 @@ export function splitRow(row) {
   return cells;
 }
 
-export function normalizeSummary(toon) {
+export function normalizeSummary(toon: string): string {
   const lines = toon.split("\n");
-  const out = [];
-  let table = null; // { indent, keep: boolean[] } while reading the rows of a table
-  let pendingDash = null; // the "- " of a dropped list item, for the next key of that item
+  const out: string[] = [];
+  // While reading the rows of a table: its indent and which columns stay
+  let table: { indent: number; keep: boolean[] } | null = null;
+  let pendingDash: number | null = null; // the "- " of a dropped list item, for the next key of that item
 
   for (const line of lines) {
     if (table) {
-      const indent = line.match(/^\s*/)[0].length;
+      const indent = line.match(/^\s*/)![0].length;
       if (line.trim() && indent > table.indent) {
-        const cells = splitRow(line.trim()).filter((_, i) => table.keep[i]);
+        const cells = splitRow(line.trim()).filter((_, i) => table!.keep[i]);
         out.push(`${" ".repeat(indent)}${cells.join(",")}`);
         continue;
       }

@@ -18,6 +18,8 @@ Reproduce los datos del benchmark de modelos: qué modelo local explica mejor la
    - la RAM que Ollama da al modelo.
 3. [`claims.test.mjs`](claims.test.mjs) comprueba las cifras de la documentación sobre las respuestas guardadas en [`results/`](results).
 
+Las reglas y el prompt son los del Judge: viven en [`agents/src/judge`](../../agents/src/judge), con sus tests en `agents/test/judge`, y el experimento los importa desde allí. Así el benchmark mide el mismo código que ejecuta el Judge.
+
 Un caso es una métrica que empeora en una rama. `pr/loaf-cart-handler` empeora dos (el LCP por `ab.js` y el INP por `recommendFor`), así que el Judge pide dos explicaciones. Una rama sin regresión es un caso propio.
 
 ## Requisitos
@@ -37,7 +39,7 @@ Un caso es una métrica que empeora en una rama. `pr/loaf-cart-handler` empeora 
 
 ```bash
 npm install
-npm test                          # tests de las reglas y de la puntuación, y las cifras de results/
+npm test                          # tests de la puntuación y las cifras de results/
 npm run fixtures                  # regenera fixtures/ con traces nuevos
 node fixtures.mjs --gate-only     # actualiza el gate de fixtures/ sin traces nuevos
 MODES=schema node bench.mjs       # los cuatro modelos; llama3.2:3b para uno solo
@@ -49,8 +51,8 @@ node bench.mjs --rescore results/4-rules.json   # vuelve a puntuar respuestas gu
 | `STAGE` | Qué hacen las reglas |
 |---|---|
 | `llm` | Deciden el veredicto y qué métrica explicar |
-| `suspects` | Además, comparan los traces de la base y de la candidata, y pasan al prompt las funciones y scripts nuevos o que crecen ([`suspects.mjs`](suspects.mjs)) |
-| `rules` | Además, no preguntan al LLM cuando nada empeora, y relacionan cada sospechoso con la línea del diff que lo añade ([`match.mjs`](match.mjs)). Es el valor por defecto |
+| `suspects` | Además, comparan los traces de la base y de la candidata, y pasan al prompt las funciones y scripts nuevos o que crecen ([`suspects.ts`](../../agents/src/judge/suspects.ts)) |
+| `rules` | Además, no preguntan al LLM cuando nada empeora, y relacionan cada sospechoso con la línea del diff que lo añade ([`match.ts`](../../agents/src/judge/match.ts)). Es el valor por defecto |
 
 ## Qué comprueba el test
 

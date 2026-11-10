@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeSummary } from "./normalize.mjs";
+import { normalizeSummary } from "../../src/judge/normalize.ts";
 
 test("drops the start time column of a TOON table", () => {
   const toon = [

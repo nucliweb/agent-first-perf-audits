@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { regressedMetrics } from "./rules.mjs";
+import { regressedMetrics } from "../../src/judge/rules.ts";
 
-const scenario = (id, metrics) => ({ scenario: id, exitCode: 1, metrics });
+const scenario = (id: string, metrics: Record<string, any>) => ({ scenario: id, exitCode: 1, metrics });
 
 test("lists every regressed metric, the one furthest beyond its threshold first", () => {
   const scenarios = [

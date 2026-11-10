@@ -8,17 +8,17 @@
 //   OLLAMA_URL (default http://127.0.0.1:11434), REPS (default 3), MODES (default schema,prompt),
 //   STAGE: how much the rules do before the LLM, one stage on top of the other
 //     llm       the rules decide the verdict and the metric to explain
-//     suspects  and the prompt lists the suspects of the traces (suspects.mjs)
+//     suspects  and the prompt lists the suspects of the traces (agents/src/judge/suspects.ts)
 //     rules     and a branch without regression gets no LLM call, and the prompt gives the cause
-//               that the rules matched with a line of the diff (match.mjs). The default
+//               that the rules matched with a line of the diff (agents/src/judge/match.ts). The default
 import { execFileSync } from "node:child_process";
 import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { matchSuspects } from "./match.mjs";
+import { matchSuspects } from "../../agents/src/judge/match.ts";
 import { messages, rulesAnswer } from "./prompt.mjs";
-import { regressedMetrics } from "./rules.mjs";
-import { suspectsFor } from "./suspects.mjs";
+import { regressedMetrics } from "../../agents/src/judge/rules.ts";
+import { suspectsFor } from "../../agents/src/judge/suspects.ts";
 import { SCHEMA, score } from "./score.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));

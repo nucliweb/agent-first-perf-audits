@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { matchSuspects } from "./match.mjs";
+import { matchSuspects } from "../../src/judge/match.ts";
+import type { TaskSuspect } from "../../src/judge/types.ts";
 
 const DIFF = `diff --git a/apps/shop/index.html b/apps/shop/index.html
 --- a/apps/shop/index.html
@@ -28,8 +29,8 @@ new file mode 100644
 +  return [];
 +}`;
 
-const RECOMMEND = { kind: "function", name: "recommendFor", url: "/assets/index.js", line: 8, selfTimeMs: 80, baselineSelfTimeMs: 0 };
-const AB = { kind: "script", name: "http://thirdparty:4000/ab.js?cpu=150", url: "http://thirdparty:4000/ab.js?cpu=150", line: 0, selfTimeMs: 151, baselineSelfTimeMs: 0 };
+const RECOMMEND: TaskSuspect = { kind: "function", name: "recommendFor", url: "/assets/index.js", line: 8, selfTimeMs: 80, baselineSelfTimeMs: 0 };
+const AB: TaskSuspect = { kind: "script", name: "http://thirdparty:4000/ab.js?cpu=150", url: "http://thirdparty:4000/ab.js?cpu=150", line: 0, selfTimeMs: 151, baselineSelfTimeMs: 0 };
 
 test("matches a function with the added line that calls it, before the one that defines it", () => {
   assert.deepEqual(matchSuspects([RECOMMEND], DIFF), [

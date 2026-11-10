@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { suspectsFor } from "./suspects.mjs";
+import { suspectsFor } from "../../src/judge/suspects.ts";
 
-const tasks = (...rows) =>
+const tasks = (...rows: string[]) =>
   ["mode: bottom-up", `tasks[${rows.length}]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:`, ...rows.map((r) => `  ${r}`)].join(
     "\n",
   );

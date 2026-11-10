@@ -102,6 +102,7 @@ Las cifras salen de `experiments/regressions/` (`npm run measure`), y su test co
 ├── agents/
 │   ├── src/orchestrator.ts
 │   ├── src/subagents/{navigator,lcp,cls,loaf,judge}.ts
+│   ├── src/judge/               # reglas, sospechosos, match con el diff y prompt del Judge
 │   ├── src/mcp/client.ts
 │   ├── journeys/                # pasos de interacción en JSON
 │   └── schemas/verdict.schema.json
@@ -192,12 +193,12 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - **Benchmark de modelos** en `experiments/models/`: cuatro modelos sobre las entradas reales de las ramas, en cuatro pasadas guardadas en `results/`. Se fija `llama3.2:3b` con el schema como salida estructurada. Las reglas deciden el veredicto, la métrica (una explicación por métrica regressed, ordenadas por cuántas veces superan su umbral) y, cuando un sospechoso de los traces aparece en el diff, la causa; sin regresión no se pregunta al LLM. Con todo eso, la causa correcta pasa de 9 a 14 de 15 respuestas. Documentado en Learnings ("El LLM explica, las reglas deciden") y en la página mapa "Por qué este stack".
 
 - **Servicio `ollama`** (`docker/ollama/Dockerfile`, imagen `ollama:llama3.2-3b`): `llama3.2:3b` dentro de la imagen, con el digest `a80c4f17acd5` comprobado en el build, y sin las librerías CUDA de la imagen oficial (unos 3,6 GB que en CPU no se usan). Con el modelo dentro ocupa 2,04 GB en `docker image inspect`, frente a 2,85 GB de la oficial sin modelo. `OLLAMA_NO_CLOUD=1` evita las consultas a ollama.com en la red sin salida. Perfil `llm` activado por el `.env` del repo; `agents` depende de `ollama` con `required: false`, así que con `COMPOSE_PROFILES=lite` arranca sin él. `agents/test/ollama.test.ts` comprueba que el modelo está en la imagen y responde JSON restringido por un schema; en `lite` se salta. Verificado en los dos perfiles: 7 tests en verde con `llm` y 5 más 2 saltados con `lite`. Sin el modelo cargado, el contenedor ocupa 23 MB; con el modelo, 2,7 GB con el contexto por defecto de 4.096 tokens (`docker stats`).
+- **Reglas del Judge en `agents/src/judge/`**: `rules.ts`, `suspects.ts`, `match.ts`, `normalize.ts` y `prompt.ts`, pasados a TypeScript sin cambiar la lógica, con sus 17 tests en `agents/test/judge/`. `experiments/models` los importa desde allí y solo conserva lo propio del benchmark (el modo sin salida estructurada y la puntuación); `claims.test.mjs` sigue en verde y el rescore de `4-rules` da las mismas cifras (14 de 15 causas).
 
 ## Pendiente
 
 - `ci` tras el Judge, con los perfiles `llm` y `lite`. En `lite`, el fichero de handoff para un agente externo. El Judge pasa `num_ctx: 8192` en cada llamada, como el benchmark.
 - Probar la imagen `ollama` en amd64: allí las librerías de CPU son otras y no se ha comprobado que el `rm -rf cuda_*` deje todo lo necesario.
-- Llevar al Judge de `agents/` las reglas de `experiments/models` (`rules.mjs`, `suspects.mjs`, `match.mjs`, `normalize.mjs` y el prompt), sin duplicarlas.
 - El JSON restringido por el schema corta la frase en las comillas de `loading="lazy"`: probar si escaparlas en la entrada o pedir el código entre comillas invertidas lo evita.
 - Repetir la latencia del benchmark con la máquina en reposo: con otra carga, `llama3.2:3b` va de 9 a 37 s por explicación.
 - Traducir a catalán e inglés la página mapa y las secciones nuevas de Learnings.

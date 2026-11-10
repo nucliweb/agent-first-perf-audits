@@ -6,7 +6,7 @@
   "scripts": {
     "fixtures": "node fixtures.mjs",
     "bench": "node bench.mjs",
-    "test": "node --test normalize.test.mjs score.test.mjs rules.test.mjs suspects.test.mjs match.test.mjs claims.test.mjs"
+    "test": "node --test score.test.mjs claims.test.mjs"
   },
   "dependencies": {
     "ajv": "8.20.0",

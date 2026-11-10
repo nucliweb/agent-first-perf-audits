@@ -9,7 +9,7 @@ import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright";
-import { normalizeSummary } from "./normalize.mjs";
+import { normalizeSummary } from "../../agents/src/judge/normalize.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "../..");
