@@ -76,9 +76,9 @@ La medición es secuencial (un solo Chromium a la vez) para no contaminar las m�
 
 | Rama | Regresión | Métrica | Gate (CPU 4x, fast-4g, 5 runs, Mac de referencia) |
 |---|---|---|---|
-| `pr/lcp-hero-lazy` | Hero sin preload, con `loading="lazy"` y sin `fetchpriority` | LCP | 652 ms a 1060 ms, p = 0,0057 |
-| `pr/cls-promo-banner` | Banner de third party sin espacio reservado + swap de fuente sin preload | CLS | 0 a 0,070 en la home (p = 0,0028) y 0 a 0,055 en la ficha (p = 0,002) |
-| `pr/loaf-cart-handler` | Script síncrono de A/B testing + recomendaciones calculadas en el handler de añadir al carrito | LoAF / INP | INP de 40 a 120 ms, p = 0,005; también LCP de la home de 652 a 968 ms |
+| `pr/lcp-hero-lazy` | Hero sin preload, con `loading="lazy"` y sin `fetchpriority` | LCP | 656 ms a 1056 ms, p = 0,0055 |
+| `pr/cls-promo-banner` | Banner de third party sin espacio reservado + swap de fuente sin preload | CLS | 0 a 0,070 en la home y 0 a 0,055 en la ficha, p = 0,002 |
+| `pr/loaf-cart-handler` | Script síncrono de A/B testing + recomendaciones calculadas en el handler de añadir al carrito | LoAF / INP | INP de 48 a 120 ms, p = 0,005; también LCP de la home de 656 a 972 ms |
 | `pr/noop-refactor` | Extrae el hero a un componente | Control de falsos positivos | Pass en los dos escenarios |
 
 La app es una SPA de React: sin preload, la imagen LCP no se descubre hasta que se ejecuta el JS. Por eso `loading="lazy"` solo añade unos 24 ms (por debajo del umbral) y la regresión de LCP necesita quitar el preload que el servidor inyecta por ruta. El throttling de red forma parte de las condiciones del gate: sin red, la prioridad de descarga apenas pesa.
@@ -181,11 +181,12 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 
 - **App Perf Coffee** (`apps/shop`, React 19 + Vite 8, interfaz en inglés) y **mocks de third parties** (`apps/thirdparty`, Node sin dependencias). Servidor de producción con gzip y preload de la imagen LCP por ruta. 22 tests en la tienda (7 de lógica del carrito, 11 del servidor y 4 e2e del recorrido) y 6 en los mocks. Fotos de Unsplash en `apps/shop/photos.json` y `CREDITS.md`.
 - **Un solo Chromium**: WebPerf Snippets 1.15.0 lanza el Chromium completo, con fallback al headless shell, y la imagen `agents` lo instala con `--no-shell`. La imagen pasa de 531 MB a 416 MB (`docker image inspect`), y la CLI registra `"build": "chromium"` en las condiciones.
+- **Nombres de función en el build**: con la minificación por defecto de Vite, trace-engine-cli nombra `Ae` en lugar de `recommendFor`, y no lee source maps. El build de la tienda usa `output.keepNames` de Rolldown: sigue minificado, con un 10 % más de gzip (de 72 a 80 KB), y `tasks --tree bottom-up` nombra `recommendFor` en `pr/loaf-cart-handler`. `apps/shop/build.test.mjs` lo protege, y las ramas `pr/*` están rebasadas sobre ese build.
 - **Ramas de regresión** `pr/lcp-hero-lazy`, `pr/cls-promo-banner`, `pr/loaf-cart-handler` y `pr/noop-refactor`, en local. **Experimento** `experiments/regressions/`: construye `main` y las cuatro ramas, pasa el gate y comprueba los veredictos (3 fallos y 1 pass), en unos 5 minutos. Journey `agents/journeys/add-to-cart.json`.
 
 ## Pendiente
 
-- Atribución en el Judge: Vite minifica y los nombres de función se pierden (`recommendFor` no aparecerá tal cual en `tasks`). Decidir entre build sin minificar para el taller, `keepNames` o source maps, y comprobarlo con trace-engine-cli.
+- Experimento reproducible de la atribución con y sin `keepNames` (hoy solo hay un spike en el scratchpad), antes de llevarlo a Learnings como candidato: "si quieres que un agente atribuya, conserva los nombres".
 - `--workspace` en `agents/src/mcp/client.ts` cuando exista la carpeta de salida compartida con `ci`.
 - Medir el tamaño de descarga real de la imagen `agents` (con un solo Chromium, Docker Desktop muestra 1,51 GB y `docker image inspect`, 416 MB).
 - Decidir si se añaden a Learnings estos cuatro candidatos:

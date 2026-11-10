@@ -44,13 +44,15 @@ Una ejecución de `npm test` en un Apple Silicon de 16 GB, con el Chromium compl
 
 | Rama | Escenario | Métrica | `main` | Rama | Cambio | p | Exit |
 |---|---|---|---|---|---|---|---|
-| `pr/lcp-hero-lazy` | home | LCP | 652 ms | 1060 ms | +62,6 % | 0,0057 | 1 |
-| `pr/cls-promo-banner` | home | CLS | 0 | 0,070 | | 0,0028 | 1 |
+| `pr/lcp-hero-lazy` | home | LCP | 656 ms | 1056 ms | +61 % | 0,0055 | 1 |
+| `pr/cls-promo-banner` | home | CLS | 0 | 0,070 | | 0,002 | 1 |
 | `pr/cls-promo-banner` | add-to-cart | CLS | 0 | 0,055 | | 0,002 | 1 |
-| `pr/loaf-cart-handler` | add-to-cart | INP | 40 ms | 120 ms | +200 % | 0,005 | 1 |
-| `pr/loaf-cart-handler` | home | LCP | 652 ms | 968 ms | +48,5 % | 0,0057 | 1 |
-| `pr/noop-refactor` | home | LCP | 652 ms | 652 ms | 0 % | 0,7511 | 0 |
-| `pr/noop-refactor` | add-to-cart | INP | 40 ms | 40 ms | 0 % | 0,7234 | 0 |
+| `pr/loaf-cart-handler` | add-to-cart | INP | 48 ms | 120 ms | +150 % | 0,005 | 1 |
+| `pr/loaf-cart-handler` | home | LCP | 656 ms | 972 ms | +48,2 % | 0,0055 | 1 |
+| `pr/noop-refactor` | home | LCP | 656 ms | 648 ms | -1,2 % | 0,0987 | 0 |
+| `pr/noop-refactor` | add-to-cart | INP | 48 ms | 40 ms | -16,7 % | 0,0416 | 0 |
+
+En `pr/noop-refactor`, el INP baja 8 ms con p = 0,0416: la diferencia es significativa, pero no supera el umbral absoluto, así que el veredicto es `unchanged`. El gate combina las dos condiciones para no dar por buena ni por mala una diferencia de ruido.
 
 Dos ramas empeoran más de una métrica, como pasa en una PR real:
 
