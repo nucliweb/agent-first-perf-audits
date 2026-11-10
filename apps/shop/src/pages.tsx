@@ -30,7 +30,7 @@ export function Home() {
           sizes={HERO_SIZES}
           width={1600}
           height={900}
-          fetchPriority="high"
+          loading="lazy"
           alt="Freshly brewed specialty coffee"
         />
         <div className="hero__text">
