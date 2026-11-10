@@ -1,0 +1,17 @@
+{
+  "name": "experiment-chrome-devtools-mcp",
+  "private": true,
+  "type": "module",
+  "description": "Reproduce the Learnings data: two defaults of Chrome DevTools MCP that the agents change",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.4.0",
+    "chrome-devtools-mcp": "1.12.0",
+    "playwright": "1.63.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

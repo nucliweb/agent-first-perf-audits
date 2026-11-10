@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Shop</title>
+  <style>body { font: 16px sans-serif; }</style>
+</head>
+<body>
+  <!-- CLS: el banner llega 600 ms después de la carga sin espacio reservado -->
+  <div id="promo"></div>
+  <h1>Shop</h1>
+  <!-- Contenido que el banner desplaza: cuanto más ocupa, mayor es el CLS -->
+  <div style="height: 700px; background: #eee;">Producto de prueba</div>
+  <!-- INP: el handler bloquea el hilo principal 180 ms -->
+  <button id="buy" style="width: 200px; height: 60px;">Add to cart</button>
+  <script>
+    setTimeout(() => {
+      document.getElementById("promo").innerHTML =
+        '<div style="height: 120px; background: #ccc;">PROMO</div>';
+    }, 600);
+
+    document.getElementById("buy").addEventListener("click", function addToCart() {
+      const start = performance.now();
+      while (performance.now() - start < 180) {}
+      document.body.append("ok");
+    });
+  </script>
+</body>
+</html>
