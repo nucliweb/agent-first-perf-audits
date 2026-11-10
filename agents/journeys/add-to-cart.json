@@ -1,0 +1,7 @@
+{
+  "interactions": [
+    { "action": "wait", "ms": 500 },
+    { "action": "click", "selector": "button:has-text(\"Add to cart\")" },
+    { "action": "wait", "ms": 500 }
+  ]
+}

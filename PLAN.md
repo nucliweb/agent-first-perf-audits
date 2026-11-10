@@ -74,16 +74,18 @@ La medición es secuencial (un solo Chromium a la vez) para no contaminar las m�
 
 ### Ramas de regresión
 
-| Rama | Regresión | Métrica | Prototipo (CPU 4x, fast-4g, 5 runs, Mac de referencia) |
+| Rama | Regresión | Métrica | Gate (CPU 4x, fast-4g, 5 runs, Mac de referencia) |
 |---|---|---|---|
-| `pr/lcp-hero-lazy` | Hero sin preload, con `loading="lazy"` y sin `fetchpriority` | LCP | 684 ms a 1,14 s, p = 0,006 |
-| `pr/cls-promo-banner` | Banner de third party sin espacio reservado + swap de fuente sin preload | CLS | 0 a 0,07, p = 0,002 |
-| `pr/loaf-cart-handler` | Script síncrono de A/B testing + recomendaciones calculadas en el handler de añadir al carrito | LoAF / INP | 56 a 176 ms, p = 0,005 |
-| `pr/noop-refactor` | Cambio sin impacto | Control de falsos positivos | |
+| `pr/lcp-hero-lazy` | Hero sin preload, con `loading="lazy"` y sin `fetchpriority` | LCP | 652 ms a 1048 ms, p = 0,006 |
+| `pr/cls-promo-banner` | Banner de third party sin espacio reservado + swap de fuente sin preload | CLS | 0 a 0,070 en la home y 0 a 0,055 en la ficha, p = 0,002 |
+| `pr/loaf-cart-handler` | Script síncrono de A/B testing + recomendaciones calculadas en el handler de añadir al carrito | LoAF / INP | INP de 40 a 112 ms, p = 0,005; también LCP de la home de 652 a 964 ms |
+| `pr/noop-refactor` | Extrae el hero a un componente | Control de falsos positivos | Pass en los dos escenarios |
 
 La app es una SPA de React: sin preload, la imagen LCP no se descubre hasta que se ejecuta el JS. Por eso `loading="lazy"` solo añade unos 24 ms (por debajo del umbral) y la regresión de LCP necesita quitar el preload que el servidor inyecta por ruta. El throttling de red forma parte de las condiciones del gate: sin red, la prioridad de descarga apenas pesa.
 
-Las tres regresiones quedan dentro de "good" en valor absoluto; el gate las detecta porque compara con el baseline, no con los umbrales de Google. Las cifras son del prototipo; las definitivas saldrán de las ramas y de un script del repo.
+Las tres regresiones quedan dentro de "good" en valor absoluto; el gate las detecta porque compara con el baseline, no con los umbrales de Google. Dos ramas empeoran más de una métrica, así que el Judge tiene que atribuir cada una a su causa. Cada rama ajusta los tests de la app que su cambio rompe, como haría su autor: el CI clásico pasa en las cuatro.
+
+Las cifras salen de `experiments/regressions/` (`npm run measure`), y su test comprueba el veredicto de cada rama.
 
 ## Estructura del repo
 
@@ -178,10 +180,10 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - **Spike DevTools MCP frente a trace-engine-cli**: sobre el mismo trace, Chrome DevTools MCP da unas 5,6 veces más texto y no nombra la función del INP. trace-engine-cli se queda para la atribución. Test en `experiments/trace-engine-cli/compare.test.mjs` y subsección en "No todo tiene que ser un MCP".
 
 - **App Perf Coffee** (`apps/shop`, React 19 + Vite 8, interfaz en inglés) y **mocks de third parties** (`apps/thirdparty`, Node sin dependencias). Servidor de producción con gzip y preload de la imagen LCP por ruta. 22 tests en la tienda (7 de lógica del carrito, 11 del servidor y 4 e2e del recorrido) y 6 en los mocks. Fotos de Unsplash en `apps/shop/photos.json` y `CREDITS.md`.
+- **Ramas de regresión** `pr/lcp-hero-lazy`, `pr/cls-promo-banner`, `pr/loaf-cart-handler` y `pr/noop-refactor`, en local. **Experimento** `experiments/regressions/`: construye `main` y las cuatro ramas, pasa el gate y comprueba los veredictos (3 fallos y 1 pass), en unos 5 minutos. Journey `agents/journeys/add-to-cart.json`.
 
 ## Pendiente
 
-- Crear las 4 ramas de regresión a partir del primer commit de `main` y fijar sus cifras con un script del repo.
 - Atribución en el Judge: Vite minifica y los nombres de función se pierden (`recommendFor` no aparecerá tal cual en `tasks`). Decidir entre build sin minificar para el taller, `keepNames` o source maps, y comprobarlo con trace-engine-cli.
 
 - Un solo Chromium en la imagen: cambio en WebPerf Snippets para lanzar el Chromium completo, con fallback al headless shell. Después, `--no-shell` en el Dockerfile.
