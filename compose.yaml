@@ -1,0 +1,56 @@
+# The measurement layer of the workshop. The shops of the baseline and of the candidate are
+# images of two git refs, built with scripts/build-shop.sh or pulled from GHCR:
+#   scripts/build-shop.sh main pr/lcp-hero-lazy
+#   CANDIDATE=pr-lcp-hero-lazy docker compose up -d
+#   docker compose run --rm agents
+# Every service runs on the lab network, which has no access to the internet.
+name: agent-first-perf-audits
+
+services:
+  thirdparty:
+    image: ghcr.io/nucliweb/agent-first-perf-audits/thirdparty:main
+    build:
+      context: apps/thirdparty
+      dockerfile: ../../docker/thirdparty/Dockerfile
+    networks: [lab]
+
+  shop-baseline:
+    image: ghcr.io/nucliweb/agent-first-perf-audits/shop:${BASELINE:-main}
+    environment:
+      THIRDPARTY_ORIGIN: http://thirdparty:4000
+    depends_on:
+      thirdparty:
+        condition: service_healthy
+    networks: [lab]
+
+  shop-candidate:
+    image: ghcr.io/nucliweb/agent-first-perf-audits/shop:${CANDIDATE:-pr-noop-refactor}
+    environment:
+      THIRDPARTY_ORIGIN: http://thirdparty:4000
+    depends_on:
+      thirdparty:
+        condition: service_healthy
+    networks: [lab]
+
+  agents:
+    image: ghcr.io/nucliweb/agent-first-perf-audits/agents:main
+    # Only with docker compose run: up starts the lab, not a Chromium that would share the CPU
+    # with a measurement
+    profiles: [run]
+    build:
+      context: .
+      dockerfile: docker/agents/Dockerfile
+    environment:
+      BASELINE_URL: http://shop-baseline:3000
+      CANDIDATE_URL: http://shop-candidate:3000
+      THIRDPARTY_URL: http://thirdparty:4000
+    depends_on:
+      shop-baseline:
+        condition: service_healthy
+      shop-candidate:
+        condition: service_healthy
+    networks: [lab]
+
+networks:
+  lab:
+    internal: true

@@ -105,8 +105,9 @@ Las cifras salen de `experiments/regressions/` (`npm run measure`), y su test co
 ├── ci/gate.ts
 ├── experiments/
 │   └── trace-engine-cli/        # reproduce los datos de Learnings
-├── docker/{agents,ollama}/Dockerfile
+├── docker/{agents,shop,thirdparty,ollama}/Dockerfile
 ├── scripts/preflight.{sh,ps1}
+├── scripts/build-shop.sh        # imagen de la tienda de cada ref git
 ├── docs/                        # Starlight: src/content/docs/{es,ca,en}/
 └── .github/workflows/           # build multiarch a GHCR, deploy docs, paridad de traducciones
 ```
@@ -182,9 +183,13 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - **App Perf Coffee** (`apps/shop`, React 19 + Vite 8, interfaz en inglés) y **mocks de third parties** (`apps/thirdparty`, Node sin dependencias). Servidor de producción con gzip y preload de la imagen LCP por ruta. 22 tests en la tienda (7 de lógica del carrito, 11 del servidor y 4 e2e del recorrido) y 6 en los mocks. Fotos de Unsplash en `apps/shop/photos.json` y `CREDITS.md`.
 - **Un solo Chromium**: WebPerf Snippets 1.15.0 lanza el Chromium completo, con fallback al headless shell, y la imagen `agents` lo instala con `--no-shell`. La imagen pasa de 531 MB a 416 MB (`docker image inspect`), y la CLI registra `"build": "chromium"` en las condiciones.
 - **Nombres de función en el build**: con la minificación por defecto de Vite, trace-engine-cli nombra `Ae` en lugar de `recommendFor`, y no lee source maps. El build de la tienda usa `output.keepNames` de Rolldown: sigue minificado, con un 10 % más de gzip (de 72 a 80 KB), y `tasks --tree bottom-up` nombra `recommendFor` en `pr/loaf-cart-handler`. `apps/shop/build.test.mjs` lo protege, y las ramas `pr/*` están rebasadas sobre ese build.
-- **Ramas de regresión** `pr/lcp-hero-lazy`, `pr/cls-promo-banner`, `pr/loaf-cart-handler` y `pr/noop-refactor`, en local. **Experimento** `experiments/regressions/`: construye `main` y las cuatro ramas, pasa el gate y comprueba los veredictos (3 fallos y 1 pass), en unos 5 minutos. Journey `agents/journeys/add-to-cart.json`.
+- **Ramas de regresión** `pr/lcp-hero-lazy`, `pr/cls-promo-banner`, `pr/loaf-cart-handler` y `pr/noop-refactor`, publicadas en el remoto. **Experimento** `experiments/regressions/`: construye `main` y las cuatro ramas, pasa el gate y comprueba los veredictos (3 fallos y 1 pass), en unos 5 minutos. Journey `agents/journeys/add-to-cart.json`.
+- **Capa de medida en Docker Compose**: `thirdparty`, `shop-baseline`, `shop-candidate` y `agents` en una red `lab` interna, sin salida a internet. Una imagen de la tienda por ref (`shop:main`, `shop:pr-lcp-hero-lazy`...), construida por `scripts/build-shop.sh` con el Dockerfile del árbol de trabajo; `BASELINE` y `CANDIDATE` eligen cuáles se comparan. `agents/test/compose.test.ts` comprueba los nombres de servicio, el LCP de las dos tiendas por MCP y que no hay salida a internet. El gate de la CLI dentro de Compose detecta `pr-lcp-hero-lazy` (LCP de 652 ms a 1,06 s) y `pr-loaf-cart-handler` (INP de 16 a 96 ms), los dos con exit 1. Imágenes: `shop` 81 MB y `thirdparty` 80 MB.
 
 ## Pendiente
+
+- Servicios `ollama` (tras el benchmark de modelos) y `ci` (tras el Judge), con los perfiles `default` y `lite`.
+- Workflow de GHCR: publicar multiarch `agents`, `thirdparty` y una imagen `shop` por cada ref (`main` y las cuatro `pr/*`).
 
 - Experimento reproducible de la atribución con y sin `keepNames` (hoy solo hay un spike en el scratchpad), antes de llevarlo a Learnings como candidato: "si quieres que un agente atribuya, conserva los nombres".
 - `--workspace` en `agents/src/mcp/client.ts` cuando exista la carpeta de salida compartida con `ci`.
