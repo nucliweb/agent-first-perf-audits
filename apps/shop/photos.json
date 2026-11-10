@@ -1,0 +1,65 @@
+[
+  {
+    "slot": "hero",
+    "imageUrl": "https://images.unsplash.com/photo-1500557515707-69f05f65df7d",
+    "pageUrl": "https://unsplash.com/photos/person-pouring-coffee-into-cup-qLFJ0uCF9oY",
+    "photographer": "Jannis Brandt",
+    "description": "A gooseneck kettle pours water into a pour-over brewer on a warm wooden table with a jar of beans and a plant behind."
+  },
+  {
+    "slot": "ethiopia-yirgacheffe",
+    "imageUrl": "https://images.unsplash.com/photo-1562051036-e0eea191d42f",
+    "pageUrl": "https://unsplash.com/photos/brown-coffee-beans-inside-white-sack-7QlJ79Cj43w",
+    "photographer": "Nadia Valko",
+    "description": "An open white coffee bag full of light-roasted beans with visible chaff, seen from above."
+  },
+  {
+    "slot": "colombia-huila",
+    "imageUrl": "https://images.unsplash.com/photo-1598198192305-46b0805890d3",
+    "pageUrl": "https://unsplash.com/photos/brown-coffee-beans-on-white-plastic-pack-83ijPo1g9og",
+    "photographer": "Justus Menke",
+    "description": "Medium-roast coffee beans inside an open silver bag, seen from above."
+  },
+  {
+    "slot": "kenya-aa",
+    "imageUrl": "https://images.unsplash.com/photo-1611691934391-5a8805e0bd1a",
+    "pageUrl": "https://unsplash.com/photos/blue-ceramic-mug-on-coffee-beans-p3dGOGBFbP4",
+    "photographer": "Craig McKay",
+    "description": "Overhead view of a small cup of coffee resting on a bed of roasted beans."
+  },
+  {
+    "slot": "espresso-blend",
+    "imageUrl": "https://images.unsplash.com/photo-1772134141698-c47b78663c55",
+    "pageUrl": "https://unsplash.com/photos/fresh-espresso-pouring-into-a-glass-UTy23CZhR-M",
+    "photographer": "Scott K",
+    "description": "Close-up of an espresso shot streaming from a bottomless portafilter into a glass."
+  },
+  {
+    "slot": "v60-dripper",
+    "imageUrl": "https://images.unsplash.com/photo-1622088891722-c6f91b80627f",
+    "pageUrl": "https://unsplash.com/photos/red-and-white-ceramic-cup-with-brown-liquid-R1zLaRmi-DE",
+    "photographer": "Sean Benesh",
+    "description": "Water poured from a gooseneck kettle into a red V60 cone dripper on a glass server."
+  },
+  {
+    "slot": "chemex",
+    "imageUrl": "https://images.unsplash.com/photo-1761393877623-4412d7060ba4",
+    "pageUrl": "https://unsplash.com/photos/coffee-brewing-in-a-chemex-pour-over-maker-E6f3_ipCdfc",
+    "photographer": "Peter Oslanec",
+    "description": "A Chemex with a paper filter, wooden collar and brewed coffee against a dark background."
+  },
+  {
+    "slot": "aeropress",
+    "imageUrl": "https://images.unsplash.com/photo-1638993305218-bff3e4c4d27f",
+    "pageUrl": "https://unsplash.com/photos/a-cup-of-coffee-sitting-on-top-of-a-black-table-RiKqBs93Uqc",
+    "photographer": "Jamie Long",
+    "description": "An inverted AeroPress filled with coffee on a dark table, with small pumpkins and a kettle behind."
+  },
+  {
+    "slot": "hand-grinder",
+    "imageUrl": "https://images.unsplash.com/photo-1581446974083-41ed1a460587",
+    "pageUrl": "https://unsplash.com/photos/black-ceramic-bowl-on-brown-wooden-box-lHD0fGARGuM",
+    "photographer": "Ashkan Forouzani",
+    "description": "A wooden manual coffee grinder with a crank handle, its hopper full of beans, on a wooden surface."
+  }
+]

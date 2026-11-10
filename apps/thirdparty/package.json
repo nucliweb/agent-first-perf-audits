@@ -1,0 +1,13 @@
+{
+  "name": "thirdparty",
+  "private": true,
+  "type": "module",
+  "description": "Local mocks of third-party scripts with configurable latency and CPU cost",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
