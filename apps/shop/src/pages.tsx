@@ -17,30 +17,36 @@ import {
   type Category,
 } from "./products.ts";
 
+function Hero() {
+  return (
+    <section className="hero">
+      <img
+        className="hero__image"
+        data-lcp="hero"
+        src="/images/hero-1200.webp"
+        srcSet={heroSrcSet()}
+        sizes={HERO_SIZES}
+        width={1600}
+        height={900}
+        fetchPriority="high"
+        alt="Freshly brewed specialty coffee"
+      />
+      <div className="hero__text">
+        <h1 className="hero__title">Roasted on Monday. In your cup by Thursday.</h1>
+        <p className="hero__lead">Single origins and blends from farms we know, roasted in small batches every week.</p>
+        <Link to="/shop" className="button">
+          Browse the coffee
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function Home() {
   useTitle("");
   return (
     <>
-      <section className="hero">
-        <img
-          className="hero__image"
-          data-lcp="hero"
-          src="/images/hero-1200.webp"
-          srcSet={heroSrcSet()}
-          sizes={HERO_SIZES}
-          width={1600}
-          height={900}
-          fetchPriority="high"
-          alt="Freshly brewed specialty coffee"
-        />
-        <div className="hero__text">
-          <h1 className="hero__title">Roasted on Monday. In your cup by Thursday.</h1>
-          <p className="hero__lead">Single origins and blends from farms we know, roasted in small batches every week.</p>
-          <Link to="/shop" className="button">
-            Browse the coffee
-          </Link>
-        </div>
-      </section>
+      <Hero />
       <Section title="This week's roasts">
         <ProductGrid products={PRODUCTS.filter((p) => p.category === "coffee")} />
       </Section>
