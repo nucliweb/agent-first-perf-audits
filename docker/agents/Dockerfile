@@ -14,7 +14,9 @@ RUN npm ci --omit=dev \
 # of the MCP SDK does not pass PLAYWRIGHT_BROWSERS_PATH to the servers, so a custom
 # path would leave them without a browser.
 USER node
-RUN npx playwright install chromium
+# Only the full Chromium, without the headless shell: Chrome DevTools MCP runs it by its path,
+# and WebPerf Snippets launches it when it is installed, so both measure with the same binary.
+RUN npx playwright install --no-shell chromium
 
 COPY --chown=node:node agents/ ./
 

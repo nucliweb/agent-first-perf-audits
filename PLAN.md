@@ -31,10 +31,10 @@ Nunca `@latest`. Versiones exactas en `package.json` y en las imágenes.
 
 | Herramienta | Versión | Notas |
 |---|---|---|
-| `webperf-snippets` | 1.14.0 | Incluye `cpu`, `network` e `interactions` en el MCP (PRs #404, #405, #406) |
+| `webperf-snippets` | 1.15.0 | `cpu`, `network` e `interactions` en el MCP (PRs #404, #405, #406). Lanza el Chromium completo cuando está instalado y registra el binario en las condiciones |
 | `chrome-devtools-mcp` | 1.12.0 | Con `--executablePath` apuntando al Chromium de Playwright |
 | `trace-engine-cli` | 0.2.0 | Proyecto muy reciente; revisar antes de congelar |
-| `playwright` | 1.63.0 | Su Chromium sirve a las tres herramientas |
+| `playwright` | 1.63.0 | Su Chromium completo sirve a las tres herramientas; la imagen lo instala con `--no-shell` |
 | Imagen base | `node:22.23.4-bookworm-slim` | Node 22 ejecuta TypeScript sin compilar (type stripping) |
 | `@modelcontextprotocol/client` | 2.4.0 | SDK v2, la misma línea que usa el servidor de WebPerf Snippets |
 | `typescript` | 7.0.2 | Solo para el typecheck; no va en la imagen |
@@ -76,9 +76,9 @@ La medición es secuencial (un solo Chromium a la vez) para no contaminar las m�
 
 | Rama | Regresión | Métrica | Gate (CPU 4x, fast-4g, 5 runs, Mac de referencia) |
 |---|---|---|---|
-| `pr/lcp-hero-lazy` | Hero sin preload, con `loading="lazy"` y sin `fetchpriority` | LCP | 652 ms a 1048 ms, p = 0,006 |
-| `pr/cls-promo-banner` | Banner de third party sin espacio reservado + swap de fuente sin preload | CLS | 0 a 0,070 en la home y 0 a 0,055 en la ficha, p = 0,002 |
-| `pr/loaf-cart-handler` | Script síncrono de A/B testing + recomendaciones calculadas en el handler de añadir al carrito | LoAF / INP | INP de 40 a 112 ms, p = 0,005; también LCP de la home de 652 a 964 ms |
+| `pr/lcp-hero-lazy` | Hero sin preload, con `loading="lazy"` y sin `fetchpriority` | LCP | 652 ms a 1060 ms, p = 0,0057 |
+| `pr/cls-promo-banner` | Banner de third party sin espacio reservado + swap de fuente sin preload | CLS | 0 a 0,070 en la home (p = 0,0028) y 0 a 0,055 en la ficha (p = 0,002) |
+| `pr/loaf-cart-handler` | Script síncrono de A/B testing + recomendaciones calculadas en el handler de añadir al carrito | LoAF / INP | INP de 40 a 120 ms, p = 0,005; también LCP de la home de 652 a 968 ms |
 | `pr/noop-refactor` | Extrae el hero a un componente | Control de falsos positivos | Pass en los dos escenarios |
 
 La app es una SPA de React: sin preload, la imagen LCP no se descubre hasta que se ejecuta el JS. Por eso `loading="lazy"` solo añade unos 24 ms (por debajo del umbral) y la regresión de LCP necesita quitar el preload que el servidor inyecta por ruta. El throttling de red forma parte de las condiciones del gate: sin red, la prioridad de descarga apenas pesa.
@@ -180,15 +180,14 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - **Spike DevTools MCP frente a trace-engine-cli**: sobre el mismo trace, Chrome DevTools MCP da unas 5,6 veces más texto y no nombra la función del INP. trace-engine-cli se queda para la atribución. Test en `experiments/trace-engine-cli/compare.test.mjs` y subsección en "No todo tiene que ser un MCP".
 
 - **App Perf Coffee** (`apps/shop`, React 19 + Vite 8, interfaz en inglés) y **mocks de third parties** (`apps/thirdparty`, Node sin dependencias). Servidor de producción con gzip y preload de la imagen LCP por ruta. 22 tests en la tienda (7 de lógica del carrito, 11 del servidor y 4 e2e del recorrido) y 6 en los mocks. Fotos de Unsplash en `apps/shop/photos.json` y `CREDITS.md`.
+- **Un solo Chromium**: WebPerf Snippets 1.15.0 lanza el Chromium completo, con fallback al headless shell, y la imagen `agents` lo instala con `--no-shell`. La imagen pasa de 531 MB a 416 MB (`docker image inspect`), y la CLI registra `"build": "chromium"` en las condiciones.
 - **Ramas de regresión** `pr/lcp-hero-lazy`, `pr/cls-promo-banner`, `pr/loaf-cart-handler` y `pr/noop-refactor`, en local. **Experimento** `experiments/regressions/`: construye `main` y las cuatro ramas, pasa el gate y comprueba los veredictos (3 fallos y 1 pass), en unos 5 minutos. Journey `agents/journeys/add-to-cart.json`.
 
 ## Pendiente
 
 - Atribución en el Judge: Vite minifica y los nombres de función se pierden (`recommendFor` no aparecerá tal cual en `tasks`). Decidir entre build sin minificar para el taller, `keepNames` o source maps, y comprobarlo con trace-engine-cli.
-
-- Un solo Chromium en la imagen: cambio en WebPerf Snippets para lanzar el Chromium completo, con fallback al headless shell. Después, `--no-shell` en el Dockerfile.
 - `--workspace` en `agents/src/mcp/client.ts` cuando exista la carpeta de salida compartida con `ci`.
-- Medir el tamaño de descarga real de la imagen `agents` (Docker Desktop muestra 1,9 GB; `docker image inspect`, 531 MB).
+- Medir el tamaño de descarga real de la imagen `agents` (con un solo Chromium, Docker Desktop muestra 1,51 GB y `docker image inspect`, 416 MB).
 - Decidir si se añaden a Learnings estos cuatro candidatos:
   1. El cliente stdio de MCP no pasa todo el entorno al servidor (el caso de `TMPDIR` ya está en "Chrome DevTools MCP fuera del editor"; falta el de `PLAYWRIGHT_BROWSERS_PATH`).
   2. No hay paquete de Google Chrome para Linux ARM64; se usa el Chromium de Playwright.

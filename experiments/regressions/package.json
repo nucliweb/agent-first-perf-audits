@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "playwright": "1.63.0",
-    "webperf-snippets": "1.14.0"
+    "webperf-snippets": "1.15.0"
   },
   "engines": {
     "node": ">=22.18"

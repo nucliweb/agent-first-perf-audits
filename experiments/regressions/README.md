@@ -40,17 +40,17 @@ El test comprueba el veredicto, no las cifras: los milisegundos cambian de una m
 
 ## Resultados en el Mac de referencia
 
-Una ejecución de `npm run measure` en un Apple Silicon de 16 GB:
+Una ejecución de `npm test` en un Apple Silicon de 16 GB, con el Chromium completo de Playwright (`"build": "chromium"` en las condiciones):
 
 | Rama | Escenario | Métrica | `main` | Rama | Cambio | p | Exit |
 |---|---|---|---|---|---|---|---|
-| `pr/lcp-hero-lazy` | home | LCP | 652 ms | 1048 ms | +60,7 % | 0,006 | 1 |
-| `pr/cls-promo-banner` | home | CLS | 0 | 0,070 | | 0,002 | 1 |
+| `pr/lcp-hero-lazy` | home | LCP | 652 ms | 1060 ms | +62,6 % | 0,0057 | 1 |
+| `pr/cls-promo-banner` | home | CLS | 0 | 0,070 | | 0,0028 | 1 |
 | `pr/cls-promo-banner` | add-to-cart | CLS | 0 | 0,055 | | 0,002 | 1 |
-| `pr/loaf-cart-handler` | add-to-cart | INP | 40 ms | 112 ms | +180 % | 0,005 | 1 |
-| `pr/loaf-cart-handler` | home | LCP | 652 ms | 964 ms | +47,9 % | 0,0049 | 1 |
-| `pr/noop-refactor` | home | LCP | 652 ms | 644 ms | -1,2 % | 0,084 | 0 |
-| `pr/noop-refactor` | add-to-cart | INP | 40 ms | 40 ms | 0 % | 0,5593 | 0 |
+| `pr/loaf-cart-handler` | add-to-cart | INP | 40 ms | 120 ms | +200 % | 0,005 | 1 |
+| `pr/loaf-cart-handler` | home | LCP | 652 ms | 968 ms | +48,5 % | 0,0057 | 1 |
+| `pr/noop-refactor` | home | LCP | 652 ms | 652 ms | 0 % | 0,7511 | 0 |
+| `pr/noop-refactor` | add-to-cart | INP | 40 ms | 40 ms | 0 % | 0,7234 | 0 |
 
 Dos ramas empeoran más de una métrica, como pasa en una PR real:
 
@@ -61,4 +61,4 @@ El Judge tiene que atribuir cada métrica a su causa, no solo dar el veredicto.
 
 ## Versiones
 
-`webperf-snippets` 1.14.0 y `playwright` 1.63.0, fijadas en [`package.json`](package.json).
+`webperf-snippets` 1.15.0 y `playwright` 1.63.0, fijadas en [`package.json`](package.json). La CLI usa el Chromium completo cuando está instalado, el mismo binario que Chrome DevTools MCP; con solo el headless shell (`npx playwright install --only-shell chromium`), las cifras pueden ser algo distintas.
