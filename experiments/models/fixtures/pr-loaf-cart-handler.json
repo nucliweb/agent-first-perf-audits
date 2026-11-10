@@ -1,0 +1,84 @@
+{
+  "ref": "pr/loaf-cart-handler",
+  "expected": {
+    "LCP": "ab\\.js|synchronous|A/B",
+    "INP": "recommendFor|recommendations"
+  },
+  "input": {
+    "branch": "pr/loaf-cart-handler",
+    "gate": {
+      "verdict": "fail",
+      "scenarios": [
+        {
+          "scenario": "home",
+          "exitCode": 1,
+          "metrics": {
+            "LCP": {
+              "baseline": 656,
+              "candidate": 972,
+              "deltaPercent": 48.2,
+              "threshold": 100,
+              "p": 0.0055,
+              "verdict": "regressed"
+            },
+            "CLS": {
+              "baseline": 0,
+              "candidate": 0,
+              "deltaPercent": null,
+              "threshold": 0.05,
+              "p": 1,
+              "verdict": "unchanged"
+            }
+          }
+        },
+        {
+          "scenario": "add-to-cart",
+          "exitCode": 1,
+          "metrics": {
+            "CLS": {
+              "baseline": 0,
+              "candidate": 0,
+              "deltaPercent": null,
+              "threshold": 0.05,
+              "p": 1,
+              "verdict": "unchanged"
+            },
+            "INP": {
+              "baseline": 48,
+              "candidate": 120,
+              "deltaPercent": 150,
+              "threshold": 50,
+              "p": 0.005,
+              "verdict": "regressed"
+            }
+          }
+        }
+      ]
+    },
+    "diff": "diff --git a/apps/shop/index.html b/apps/shop/index.html\nindex 3c324d7..ac4f610 100644\n--- a/apps/shop/index.html\n+++ b/apps/shop/index.html\n@@ -8,6 +8,7 @@\n     <link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\" />\n     <!-- lcp-preload -->\n     <link rel=\"preload\" href=\"/fonts/fraunces-latin-600-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin />\n+    <script src=\"__THIRDPARTY_ORIGIN__/ab.js?cpu=150\"></script>\n     <script async src=\"__THIRDPARTY_ORIGIN__/analytics.js?delay=100&cpu=30\"></script>\n     <script async src=\"__THIRDPARTY_ORIGIN__/promo.js?delay=800&cpu=20\"></script>\n     <script defer src=\"__THIRDPARTY_ORIGIN__/chat.js?delay=300&cpu=60\"></script>\ndiff --git a/apps/shop/src/pages.tsx b/apps/shop/src/pages.tsx\nindex 83dbdd0..f9143a5 100644\n--- a/apps/shop/src/pages.tsx\n+++ b/apps/shop/src/pages.tsx\n@@ -2,6 +2,7 @@ import { useState } from \"react\";\n import { Link } from \"./router.tsx\";\n import { addToCart, changeQuantity, cartTotals, linePrice, useCartLines } from \"./cart.ts\";\n import { FREE_SHIPPING_FROM } from \"./cart-lines.ts\";\n+import { recommendFor } from \"./recommendations.ts\";\n import { ProductGrid, Section, Stepper, useTitle } from \"./components.tsx\";\n import {\n   HERO_SIZES,\n@@ -82,6 +83,7 @@ export function ProductPage({ slug }: { slug: string }) {\n   const [size, setSize] = useState<string>(SIZES[0].id);\n   const [quantity, setQuantity] = useState(1);\n   const [added, setAdded] = useState(0);\n+  const [recommended, setRecommended] = useState<string[]>([]);\n   if (!product) return <NotFound />;\n \n   const isCoffee = product.category === \"coffee\";\n@@ -90,6 +92,7 @@ export function ProductPage({ slug }: { slug: string }) {\n   const onAdd = () => {\n     addToCart({ slug: product.slug, size: lineSize, quantity });\n     setAdded((n) => n + 1);\n+    setRecommended(recommendFor(product.slug));\n   };\n \n   return (\n@@ -136,7 +139,7 @@ export function ProductPage({ slug }: { slug: string }) {\n             </button>\n           </div>\n           <p className=\"status\" role=\"status\">\n-            {added > 0 ? \"Added to your cart.\" : \"\"}\n+            {added > 0 ? `Added to your cart. Goes well with ${recommended.map((s) => productBySlug(s)?.name).join(\" and \")}.` : \"\"}\n           </p>\n         </div>\n       </div>\ndiff --git a/apps/shop/src/recommendations.ts b/apps/shop/src/recommendations.ts\nnew file mode 100644\nindex 0000000..e646232\n--- /dev/null\n+++ b/apps/shop/src/recommendations.ts\n@@ -0,0 +1,17 @@\n+// Picks the products to suggest after an add to cart, from the products bought together\n+// in past orders.\n+import { PRODUCTS } from \"./products.ts\";\n+\n+const ORDERS = Array.from({ length: 3000 }, (_, i) => PRODUCTS[(i * 7) % PRODUCTS.length].slug);\n+\n+export function recommendFor(slug: string) {\n+  const scores = new Map<string, number>();\n+  for (let i = 0; i < ORDERS.length; i++) {\n+    for (let j = 0; j < ORDERS.length; j++) {\n+      if (ORDERS[i] === slug && ORDERS[j] !== slug) {\n+        scores.set(ORDERS[j], (scores.get(ORDERS[j]) ?? 0) + 1 / (1 + Math.abs(i - j)));\n+      }\n+    }\n+  }\n+  return [...scores.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([s]) => s);\n+}",
+    "traces": {
+      "home": {
+        "baseline": {
+          "overview": "bounds:\n  durationMs: 2524.83\nmainUrl: \"http://shop-baseline:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 610.61\n    rating: good\n  lcp:\n    valueMs: 637.08\n    rating: good\n    url: \"http://shop-baseline:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 5.35\n  layoutMs: 6.08\n  renderingMs: 6.25\n  gcMs: 0\n  systemMs: 235.09\n  idleMs: 2272.07\n  totalMs: 2524.83\nwarnings[1]: 1 render-blocking resource(s) detected.",
+          "shifts": "clusters: []",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  59.22,59.21,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  32.38,32.31,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1\n  21.61,21.59,formatPrice,\"http://shop-baseline:3000/assets/index-Dq8xWP3D.js\",8,66440\n  19.58,19.49,ProfileCall,\"http://thirdparty:4000/promo.js?delay=800&cpu=20\",0,1\n  17.89,17.89,\"LocalFrameView::performLayout\",null,null,null"
+        },
+        "candidate": {
+          "overview": "bounds:\n  durationMs: 2927.81\nmainUrl: \"http://shop-candidate:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 908.84\n    rating: good\n  lcp:\n    valueMs: 967.54\n    rating: good\n    url: \"http://shop-candidate:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 4.96\n  layoutMs: 28.78\n  renderingMs: 6\n  gcMs: 0\n  systemMs: 405.36\n  idleMs: 2482.71\n  totalMs: 2927.81\nwarnings[1]: 2 render-blocking resource(s) detected.",
+          "shifts": "clusters: []",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  150.98,150.62,ProfileCall,\"http://thirdparty:4000/ab.js?cpu=150\",0,1\n  60.06,59.83,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  30.24,30.17,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1\n  28.73,28.73,UpdateLayoutTree,null,null,null\n  28.59,28.59,\"LocalFrameView::performLayout\",null,null,null"
+        }
+      },
+      "add-to-cart": {
+        "baseline": {
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,42.9,2.83,7.73,32.34,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  42.86,42.84,\"CpuProfiler::StartProfiling\",null,null,null\n  110.81,24.94,\"ThreadControllerImpl::RunTask\",null,null,null\n  55.52,10.56,EvaluateScript,null,null,null\n  68.06,7.96,Receive mojo message,null,null,null\n  9.29,3.55,FunctionCall,null,null,null"
+        },
+        "candidate": {
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,137.9,3.35,95.61,38.94,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  83.86,79.99,recommendFor,\"http://shop-candidate:3000/assets/index-BsVNkX21.js\",8,69676\n  43.47,43.46,\"CpuProfiler::StartProfiling\",null,null,null\n  205.13,30.01,\"ThreadControllerImpl::RunTask\",null,null,null\n  56.57,10.44,EvaluateScript,null,null,null\n  68.21,7.53,Receive mojo message,null,null,null"
+        }
+      }
+    }
+  }
+}

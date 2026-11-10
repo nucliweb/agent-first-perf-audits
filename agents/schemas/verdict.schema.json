@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nucliweb/agent-first-perf-audits/agents/schemas/verdict.schema.json",
+  "title": "Judge explanation",
+  "description": "What the LLM of the Judge returns for one regressed metric. The rules decide the verdict and the metric; the model repeats both and explains the cause from the data it gets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "verdict",
+    "metric",
+    "suspected_cause",
+    "evidence",
+    "confidence"
+  ],
+  "properties": {
+    "verdict": {
+      "description": "The verdict of the rules, repeated: fail when the gate failed, pass otherwise",
+      "enum": [
+        "pass",
+        "fail"
+      ]
+    },
+    "metric": {
+      "description": "The metric to explain, repeated from the rules, or none when nothing regressed",
+      "enum": [
+        "LCP",
+        "CLS",
+        "INP",
+        "none"
+      ]
+    },
+    "suspected_cause": {
+      "description": "The change of the branch that most likely caused the regression of that metric, in one sentence",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "evidence": {
+      "description": "Facts from the input that support the cause: a line of the diff, a function of a trace, a metric",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "minItems": 1,
+      "maxItems": 3
+    },
+    "confidence": {
+      "description": "How well the evidence supports the cause",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    }
+  }
+}

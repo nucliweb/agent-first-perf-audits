@@ -1,0 +1,19 @@
+{
+  "name": "experiment-models",
+  "private": true,
+  "type": "module",
+  "description": "Benchmark de los modelos candidatos del Judge en Ollama: latencia, JSON válido, acierto y RAM, con las entradas reales de las ramas de regresión",
+  "scripts": {
+    "fixtures": "node fixtures.mjs",
+    "bench": "node bench.mjs",
+    "test": "node --test normalize.test.mjs score.test.mjs rules.test.mjs suspects.test.mjs match.test.mjs claims.test.mjs"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "playwright": "1.63.0",
+    "trace-engine-cli": "0.2.0"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}
