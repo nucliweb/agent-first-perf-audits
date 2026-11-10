@@ -12,4 +12,11 @@ const thirdPartyOrigin = (): Plugin => ({
 
 export default defineConfig({
   plugins: [react(), thirdPartyOrigin()],
+  build: {
+    rolldownOptions: {
+      // Minified, but with the names of functions, so a CPU profile names the function behind
+      // a long task and the Judge can match it with the diff of the branch. About 10 % more gzip.
+      output: { keepNames: true },
+    },
+  },
 });
