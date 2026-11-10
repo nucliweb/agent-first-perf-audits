@@ -1,0 +1,24 @@
+{
+  "name": "agents",
+  "private": true,
+  "type": "module",
+  "description": "Orchestrator and subagents of the workshop",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.4.0",
+    "chrome-devtools-mcp": "1.12.0",
+    "playwright": "1.63.0",
+    "trace-engine-cli": "0.2.0",
+    "webperf-snippets": "1.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}
