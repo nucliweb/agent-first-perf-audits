@@ -225,3 +225,4 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
   4. Cambio en la herramienta antes que parche en el taller (PRs #404 a #406).
 - Posible línea en `content/MCP.mdx` de WebPerf Snippets sobre el entorno del cliente stdio.
 - Traducciones de Learnings a catalán e inglés.
+- Traducir el README a catalán (`README.ca.md`) e inglés (`README.en.md`), y probar sus comandos de `docker compose pull` desde un clon limpio cuando las imágenes estén publicadas y públicas.
