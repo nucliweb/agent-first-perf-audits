@@ -90,6 +90,17 @@ El exit code de `ci` es el veredicto: 0 si pasa, 1 si alguna métrica empeora y 
 
 El preflight crea `out/`. Si no lo has pasado, en Linux créala antes de la primera ejecución (`mkdir out`): si no existe, Docker la crea como root y el contenedor no puede escribir en ella.
 
+### Los subagentes
+
+El orquestador pasa cada subagente por la tienda de `BASELINE` y por la de `CANDIDATE`, una medida detrás de otra para que dos Chromium no se repartan la CPU, y escribe lo que encuentra en `out/agents/`, un JSON por subagente y lado:
+
+```bash
+CANDIDATE=pr-lcp-hero-lazy docker compose up -d
+CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts
+```
+
+El subagente de LCP mide la home con el throttling del gate (CPU 4x y fast-4g) y la mediana de 3 ejecuciones. Con WebPerf Snippets MCP obtiene el LCP, su elemento, el desglose en sus cuatro fases (TTFB, retraso y tiempo de carga del recurso y retraso de render) y, cuando el LCP es una imagen, cómo carga: `loading`, `fetchpriority`, si tiene preload y los avisos de la auditoría. Con Chrome DevTools MCP graba un trace de la carga en `out/agents/traces/`. Mide, no decide: el veredicto es del gate.
+
 ### Perfil `lite`, para equipos de 8 GB
 
 ```bash
@@ -133,7 +144,8 @@ Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las dete
 ├── agents/
 │   ├── src/judge/        # gate, traces, diff, reglas, prompt y handoff
 │   ├── src/ci/           # el servicio ci y su informe
-│   ├── src/subagents/    # los subagentes, empezando por el Judge
+│   ├── src/orchestrator.ts  # pasa los subagentes por las dos tiendas
+│   ├── src/subagents/    # los subagentes: LCP y el Judge
 │   ├── journeys/         # los recorridos de interacción en JSON
 │   └── schemas/          # el schema de la explicación del LLM
 ├── docker/               # un Dockerfile por imagen

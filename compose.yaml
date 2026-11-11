@@ -2,7 +2,8 @@
 # images of two git refs, built with scripts/build-shop.sh or pulled from GHCR:
 #   scripts/build-shop.sh main pr/lcp-hero-lazy
 #   CANDIDATE=pr-lcp-hero-lazy docker compose up -d
-#   docker compose run --rm agents
+#   docker compose run --rm agents                                the tests of the agents image
+#   docker compose run --rm agents node src/orchestrator.ts       the subagents, to out/agents
 # The lite profile, for machines with 8 GB, runs everything except the local LLM:
 #   COMPOSE_PROFILES=lite docker compose up -d
 # Every service runs on the lab network, which has no access to the internet.
@@ -58,6 +59,10 @@ services:
       OLLAMA_URL: http://ollama:11434
       OLLAMA_MODEL: llama3.2:3b
       COMPOSE_PROFILES: ${COMPOSE_PROFILES:-}
+      OUT: /out
+    # What the orchestrator and ci write: the JSON of the subagents, the reports and the traces
+    volumes:
+      - ./out:/out
     depends_on:
       shop-baseline:
         condition: service_healthy
@@ -79,10 +84,8 @@ services:
       BASELINE: ${BASELINE:-main}
       CANDIDATE: ${CANDIDATE:-pr-noop-refactor}
       REPO: /repo
-      OUT: /out
     volumes:
       - .:/repo:ro
-      - ./out:/out
 
 networks:
   lab:

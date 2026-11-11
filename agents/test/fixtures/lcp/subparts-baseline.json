@@ -1,0 +1,75 @@
+{
+  "url": "http://shop-baseline:3000/",
+  "runId": "9f289fde-1bc6-4bc0-9ebb-2693e9185caf",
+  "detail": "full",
+  "snippet": "CoreWebVitals/LCP-Subparts",
+  "viewport": "mobile",
+  "navMs": 4133,
+  "pageErrors": [],
+  "throttling": {
+    "cpu": 4,
+    "network": "fast-4g"
+  },
+  "result": {
+    "script": "LCP-Subparts",
+    "status": "ok",
+    "metric": "LCP",
+    "value": 760,
+    "unit": "ms",
+    "rating": "good",
+    "thresholds": {
+      "good": 2500,
+      "needsImprovement": 4000
+    },
+    "details": {
+      "element": "img.hero__image",
+      "url": "hero-800.webp",
+      "subParts": {
+        "ttfb": {
+          "value": 3,
+          "percent": 0,
+          "overTarget": false
+        },
+        "resourceLoadDelay": {
+          "value": 188,
+          "percent": 25,
+          "overTarget": true
+        },
+        "resourceLoadTime": {
+          "value": 309,
+          "percent": 41,
+          "overTarget": true,
+          "waiting": 2,
+          "download": 307
+        },
+        "elementRenderDelay": {
+          "value": 260,
+          "percent": 34,
+          "overTarget": true
+        }
+      },
+      "slowestPhase": "resourceLoadTime"
+    }
+  },
+  "runs": {
+    "count": 3,
+    "failed": 0,
+    "medianRun": 3,
+    "medianBy": "LCP",
+    "summary": {
+      "LCP": {
+        "median": 760,
+        "min": 760,
+        "max": 772,
+        "values": [
+          772,
+          760,
+          760
+        ],
+        "unit": "ms",
+        "cv": 0.9,
+        "agreement": "consistent"
+      }
+    }
+  }
+}

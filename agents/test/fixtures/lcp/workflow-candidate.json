@@ -1,0 +1,443 @@
+{
+  "url": "http://shop-candidate:3000/",
+  "runId": "4cf2b824-14e6-4526-8af9-536adbf51627",
+  "detail": "full",
+  "results": [
+    {
+      "id": "LCP",
+      "script": "LCP",
+      "status": "ok",
+      "metric": "LCP",
+      "value": 1196,
+      "unit": "ms",
+      "rating": "good",
+      "thresholds": {
+        "good": 2500,
+        "needsImprovement": 4000
+      },
+      "details": {
+        "element": "img.hero__image",
+        "elementType": "Image",
+        "url": "http://shop-candidate:3000/images/hero-800.webp",
+        "sizePixels": 66177
+      }
+    },
+    {
+      "id": "CLS",
+      "script": "CLS",
+      "status": "ok",
+      "metric": "CLS",
+      "value": 0,
+      "unit": "score",
+      "rating": "good",
+      "thresholds": {
+        "good": 0.1,
+        "needsImprovement": 0.25
+      },
+      "message": "CLS tracking active. Call getCLS() for updated value after page interactions.",
+      "getDataFn": "getCLS"
+    },
+    {
+      "id": "LCP-Image-Entropy",
+      "script": "LCP-Image-Entropy",
+      "status": "ok",
+      "count": 9,
+      "details": {
+        "totalImages": 9,
+        "lowEntropyCount": 0,
+        "lcpElement": "img",
+        "lcpImageEligible": true,
+        "lcpImage": {
+          "url": "hero-800.webp",
+          "bpp": 7.1918,
+          "isLowEntropy": false
+        }
+      },
+      "items": [
+        {
+          "url": "hero-800.webp",
+          "width": 374,
+          "height": 210,
+          "displayedWidth": 343,
+          "displayedHeight": 193,
+          "fileSizeBytes": 59492,
+          "bpp": 7.1918,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": true
+        },
+        {
+          "url": "chemex-400.webp",
+          "width": 187,
+          "height": 187,
+          "displayedWidth": 162,
+          "displayedHeight": 162,
+          "fileSizeBytes": 14266,
+          "bpp": 4.3757,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": false
+        },
+        {
+          "url": "aeropress-400.webp",
+          "width": 187,
+          "height": 187,
+          "displayedWidth": 162,
+          "displayedHeight": 162,
+          "fileSizeBytes": 15210,
+          "bpp": 4.6652,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": false
+        },
+        {
+          "url": "hand-grinder-400.webp",
+          "width": 187,
+          "height": 187,
+          "displayedWidth": 162,
+          "displayedHeight": 162,
+          "fileSizeBytes": 21168,
+          "bpp": 6.4927,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": false
+        },
+        {
+          "url": "v60-dripper-400.webp",
+          "width": 187,
+          "height": 187,
+          "displayedWidth": 162,
+          "displayedHeight": 162,
+          "fileSizeBytes": 21954,
+          "bpp": 6.7338,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": false
+        },
+        {
+          "url": "espresso-blend-400.webp",
+          "width": 187,
+          "height": 187,
+          "displayedWidth": 162,
+          "displayedHeight": 162,
+          "fileSizeBytes": 24802,
+          "bpp": 7.6073,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": false
+        },
+        {
+          "url": "ethiopia-yirgacheffe-400.webp",
+          "width": 187,
+          "height": 187,
+          "displayedWidth": 162,
+          "displayedHeight": 162,
+          "fileSizeBytes": 31262,
+          "bpp": 9.5887,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": false
+        },
+        {
+          "url": "colombia-huila-400.webp",
+          "width": 187,
+          "height": 187,
+          "displayedWidth": 162,
+          "displayedHeight": 162,
+          "fileSizeBytes": 45552,
+          "bpp": 13.9718,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": false
+        },
+        {
+          "url": "kenya-aa-400.webp",
+          "width": 187,
+          "height": 187,
+          "displayedWidth": 162,
+          "displayedHeight": 162,
+          "fileSizeBytes": 70308,
+          "bpp": 21.565,
+          "isLowEntropy": false,
+          "lcpEligible": true,
+          "isLCP": false
+        }
+      ],
+      "issues": [],
+      "reason": "LCP is an image — checking its entropy and its attributes"
+    },
+    {
+      "id": "image-audit",
+      "script": "Image-Element-Audit",
+      "status": "ok",
+      "count": 9,
+      "corsLimitedAnalysis": false,
+      "details": {
+        "totalImages": 9,
+        "withoutSrc": 0,
+        "formatGuessedCount": 0,
+        "inViewport": 3,
+        "offViewport": 6,
+        "totalErrors": 2,
+        "totalWarnings": 4,
+        "totalInfos": 0,
+        "lcpCandidate": {
+          "selector": "img.hero__image",
+          "format": "webp",
+          "fetchpriority": "(not set)",
+          "loading": "lazy",
+          "preloaded": false
+        }
+      },
+      "items": [
+        {
+          "selector": "img.hero__image",
+          "url": "http://shop-candidate:3000/images/hero-800.webp",
+          "format": "webp",
+          "inViewport": true,
+          "isLCP": true,
+          "loading": "lazy",
+          "decoding": "(not set)",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": [
+            {
+              "code": "lcp-no-fetchpriority",
+              "severity": "error",
+              "message": "Add fetchpriority=\"high\" to the LCP image"
+            },
+            {
+              "code": "lcp-lazy",
+              "severity": "error",
+              "message": "Remove loading=\"lazy\" from the LCP image"
+            },
+            {
+              "code": "lcp-not-decoding-sync",
+              "severity": "warning",
+              "message": "Consider decoding=\"sync\" for the LCP image"
+            },
+            {
+              "code": "lcp-not-preloaded",
+              "severity": "warning",
+              "message": "LCP image has no <link rel=\"preload\" as=\"image\">"
+            }
+          ]
+        },
+        {
+          "selector": "section.section:nth-of-type(2) > div.grid > article.card:nth-of-type(1) > a.card__link > img.card__image",
+          "url": "http://shop-candidate:3000/images/products/ethiopia-yirgacheffe-400.webp",
+          "format": "webp",
+          "inViewport": true,
+          "isLCP": false,
+          "loading": "lazy",
+          "decoding": "async",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": [
+            {
+              "code": "lazy-in-viewport",
+              "severity": "warning",
+              "message": "Remove loading=\"lazy\" (image is above the fold)"
+            }
+          ]
+        },
+        {
+          "selector": "section.section:nth-of-type(2) > div.grid > article.card:nth-of-type(2) > a.card__link > img.card__image",
+          "url": "http://shop-candidate:3000/images/products/colombia-huila-400.webp",
+          "format": "webp",
+          "inViewport": true,
+          "isLCP": false,
+          "loading": "lazy",
+          "decoding": "async",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": [
+            {
+              "code": "lazy-in-viewport",
+              "severity": "warning",
+              "message": "Remove loading=\"lazy\" (image is above the fold)"
+            }
+          ]
+        },
+        {
+          "selector": "section.section:nth-of-type(2) > div.grid > article.card:nth-of-type(3) > a.card__link > img.card__image",
+          "url": "http://shop-candidate:3000/images/products/kenya-aa-400.webp",
+          "format": "webp",
+          "inViewport": false,
+          "isLCP": false,
+          "loading": "lazy",
+          "decoding": "async",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": []
+        },
+        {
+          "selector": "section.section:nth-of-type(2) > div.grid > article.card:nth-of-type(4) > a.card__link > img.card__image",
+          "url": "http://shop-candidate:3000/images/products/espresso-blend-400.webp",
+          "format": "webp",
+          "inViewport": false,
+          "isLCP": false,
+          "loading": "lazy",
+          "decoding": "async",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": []
+        },
+        {
+          "selector": "section.section:nth-of-type(3) > div.grid > article.card:nth-of-type(1) > a.card__link > img.card__image",
+          "url": "http://shop-candidate:3000/images/products/v60-dripper-400.webp",
+          "format": "webp",
+          "inViewport": false,
+          "isLCP": false,
+          "loading": "lazy",
+          "decoding": "async",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": []
+        },
+        {
+          "selector": "section.section:nth-of-type(3) > div.grid > article.card:nth-of-type(2) > a.card__link > img.card__image",
+          "url": "http://shop-candidate:3000/images/products/chemex-400.webp",
+          "format": "webp",
+          "inViewport": false,
+          "isLCP": false,
+          "loading": "lazy",
+          "decoding": "async",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": []
+        },
+        {
+          "selector": "section.section:nth-of-type(3) > div.grid > article.card:nth-of-type(3) > a.card__link > img.card__image",
+          "url": "http://shop-candidate:3000/images/products/aeropress-400.webp",
+          "format": "webp",
+          "inViewport": false,
+          "isLCP": false,
+          "loading": "lazy",
+          "decoding": "async",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": []
+        },
+        {
+          "selector": "section.section:nth-of-type(3) > div.grid > article.card:nth-of-type(4) > a.card__link > img.card__image",
+          "url": "http://shop-candidate:3000/images/products/hand-grinder-400.webp",
+          "format": "webp",
+          "inViewport": false,
+          "isLCP": false,
+          "loading": "lazy",
+          "decoding": "async",
+          "fetchpriority": "(not set)",
+          "hasDimensions": true,
+          "hasSrcset": true,
+          "hasSizes": true,
+          "inPicture": false,
+          "issues": []
+        }
+      ],
+      "issues": [
+        {
+          "code": "lcp-no-fetchpriority",
+          "severity": "error",
+          "message": "hero-800.webp: Add fetchpriority=\"high\" to the LCP image",
+          "target": "http://shop-candidate:3000/images/hero-800.webp"
+        },
+        {
+          "code": "lcp-lazy",
+          "severity": "error",
+          "message": "hero-800.webp: Remove loading=\"lazy\" from the LCP image",
+          "target": "http://shop-candidate:3000/images/hero-800.webp"
+        },
+        {
+          "code": "lcp-not-decoding-sync",
+          "severity": "warning",
+          "message": "hero-800.webp: Consider decoding=\"sync\" for the LCP image",
+          "target": "http://shop-candidate:3000/images/hero-800.webp"
+        },
+        {
+          "code": "lcp-not-preloaded",
+          "severity": "warning",
+          "message": "hero-800.webp: LCP image has no <link rel=\"preload\" as=\"image\">",
+          "target": "http://shop-candidate:3000/images/hero-800.webp"
+        },
+        {
+          "code": "lazy-in-viewport",
+          "severity": "warning",
+          "message": "ethiopia-yirgacheffe-400.webp: Remove loading=\"lazy\" (image is above the fold)",
+          "target": "http://shop-candidate:3000/images/products/ethiopia-yirgacheffe-400.webp"
+        },
+        {
+          "code": "lazy-in-viewport",
+          "severity": "warning",
+          "message": "colombia-huila-400.webp: Remove loading=\"lazy\" (image is above the fold)",
+          "target": "http://shop-candidate:3000/images/products/colombia-huila-400.webp"
+        }
+      ],
+      "reason": "LCP is an image — checking its entropy and its attributes"
+    }
+  ],
+  "workflow": "core-web-vitals",
+  "viewport": "mobile",
+  "navMs": 4207,
+  "pageErrors": [],
+  "throttling": {
+    "cpu": 4,
+    "network": "fast-4g"
+  },
+  "runs": {
+    "count": 3,
+    "failed": 0,
+    "medianRun": 2,
+    "medianBy": "LCP",
+    "summary": {
+      "LCP": {
+        "median": 1196,
+        "min": 1176,
+        "max": 1244,
+        "values": [
+          1244,
+          1196,
+          1176
+        ],
+        "unit": "ms",
+        "cv": 2.9,
+        "agreement": "consistent"
+      },
+      "CLS": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "values": [
+          0,
+          0,
+          0
+        ],
+        "unit": "score"
+      }
+    }
+  }
+}
