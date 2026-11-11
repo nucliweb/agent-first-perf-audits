@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/client": "2.4.0",
+    "ajv": "8.20.0",
     "chrome-devtools-mcp": "1.12.0",
     "playwright": "1.63.0",
     "trace-engine-cli": "0.2.0",

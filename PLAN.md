@@ -41,7 +41,7 @@ Nunca `@latest`. Versiones exactas en `package.json` y en las imágenes.
 | `@types/node` | 22.20.5 | |
 | Modelo | `llama3.2:3b` | Elegido en `experiments/models` frente a `qwen3:1.7b`, `qwen2.5-coder:1.5b` y `gemma3:1b` |
 | Ollama | `ollama/ollama:0.40.13` | En CPU dentro de Docker; el JSON con el schema en `format` |
-| `ajv` | 8.20.0 | Valida las respuestas contra el schema del veredicto en el benchmark |
+| `ajv` | 8.20.0 | Valida las respuestas contra el schema del veredicto, en el benchmark y en el Judge |
 
 ## Arquitectura (docker compose)
 
@@ -194,12 +194,14 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 
 - **Servicio `ollama`** (`docker/ollama/Dockerfile`, imagen `ollama:llama3.2-3b`): `llama3.2:3b` dentro de la imagen, con el digest `a80c4f17acd5` comprobado en el build, y sin las librerías CUDA de la imagen oficial (unos 3,6 GB que en CPU no se usan). Con el modelo dentro ocupa 2,04 GB en `docker image inspect`, frente a 2,85 GB de la oficial sin modelo. `OLLAMA_NO_CLOUD=1` evita las consultas a ollama.com en la red sin salida. Perfil `llm` activado por el `.env` del repo; `agents` depende de `ollama` con `required: false`, así que con `COMPOSE_PROFILES=lite` arranca sin él. `agents/test/ollama.test.ts` comprueba que el modelo está en la imagen y responde JSON restringido por un schema; en `lite` se salta. Verificado en los dos perfiles: 7 tests en verde con `llm` y 5 más 2 saltados con `lite`. Sin el modelo cargado, el contenedor ocupa 23 MB; con el modelo, 2,7 GB con el contexto por defecto de 4.096 tokens (`docker stats`).
 - **Reglas del Judge en `agents/src/judge/`**: `rules.ts`, `suspects.ts`, `match.ts`, `normalize.ts` y `prompt.ts`, pasados a TypeScript sin cambiar la lógica, con sus 17 tests en `agents/test/judge/`. `experiments/models` los importa desde allí y solo conserva lo propio del benchmark (el modo sin salida estructurada y la puntuación); `claims.test.mjs` sigue en verde y el rescore de `4-rules` da las mismas cifras (14 de 15 causas).
+- **Explicación del Judge** en `agents/src/subagents/judge.ts`: `explain(input, chat)` aplica las reglas, pide a ollama una explicación por métrica con el schema como `format` y las opciones del benchmark (temperatura 0, semilla 42, contexto de 8.192 tokens), valida la respuesta con `ajv` y, si contradice el veredicto o la métrica de las reglas, se queda con los de las reglas y anota la discrepancia. Sin regresión responde sin LLM; un JSON inválido, una respuesta fuera del schema o una llamada fallida quedan como error sin explicación, y el veredicto no cambia. 5 tests con un LLM de respuestas fijadas y uno de integración con `llama3.2:3b` sobre el fixture de `pr/loaf-cart-handler` (se salta si no están el modelo o `experiments/models`): dentro de Compose nombra `ab.js` para el LCP y `recommendFor` para el INP, sin discrepancias, en unos 35 s las dos llamadas.
 
 ## Pendiente
 
 - `ci` tras el Judge, con los perfiles `llm` y `lite`. En `lite`, el fichero de handoff para un agente externo. El Judge pasa `num_ctx: 8192` en cada llamada, como el benchmark.
 - Probar la imagen `ollama` en amd64: allí las librerías de CPU son otras y no se ha comprobado que el `rm -rf cuda_*` deje todo lo necesario.
 - El JSON restringido por el schema corta la frase en las comillas de `loading="lazy"`: probar si escaparlas en la entrada o pedir el código entre comillas invertidas lo evita.
+- Las respuestas de `llama3.2:3b` no son idénticas entre contenedores ni frente a las guardadas en `results/`, aun con temperatura 0 y semilla 42: en `pr/loaf-cart-handler` la causa es la misma y cambia la redacción (el LCP coincide entre `ollama-bench` y la imagen `ollama`, el INP no). En la misma imagen, dos ejecuciones seguidas sí coinciden. Averiguar si es la caché del prompt de Ollama y matizar "las respuestas son deterministas" en el README de `experiments/models`.
 - Repetir la latencia del benchmark con la máquina en reposo: con otra carga, `llama3.2:3b` va de 9 a 37 s por explicación.
 - Traducir a catalán e inglés la página mapa y las secciones nuevas de Learnings.
 - Workflow de GHCR: publicar multiarch `agents`, `thirdparty`, `ollama` y una imagen `shop` por cada ref (`main` y las cuatro `pr/*`).
