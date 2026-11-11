@@ -6,7 +6,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { cls, clsJourneyOf } from "../../src/subagents/cls.ts";
+import { cls, clsJourneyOf, type ClsJourney } from "../../src/subagents/cls.ts";
+import { CONDITIONS } from "../../src/subagents/subagent.ts";
 import { JOURNEYS, type NavigatorReport } from "../../src/subagents/navigator.ts";
 
 const fixture = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/cls/${name}.json`, import.meta.url), "utf8"));
@@ -59,4 +60,16 @@ test("inside Compose, it measures the journey of the home on the baseline shop w
   const report = await cls.run({ side: "baseline", origin: BASELINE_URL!, out: tmpdir(), earlier: { navigator } });
   assert.deepEqual(report.conditions, { cpu: 4, network: "fast-4g", runs: 3 });
   assert.deepEqual(report.journeys.map((j) => [j.name, j.url, j.cls.value]), [["home", `${BASELINE_URL}/`, 0]]);
+});
+
+test("the summary names the node that moves only when it counts, and tells the shifts after an input apart", () => {
+  const journey = (name: string, value: number, counted: number, excluded: number, selector?: string): ClsJourney => ({
+    name,
+    url: "",
+    cls: { value, rating: "good", runs: { median: value, min: value, max: value, agreement: null } },
+    shifts: { counted, excluded },
+    elements: selector ? [{ selector, shiftCount: 1, totalImpact: 0.01 }] : [],
+  });
+  const report = { conditions: CONDITIONS, journeys: [journey("home", 0.053, 1, 0, "main.main"), journey("shop", 0, 0, 0), journey("add-to-cart", 0, 0, 1, "section.section")] };
+  assert.equal(cls.summary(report), "home 0.053 (main.main), shop 0, add-to-cart 0 (1 shift after an input, not counted)");
 });

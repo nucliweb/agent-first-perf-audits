@@ -74,8 +74,12 @@ export const cls: Subagent<ClsReport> = {
     }
   },
   summary({ journeys }) {
-    return journeys
-      .map((j) => (j.elements.length ? `${j.name} ${j.cls.value} (${j.elements[0].selector})` : `${j.name} ${j.cls.value}`))
-      .join(", ");
+    // The nodes come from every shift, counted or not, so a node is named only when the CLS counts it
+    const line = (j: ClsJourney) => {
+      if (j.cls.value > 0 && j.elements.length) return `${j.name} ${j.cls.value} (${j.elements[0].selector})`;
+      if (j.shifts.excluded) return `${j.name} ${j.cls.value} (${j.shifts.excluded} shift${j.shifts.excluded > 1 ? "s" : ""} after an input, not counted)`;
+      return `${j.name} ${j.cls.value}`;
+    };
+    return journeys.map(line).join(", ");
   },
 };
