@@ -78,3 +78,15 @@ test("the HTML escapes what comes from the branch and the model", () => {
   assert.ok(html.includes("&lt;img loading=&quot;lazy&quot;&gt;"));
   assert.ok(!html.includes('<img loading="lazy">'));
 });
+
+// The schema bounds the length of each text, and the grammar of the model stops it there
+test("marks a text that reached the limit of the schema as cut", () => {
+  const cut = "x".repeat(199) + "y";
+  const md = reportMarkdown({
+    ...base,
+    explanations: [{ ...base.explanations![0], answer: { ...base.explanations![0].answer!, evidence: [cut, "A short fact."] } }],
+  });
+  assert.ok(md.includes(`- ${cut}…`));
+  assert.ok(md.includes("- A short fact.\n"));
+  assert.ok(reportHtml({ ...base, explanations: [{ ...base.explanations![0], answer: { ...base.explanations![0].answer!, evidence: [cut] } }] }).includes(`${cut}…</li>`));
+});

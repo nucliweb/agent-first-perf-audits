@@ -81,3 +81,16 @@ test("warm, the same case can get another wording: the sentence of the hero chan
   assert.equal(new Set(hero.map((r) => r.content)).size, 2);
   assert.match(causeOf(hero.find((r) => r.rep === 0)), /`loading=$/);
 });
+
+test("runs 4 to 6: none of the 108 evidences of llama3.2:3b reaches the limit of 200 characters of the schema", async () => {
+  let evidences = 0;
+  for (const run of ["4-rules", "5-rules-cold", "6-quotes-cold"]) {
+    for (const row of (await load(run)).filter((r) => r.source === "llm")) {
+      for (const fact of JSON.parse(row.content).evidence) {
+        evidences++;
+        assert.ok(fact.length < 200, `${run} ${row.ref}: ${fact}`);
+      }
+    }
+  }
+  assert.equal(evidences, 108);
+});

@@ -1,5 +1,6 @@
 // The report of the ci service, in Markdown and in HTML. The verdict comes first and comes from the
 // rules; the explanation of the LLM follows, with any discrepancy with the rules in sight.
+import { SCHEMA } from "../judge/prompt.ts";
 import type { Gate } from "../judge/types.ts";
 import type { MetricExplanation } from "../subagents/judge.ts";
 
@@ -13,6 +14,13 @@ export interface Report {
   // null in the lite profile: the explanation comes from the handoff
   explanations: MetricExplanation[] | null;
 }
+
+// The schema bounds each text and the grammar of the model stops it there: a text at the limit was cut
+const CAUSE_MAX = SCHEMA.properties.suspected_cause.maxLength;
+const EVIDENCE_MAX = SCHEMA.properties.evidence.items.maxLength;
+const marked = (text: string, max: number) => (text.length >= max ? `${text}…` : text);
+const cause = (text: string) => marked(text, CAUSE_MAX);
+const fact = (text: string) => marked(text, EVIDENCE_MAX);
 
 const value = (metric: string, v: number) => (metric === "CLS" ? v.toFixed(3) : `${Math.round(v)} ms`);
 const change = (d: number | null) => (d == null ? "" : `${d > 0 ? "+" : ""}${d} %`);
@@ -55,7 +63,7 @@ export function reportMarkdown(report: Report): string {
       lines.push(`No explanation: ${e.error}`, "");
       continue;
     }
-    lines.push(e.answer.suspected_cause, "", ...e.answer.evidence.map((fact) => `- ${fact}`), "", `Confidence: ${e.answer.confidence}. Source: ${e.source === "llm" ? "the LLM" : "the rules"}.`, "");
+    lines.push(cause(e.answer.suspected_cause), "", ...e.answer.evidence.map((f) => `- ${fact(f)}`), "", `Confidence: ${e.answer.confidence}. Source: ${e.source === "llm" ? "the LLM" : "the rules"}.`, "");
     for (const d of e.discrepancies) lines.push(`> ${discrepancyText(d)}`, "");
   }
   return lines.join("\n");
@@ -75,8 +83,8 @@ export function reportHtml(report: Report): string {
           const body = !e.answer
             ? `<p>No explanation: ${escape(e.error ?? "")}</p>`
             : [
-                `<p>${escape(e.answer.suspected_cause)}</p>`,
-                `<ul>${e.answer.evidence.map((fact) => `<li>${escape(fact)}</li>`).join("")}</ul>`,
+                `<p>${escape(cause(e.answer.suspected_cause))}</p>`,
+                `<ul>${e.answer.evidence.map((f) => `<li>${escape(fact(f))}</li>`).join("")}</ul>`,
                 `<p class="meta">Confidence: ${escape(e.answer.confidence)}. Source: ${e.source === "llm" ? "the LLM" : "the rules"}.</p>`,
                 ...e.discrepancies.map((d) => `<p class="discrepancy">${escape(discrepancyText(d))}</p>`),
               ].join("\n");
