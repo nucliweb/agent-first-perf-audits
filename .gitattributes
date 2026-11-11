@@ -1,0 +1,2 @@
+# The shell scripts keep LF on every checkout: with core.autocrlf on Windows, a CRLF breaks them in WSL2
+*.sh text eol=lf
