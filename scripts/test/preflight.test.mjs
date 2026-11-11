@@ -1,7 +1,9 @@
-// Runs scripts/preflight.sh against a fake docker and a fake df on the PATH, one case per decision
-// of the script: the runtime, the version of Compose, the architecture, the memory of the VM, the
-// disk, the pull and the smoke test. The run against a real runtime is the script itself:
-//   scripts/preflight.sh
+// Runs scripts/preflight.sh and scripts/preflight.ps1 against a fake docker and a fake df on the
+// PATH, one case per decision of the scripts: the runtime, the version of Compose, the architecture,
+// the memory of the VM, the disk, the pull and the smoke test. The cases of preflight.ps1 need pwsh
+// (or its path in PWSH); without it they are skipped. In a container, from the root of the repo:
+//   docker run --rm -v "$PWD:/repo" -w /repo node:22.23.4-bookworm-slim sh scripts/test/pwsh.sh
+// The run against a real runtime is the script itself: scripts/preflight.sh or scripts/preflight.ps1
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -10,7 +12,21 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const SCRIPT = fileURLToPath(new URL("../preflight.sh", import.meta.url));
+const SH = fileURLToPath(new URL("../preflight.sh", import.meta.url));
+const PS1 = fileURLToPath(new URL("../preflight.ps1", import.meta.url));
+const PWSH = process.env.PWSH || spawnSync("sh", ["-c", "command -v pwsh"], { encoding: "utf8" }).stdout.trim();
+
+// Each script, with the command it tells to run the preflight again with the lite profile
+const SHELLS = [
+  { name: "sh", command: "sh", args: [SH], lite: "COMPOSE_PROFILES=lite scripts/preflight.sh" },
+  {
+    name: "pwsh",
+    command: PWSH,
+    args: ["-NoProfile", "-NonInteractive", "-File", PS1],
+    lite: "$env:COMPOSE_PROFILES = 'lite'; scripts\\preflight.ps1",
+    skip: PWSH ? false : "pwsh is not installed",
+  },
+];
 const GiB = 1024 ** 3;
 
 const FAKE_DOCKER = `#!/bin/sh
@@ -63,7 +79,7 @@ const DESKTOP = {
   FAKE_SMOKE_OUTPUT: smokeOutput(1),
 };
 
-function preflight(env = {}, { docker = true } = {}) {
+function run(shell, env = {}, { docker = true } = {}) {
   const bin = mkdtempSync(join(tmpdir(), "preflight-bin-"));
   const log = join(bin, "calls.log");
   writeFileSync(log, "");
@@ -71,14 +87,21 @@ function preflight(env = {}, { docker = true } = {}) {
   writeFileSync(join(bin, "df"), FAKE_DF);
   if (docker) chmodSync(join(bin, "docker"), 0o755);
   chmodSync(join(bin, "df"), 0o755);
-  const result = spawnSync("sh", [SCRIPT], {
+  const result = spawnSync(shell.command, shell.args, {
     encoding: "utf8",
     env: { PATH: `${bin}:/usr/bin:/bin`, HOME: process.env.HOME, FAKE_LOG: log, ...DESKTOP, ...env },
   });
   return { ...result, output: result.stdout + result.stderr, calls: readFileSync(log, "utf8") };
 }
 
-test("a ready machine passes every check with the llm profile of the .env", () => {
+// Every case runs against both scripts
+function both(name, fn) {
+  for (const shell of SHELLS) {
+    test(`${shell.name}: ${name}`, { skip: shell.skip }, () => fn((env, options) => run(shell, env, options), shell));
+  }
+}
+
+both("a ready machine passes every check with the llm profile of the .env", (preflight, shell) => {
   const { status, output, calls } = preflight();
   assert.equal(status, 0, output);
   assert.match(output, /OK +Docker Desktop/);
@@ -96,13 +119,13 @@ test("a ready machine passes every check with the llm profile of the .env", () =
   assert.match(calls, /docker compose .*-p agent-first-perf-audits-preflight .*down/);
 });
 
-test("without docker on the PATH it stops at the first check", () => {
+both("without docker on the PATH it stops at the first check", (preflight, shell) => {
   const { status, output } = preflight({}, { docker: false });
   assert.equal(status, 1);
   assert.match(output, /KO +docker command not found/);
 });
 
-test("a runtime that is not running stops before Compose", () => {
+both("a runtime that is not running stops before Compose", (preflight, shell) => {
   const { status, output, calls } = preflight({ FAKE_DAEMON_DOWN: "1" });
   assert.equal(status, 1);
   assert.match(output, /KO +The container runtime is not running/);
@@ -110,20 +133,20 @@ test("a runtime that is not running stops before Compose", () => {
   assert.doesNotMatch(calls, /pull/);
 });
 
-test("Compose older than 2.20.2 fails and nothing is pulled", () => {
+both("Compose older than 2.20.2 fails and nothing is pulled", (preflight, shell) => {
   const { status, output, calls } = preflight({ FAKE_COMPOSE_VERSION: "Docker Compose version v2.19.1" });
   assert.equal(status, 1);
   assert.match(output, /KO +Docker Compose 2\.19\.1, the lab needs 2\.20\.2 or later/);
   assert.doesNotMatch(calls, /pull/);
 });
 
-test("podman-compose behind docker compose is not Compose v2", () => {
+both("podman-compose behind docker compose is not Compose v2", (preflight, shell) => {
   const { status, output } = preflight({ FAKE_COMPOSE_VERSION: "podman-compose version 1.2.0\npodman version 5.2.2" });
   assert.equal(status, 1);
   assert.match(output, /KO +docker compose is not Docker Compose v2: podman-compose version 1\.2\.0/);
 });
 
-test("Compose v2 through the external provider of Podman passes", () => {
+both("Compose v2 through the external provider of Podman passes", (preflight, shell) => {
   const { status, output } = preflight({
     FAKE_COMPONENTS: "Podman Engine",
     FAKE_COMPOSE_VERSION: ">>>> Executing external compose provider \"/usr/local/bin/docker-compose\". <<<<\nDocker Compose version v2.29.7",
@@ -133,51 +156,51 @@ test("Compose v2 through the external provider of Podman passes", () => {
   assert.match(output, /OK +Docker Compose 2\.29\.7/);
 });
 
-test("an architecture without images fails", () => {
+both("an architecture without images fails", (preflight, shell) => {
   const { status, output } = preflight({ FAKE_ARCH: "armv7l" });
   assert.equal(status, 1);
   assert.match(output, /KO +Architecture armv7l: the images are built for amd64 and arm64/);
 });
 
-test("x86_64 is amd64", () => {
+both("x86_64 is amd64", (preflight, shell) => {
   const { output } = preflight({ FAKE_ARCH: "x86_64" });
   assert.match(output, /OK +Architecture amd64/);
 });
 
 const lowMemory = String(4 * GiB);
 
-test("Docker Desktop with too little memory for the llm profile says where to change it and offers lite", () => {
+both("Docker Desktop with too little memory for the llm profile says where to change it and offers lite", (preflight, shell) => {
   const { status, output } = preflight({ FAKE_MEM: lowMemory });
   assert.equal(status, 1);
   assert.match(output, /KO +Memory of the VM: 4\.0 GB, the llm profile needs 8 GB/);
   assert.match(output, /Settings > Resources > Memory/);
-  assert.match(output, /COMPOSE_PROFILES=lite scripts\/preflight\.sh/);
+  assert.ok(output.includes(shell.lite), output);
 });
 
-test("Docker Desktop on WSL2 sets the memory in .wslconfig", () => {
+both("Docker Desktop on WSL2 sets the memory in .wslconfig", (preflight, shell) => {
   const { output } = preflight({ FAKE_MEM: lowMemory, FAKE_KERNEL: "5.15.167.4-microsoft-standard-WSL2" });
   assert.match(output, /\.wslconfig/);
   assert.match(output, /memory=8GB/);
 });
 
-test("Colima with too little memory is restarted with more", () => {
+both("Colima with too little memory is restarted with more", (preflight, shell) => {
   const { output } = preflight({ FAKE_OS: "Ubuntu 24.04 LTS", FAKE_CONTEXT: "colima", FAKE_MEM: lowMemory });
   assert.match(output, /OK +Colima/);
   assert.match(output, /colima stop && colima start --memory 8 --cpu 4/);
 });
 
-test("Podman with too little memory resizes its machine", () => {
+both("Podman with too little memory resizes its machine", (preflight, shell) => {
   const { output } = preflight({ FAKE_OS: "fedora", FAKE_COMPONENTS: "Podman Engine", FAKE_MEM: lowMemory });
   assert.match(output, /podman machine set --memory 8192/);
 });
 
-test("OrbStack with too little memory raises its limit", () => {
+both("OrbStack with too little memory raises its limit", (preflight, shell) => {
   const { output } = preflight({ FAKE_OS: "OrbStack", FAKE_CONTEXT: "orbstack", FAKE_MEM: lowMemory });
   assert.match(output, /OK +OrbStack/);
   assert.match(output, /Settings > System > Memory limit/);
 });
 
-test("the lite profile fits in 4 GB, pulls no ollama and expects the LLM tests skipped", () => {
+both("the lite profile fits in 4 GB, pulls no ollama and expects the LLM tests skipped", (preflight, shell) => {
   const { status, output, calls } = preflight({ COMPOSE_PROFILES: "lite", FAKE_MEM: lowMemory, FAKE_SMOKE_OUTPUT: smokeOutput(3) });
   assert.equal(status, 0, output);
   assert.match(output, /OK +Memory of the VM: 4\.0 GB/);
@@ -186,7 +209,7 @@ test("the lite profile fits in 4 GB, pulls no ollama and expects the LLM tests s
   assert.match(calls, /COMPOSE_PROFILES=lite .*run --rm -T agents/);
 });
 
-test("the lite profile needs memory too", () => {
+both("the lite profile needs memory too", (preflight, shell) => {
   const { status, output } = preflight({ COMPOSE_PROFILES: "lite", FAKE_MEM: String(2 * GiB) });
   assert.equal(status, 1);
   assert.match(output, /KO +Memory of the VM: 2\.0 GB, the lite profile needs 4 GB/);
@@ -194,40 +217,40 @@ test("the lite profile needs memory too", () => {
 
 const ALL_IMAGES = "ghcr.io/nucliweb/agent-first-perf-audits/ollama:llama3.2-3b ghcr.io/nucliweb/agent-first-perf-audits/agents:main";
 
-test("missing images with little disk on the host fail before the pull", () => {
+both("missing images with little disk on the host fail before the pull", (preflight, shell) => {
   const { status, output, calls } = preflight({ FAKE_MISSING: ALL_IMAGES, FAKE_HOST_FREE_KB: String(9 * 1024 * 1024) });
   assert.equal(status, 1);
   assert.match(output, /KO +Free disk: 9 GB, the images need 15 GB free/);
   assert.doesNotMatch(calls, /--profile run pull/);
 });
 
-test("the disk of the VM counts when it is smaller than the host", () => {
+both("the disk of the VM counts when it is smaller than the host", (preflight, shell) => {
   const { status, output } = preflight({ FAKE_MISSING: ALL_IMAGES, FAKE_VM_FREE_KB: String(6 * 1024 * 1024) });
   assert.equal(status, 1);
   assert.match(output, /KO +Free disk: 6 GB/);
 });
 
-test("with every image pulled, the free disk is only reported", () => {
+both("with every image pulled, the free disk is only reported", (preflight, shell) => {
   const { status, output } = preflight({ FAKE_HOST_FREE_KB: String(9 * 1024 * 1024) });
   assert.equal(status, 0, output);
   assert.match(output, /OK +Free disk: 9 GB/);
 });
 
-test("a failed pull skips the smoke test", () => {
+both("a failed pull skips the smoke test", (preflight, shell) => {
   const { status, output, calls } = preflight({ FAKE_PULL_EXIT: "1" });
   assert.equal(status, 1);
   assert.match(output, /KO +Pull of the images/);
   assert.doesNotMatch(calls, /run --rm -T agents/);
 });
 
-test("a failed smoke test shows its output", () => {
+both("a failed smoke test shows its output", (preflight, shell) => {
   const { status, output } = preflight({ FAKE_SMOKE_EXIT: "1", FAKE_SMOKE_OUTPUT: "✖ Chrome DevTools MCP records a trace of a local page to a file\nℹ fail 1" });
   assert.equal(status, 1);
   assert.match(output, /KO +Smoke test/);
   assert.match(output, /Chrome DevTools MCP records a trace/);
 });
 
-test("a skipped LLM test with the llm profile fails the smoke test", () => {
+both("a skipped LLM test with the llm profile fails the smoke test", (preflight, shell) => {
   const { status, output } = preflight({ FAKE_SMOKE_OUTPUT: smokeOutput(3) });
   assert.equal(status, 1);
   assert.match(output, /KO +Smoke test: 3 tests skipped, 1 expected/);

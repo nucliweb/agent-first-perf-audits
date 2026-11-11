@@ -49,7 +49,16 @@ cd agent-first-perf-audits
 scripts/preflight.sh                                  # con 8 GB: COMPOSE_PROFILES=lite scripts/preflight.sh
 ```
 
-El preflight comprueba el runtime, la versión de Compose, la arquitectura, la memoria de la VM, las ramas de regresión y el disco libre. Después descarga todas las imágenes y pasa un smoke test dentro de Compose: Chromium arranca, se graba un trace, las dos tiendas responden, el laboratorio no tiene salida a internet y, con el perfil `llm`, el modelo responde. Imprime OK o KO en cada paso, con lo que hay que cambiar en tu runtime cuando algo falla, y sale con 0 si el equipo está listo. En Windows, ejecútalo desde WSL2.
+El preflight comprueba el runtime, la versión de Compose, la arquitectura, la memoria de la VM, las ramas de regresión y el disco libre. Después descarga todas las imágenes y pasa un smoke test dentro de Compose: Chromium arranca, se graba un trace, las dos tiendas responden, el laboratorio no tiene salida a internet y, con el perfil `llm`, el modelo responde. Imprime OK o KO en cada paso, con lo que hay que cambiar en tu runtime cuando algo falla, y sale con 0 si el equipo está listo.
+
+En Windows, desde PowerShell (Windows no ejecuta scripts sin `-ExecutionPolicy Bypass`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\preflight.ps1
+$env:COMPOSE_PROFILES = 'lite'; powershell -ExecutionPolicy Bypass -File scripts\preflight.ps1   # con 8 GB
+```
+
+Desde WSL2 sirve `scripts/preflight.sh`. El `.ps1` hace lo mismo que el `.sh`, pero todavía no se ha probado en Windows.
 
 Las descargas del preflight, por si prefieres hacerlas a mano:
 
@@ -129,7 +138,7 @@ Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las dete
 │   └── schemas/          # el schema de la explicación del LLM
 ├── docker/               # un Dockerfile por imagen
 ├── experiments/          # los experimentos que respaldan cada cifra de la documentación
-├── scripts/              # preflight.sh, build-shop.sh y publish-images.sh
+├── scripts/              # preflight.sh y .ps1, build-shop.sh y publish-images.sh
 └── docs/                 # la documentación del taller (Astro Starlight)
 ```
 
