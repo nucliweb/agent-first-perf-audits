@@ -10,12 +10,18 @@
 //     llm       the rules decide the verdict and the metric to explain
 //     suspects  and the prompt lists the suspects of the traces (agents/src/judge/suspects.ts)
 //     rules     and a branch without regression gets no LLM call, and the prompt gives the cause
-//               that the rules matched with a line of the diff (agents/src/judge/match.ts). The default
+//               that the rules matched with a line of the diff (agents/src/judge/match.ts)
+//     quotes    and the double quotes of the diff and of the matched line go escaped
+//               (escapeQuotes in agents/src/judge/prompt.ts), as the Judge sends them. The default
+//   COLD=1: unloads the model before each call, so no call reuses the prompt cache of the previous
+//     one. With the cache, the same prompt can get another answer: the answers are deterministic
+//     cold, not warm.
 import { execFileSync } from "node:child_process";
 import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { matchSuspects } from "../../agents/src/judge/match.ts";
+import { escapeQuotes } from "../../agents/src/judge/prompt.ts";
 import { messages, rulesAnswer } from "./prompt.mjs";
 import { regressedMetrics } from "../../agents/src/judge/rules.ts";
 import { suspectsFor } from "../../agents/src/judge/suspects.ts";
@@ -36,8 +42,9 @@ export const MODELS = [
   { id: "gemma3:1b" },
 ];
 export const MODES = (process.env.MODES ?? "schema,prompt").split(",");
-export const STAGES = ["llm", "suspects", "rules"];
-const STAGE = process.env.STAGE ?? "rules";
+export const STAGES = ["llm", "suspects", "rules", "quotes"];
+const STAGE = process.env.STAGE ?? "quotes";
+const COLD = process.env.COLD === "1";
 if (!STAGES.includes(STAGE)) throw new Error(`STAGE must be one of ${STAGES.join(", ")}`);
 const OPTIONS = { temperature: 0, seed: 42, num_ctx: 8192 };
 
@@ -60,8 +67,11 @@ export function casesOf(fixture) {
 
 // The answer of one case at a stage: from the rules alone, or from the model with what the rules found
 async function answer(model, mode, { fixture, target, suspects, matches }, stage = STAGE) {
-  if (stage === "rules" && !target) return { content: JSON.stringify(rulesAnswer(fixture.input)), source: "rules", wallMs: 0 };
-  const call = await chat(model, mode, fixture.input, target, stage === "llm" ? undefined : suspects, stage === "rules" ? matches : undefined);
+  const from = (s) => STAGES.indexOf(stage) >= STAGES.indexOf(s);
+  if (from("rules") && !target) return { content: JSON.stringify(rulesAnswer(fixture.input)), source: "rules", wallMs: 0 };
+  const quoted = from("quotes") ? escapeQuotes(fixture.input, matches) : { input: fixture.input, matches };
+  if (COLD) await unloadAll();
+  const call = await chat(model, mode, quoted.input, target, from("suspects") ? suspects : undefined, from("rules") ? quoted.matches : undefined);
   return { ...call, source: "llm" };
 }
 
@@ -198,7 +208,7 @@ export async function bench(modelIds = MODELS.map((m) => m.id)) {
             for (const one of cases) {
               const call = await answer(model, mode, one);
               const metric = one.target?.metric ?? "none";
-              rows.push({ model: model.id, mode, stage: STAGE, ref: one.fixture.ref, metric, rep, ...call, score: score(call.content, one.expected) });
+              rows.push({ model: model.id, mode, stage: STAGE, cold: COLD, ref: one.fixture.ref, metric, rep, ...call, score: score(call.content, one.expected) });
               process.stdout.write(".");
             }
           }
@@ -226,8 +236,7 @@ export async function loadFixtures() {
   return Promise.all(files.map(async (f) => JSON.parse(await readFile(join(HERE, "fixtures", f), "utf8"))));
 }
 
-// Scores saved answers again with the current score.mjs, without calling any model: the answers
-// are deterministic (temperature 0 and a fixed seed). It needs the rows of a run with one case per
+// Scores saved answers again with the current score.mjs, without calling any model. It needs the rows of a run with one case per
 // metric (the runs of results/ from 2 on); the first run had one case per branch.
 export function rescoreRows(rows, fixtures) {
   const expected = new Map(fixtures.flatMap(casesOf).map((c) => [`${c.fixture.ref}|${c.target?.metric ?? "none"}`, c.expected]));

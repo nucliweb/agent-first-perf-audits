@@ -144,6 +144,7 @@ La primera versión le pedía al modelo todo: repetir el veredicto, elegir la m�
 | `llm` | Deciden el veredicto y qué métrica explicar | 9 de 15 |
 | `suspects` | Además, comparan los traces y dan al modelo los sospechosos: funciones y scripts nuevos o que crecen | 9 de 15 |
 | `rules` | Además, no preguntan al modelo si nada empeora, y relacionan cada sospechoso con la línea del diff que lo añade | 14 de 15 |
+| `quotes` | Además, escapan las comillas dobles del diff y de la línea relacionada | 15 de 15, en frío |
 
 Por el camino:
 
@@ -159,24 +160,33 @@ Por el camino:
 - **Las reglas deciden el veredicto, la métrica y, cuando pueden, la causa.**
 - **El LLM la explica con el schema del veredicto.** Cuando nada empeora, el Judge responde sin preguntarle.
 
-El único fallo de la etapa `rules` no es de razonamiento. En una de las tres repeticiones de la rama del hero, la frase se corta en `loading=`, porque las comillas de `loading="lazy"` cortan la cadena del JSON restringido por el schema.
+El último fallo no era de razonamiento. En la rama del hero, el modelo copia `loading="lazy"` del diff a su respuesta sin escapar la comilla, y en el JSON restringido por el schema esa comilla cierra la cadena: la frase se queda en `loading=`. Las reglas no pueden darle la causa, porque quitar el preload no añade ninguna tarea al trace, así que el modelo la busca en el diff y copia el código.
+
+Además, el fallo no salía siempre. En la etapa `rules`, solo una de las tres repeticiones se cortaba, con la misma entrada, la temperatura a 0 y la semilla fija. La diferencia era la caché del prompt de Ollama: la primera llamada llega con el modelo recién cargado, y las siguientes reutilizan el prompt de sistema de la anterior, que es el mismo. Al descargar el modelo antes de cada llamada, las tres repeticiones de cada caso salen idénticas, y la frase del hero se corta en las tres: 12 de 15.
+
+Con las comillas del diff escapadas en la entrada (`loading=\"lazy\"`), el modelo copia una forma válida dentro de una cadena JSON, y en frío nombra la causa en 15 de 15. Escapar en la entrada no depende de que el modelo obedezca una instrucción más del prompt.
+
+- **El Judge escapa las comillas dobles del código que pone en el prompt.** El handoff lleva la misma entrada.
+- **Las pruebas de un modelo se hacen en frío.** En caliente, la misma entrada puede dar otra redacción, y un fallo puede salir en una repetición y no en otra.
 
 ### Compruébalo
 
-El experimento está en [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models). Las respuestas son deterministas (temperatura 0 y semilla fija) y están guardadas en `results/`, así que el test comprueba estas cifras sin necesitar Ollama:
+El experimento está en [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models). Las respuestas están guardadas en `results/`, así que el test comprueba estas cifras sin necesitar Ollama. Las etapas `llm`, `suspects` y `rules` se midieron en caliente; las pasadas en frío (`COLD=1`) son las de `rules` y `quotes`:
 
 ```bash
 cd experiments/models
 npm install
 npm test                          # reglas, puntuación y las cifras de cada etapa
 MODES=schema node bench.mjs       # el benchmark completo, con Ollama
+STAGE=quotes COLD=1 MODES=schema node bench.mjs llama3.2:3b   # la etapa del Judge, en frío
 ```
 
-La latencia depende mucho de la carga de la máquina. En la etapa `rules`, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal.
+La latencia depende mucho de la carga de la máquina. En la etapa `rules`, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal. En frío, cada llamada incluye cargar el modelo y la mediana sube a 46-48 s.
 
 ### Cómo aplicarlo en tu plataforma
 
 1. Antes de preguntar a un LLM, pregúntate qué parte de la respuesta puede calcular el código. Esa parte no se la pidas.
-2. Pide el JSON con el schema como salida estructurada, no solo en el prompt.
+2. Pide el JSON con el schema como salida estructurada, no solo en el prompt. Si el modelo puede copiar código con comillas a su respuesta, escápalas en la entrada.
 3. Si nada ha empeorado, no hay nada que explicar. No preguntes.
 4. Mide el acierto con un criterio estricto y con las respuestas guardadas. Un criterio generoso esconde lo que el modelo se inventa.
+5. Mide en frío, descargando el modelo antes de cada llamada. Con la caché del prompt, la temperatura 0 y la semilla fija no bastan para repetir una respuesta.

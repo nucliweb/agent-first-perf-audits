@@ -84,18 +84,28 @@ export interface Message {
   content: string;
 }
 
+// The double quotes of the code, escaped. A small model copies loading="lazy" from the diff into its
+// answer, and in the JSON constrained by the schema the first quote closes the string: the sentence
+// ends in "loading=". Escaped in the input, the quote it copies is valid inside a JSON string.
+const escaped = (code: string) => code.replaceAll('"', '\\"');
+
+export function escapeQuotes(input: JudgeInput, matches: Match[]) {
+  return { input: { ...input, diff: escaped(input.diff) }, matches: matches.map((m) => ({ ...m, line: escaped(m.line) })) };
+}
+
 // What the Judge asks for each regressed metric, the one furthest beyond its threshold first: the
-// suspects of the traces and the cause the rules related to the diff go into the prompt. Without a
-// regression there are no requests. The local LLM and the handoff get the same ones.
+// suspects of the traces and the cause the rules related to the diff go into the prompt, with the
+// quotes of the code escaped. Without a regression there are no requests. The local LLM and the
+// handoff get the same ones.
 export function requestsFor(input: JudgeInput): { target: Target; messages: Message[] }[] {
   return regressedMetrics(input.gate.scenarios).map((target) => {
     const suspects = suspectsFor(input.traces, target);
-    const matches = matchSuspects(suspects, input.diff);
+    const quoted = escapeQuotes(input, matchSuspects(suspects, input.diff));
     return {
       target,
       messages: [
         { role: "system", content: SYSTEM },
-        { role: "user", content: userPrompt(input, target, suspects, matches) },
+        { role: "user", content: userPrompt(quoted.input, target, suspects, quoted.matches) },
       ],
     };
   });

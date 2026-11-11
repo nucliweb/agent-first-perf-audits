@@ -1,6 +1,8 @@
-// Checks the figures of the documentation against the saved runs of results/. The answers are
-// deterministic, so the test scores them again with the current score.mjs instead of calling the
-// models: if a change of the scoring moves a figure, this test fails and the docs need an update.
+// Checks the figures of the documentation against the saved runs of results/. It scores the saved
+// answers again with the current score.mjs instead of calling the models: if a change of the
+// scoring moves a figure, this test fails and the docs need an update. With temperature 0 and a
+// fixed seed the answers are deterministic cold (runs 5 and 6); warm, the prompt cache of Ollama
+// can change the wording of an answer (runs 1 to 4).
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -48,4 +50,34 @@ test("run 4: with the cause matched by the rules, llama3.2:3b names it in 14 of 
   assert.equal(ofModel(summary, "llama3.2:3b").llmCalls, 12, "the branch without regression gets no LLM call");
   const missed = rows.filter((r) => !r.score.cause);
   assert.deepEqual(missed.map((r) => `${r.ref} ${r.metric}`), ["pr/lcp-hero-lazy LCP"]);
+});
+
+const causeOf = (row) => JSON.parse(row.content).suspected_cause;
+const heroRows = (rows) => rows.filter((r) => r.ref === "pr/lcp-hero-lazy");
+
+test("run 5, cold: without escaping the quotes, the sentence of the hero ends in loading= every time", async () => {
+  const rows = rescoreRows(await load("5-rules-cold"), fixtures);
+  assert.ok(rows.every((r) => r.cold));
+  assert.equal(causes(summarize(rows), "llama3.2:3b"), 12);
+  for (const row of heroRows(rows)) assert.match(causeOf(row), /`loading=$/);
+});
+
+test("run 6, cold: with the quotes escaped, llama3.2:3b names the cause in 15 of 15 answers", async () => {
+  const rows = rescoreRows(await load("6-quotes-cold"), fixtures);
+  assert.ok(rows.every((r) => r.cold));
+  assert.equal(causes(summarize(rows), "llama3.2:3b"), 15);
+  for (const row of heroRows(rows)) assert.match(causeOf(row), /`loading="lazy"` attribute/);
+});
+
+test("cold, the three repetitions of each case give the same answer", async () => {
+  for (const run of ["5-rules-cold", "6-quotes-cold"]) {
+    const byCase = Map.groupBy(await load(run), (r) => `${r.ref} ${r.metric}`);
+    for (const [name, rows] of byCase) assert.equal(new Set(rows.map((r) => r.content)).size, 1, `${run}: ${name}`);
+  }
+});
+
+test("warm, the same case can get another wording: the sentence of the hero changes after the first repetition of run 4", async () => {
+  const hero = heroRows(await load("4-rules"));
+  assert.equal(new Set(hero.map((r) => r.content)).size, 2);
+  assert.match(causeOf(hero.find((r) => r.rep === 0)), /`loading=$/);
 });
