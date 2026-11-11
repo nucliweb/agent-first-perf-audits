@@ -1,0 +1,77 @@
+# Publishes the images of the workshop to GHCR for amd64 and arm64, so the attendees only run
+# docker compose pull. Each architecture builds natively on its own runner, checks its images
+# and pushes them as IMAGE:TAG-<arch>; the last job joins both into IMAGE:TAG.
+# The work is in scripts/publish-images.sh, which also runs on a laptop.
+name: Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/**
+      - agents/**
+      - docker/**
+      - compose.yaml
+      - scripts/build-shop.sh
+      - scripts/publish-images.sh
+      - .github/workflows/images.yml
+  # A change on a pr/* branch publishes its shop image when this runs by hand
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: images
+  cancel-in-progress: false
+
+jobs:
+  arch:
+    name: ${{ matrix.arch }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      # Every branch: the shop has one image per pr/* branch
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # The Ollama image starts from the official one, several GB with the CUDA libraries, and
+      # adds a model of 2 GB: more than the free disk of a runner
+      - name: Free disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: scripts/publish-images.sh build ${{ matrix.arch }}
+      - run: scripts/publish-images.sh check ${{ matrix.arch }}
+      - run: scripts/publish-images.sh push ${{ matrix.arch }}
+
+  manifest:
+    needs: arch
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: scripts/publish-images.sh manifest
