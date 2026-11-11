@@ -108,6 +108,8 @@ El subagente de LCP mide la home con el throttling del gate (CPU 4x y fast-4g) y
 
 El subagente de CLS mide cada recorrido del Navigator, desde la carga de su página hasta el último paso, con los pasos que el Navigator ha comprobado, el throttling del gate y la mediana de 3 ejecuciones. Con el snippet `Layout-Shift-Loading-and-Interaction` de WebPerf Snippets MCP obtiene el CLS, cuántos desplazamientos cuentan y cuántos no (los que siguen a una interacción) y los selectores de los nodos que se mueven, del que más al que menos. En `pr/cls-promo-banner`, el CLS pasa de 0 a 0,053 en la home y a 0,0547 en los otros tres recorridos, y el primer nodo es siempre `main.main`: el banner empuja la página hacia abajo.
 
+El subagente de LoAF/INP mide lo que bloquea el hilo principal en cada recorrido del Navigator, con el workflow `interaction` de WebPerf Snippets MCP, los pasos del Navigator, el throttling del gate y la mediana de 3 ejecuciones: el INP del click con sus tres fases (retraso de entrada, procesamiento y presentación), los long animation frames con los scripts que los provocan y su invoker, y las tareas largas. En los recorridos con un click graba además un trace del click con el mismo código que el Judge, y trace-engine-cli lo resume: los snippets nombran el script y el trace nombra la función. En `pr/loaf-cart-handler`, el INP de añadir al carrito pasa de 32 a 192 ms, casi todo procesamiento (169 ms), el script es el handler del click (`DIV#root.onclick`) y el trace nombra `recommendFor`.
+
 ### Perfil `lite`, para equipos de 8 GB
 
 ```bash
@@ -152,7 +154,7 @@ Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las dete
 │   ├── src/judge/        # gate, traces, diff, reglas, prompt y handoff
 │   ├── src/ci/           # el servicio ci y su informe
 │   ├── src/orchestrator.ts  # pasa los subagentes por las dos tiendas
-│   ├── src/subagents/    # los subagentes: Navigator, LCP, CLS y el Judge
+│   ├── src/subagents/    # los subagentes: Navigator, LCP, CLS, LoAF/INP y el Judge
 │   ├── journeys/         # los recorridos en JSON, uno por página
 │   └── schemas/          # el schema de la explicación del LLM
 ├── docker/               # un Dockerfile por imagen

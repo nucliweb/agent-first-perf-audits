@@ -1,0 +1,349 @@
+{
+  "url": "http://shop-candidate:3000/product/kenya-aa",
+  "runId": "f836a907-7697-4705-a68e-69505ff5d069",
+  "detail": "full",
+  "results": [
+    {
+      "id": "long-tasks",
+      "script": "LongTask",
+      "status": "ok",
+      "count": 5,
+      "details": {
+        "totalBlockingTimeMs": 287,
+        "worstTaskMs": 175,
+        "avgDurationMs": 107,
+        "bySeverity": {
+          "critical": 0,
+          "high": 2,
+          "medium": 0,
+          "low": 3
+        }
+      },
+      "items": [
+        {
+          "startTimeMs": 5289,
+          "durationMs": 175,
+          "blockingTimeMs": 125,
+          "severity": "high",
+          "attribution": "window"
+        },
+        {
+          "startTimeMs": 367,
+          "durationMs": 155,
+          "blockingTimeMs": 105,
+          "severity": "high",
+          "attribution": "window"
+        },
+        {
+          "startTimeMs": 985,
+          "durationMs": 72,
+          "blockingTimeMs": 22,
+          "severity": "low",
+          "attribution": "window"
+        },
+        {
+          "startTimeMs": 910,
+          "durationMs": 70,
+          "blockingTimeMs": 20,
+          "severity": "low",
+          "attribution": "window"
+        },
+        {
+          "startTimeMs": 839,
+          "durationMs": 65,
+          "blockingTimeMs": 15,
+          "severity": "low",
+          "attribution": "window"
+        }
+      ]
+    },
+    {
+      "id": "long-frames",
+      "script": "Long-Animation-Frames",
+      "status": "ok",
+      "count": 6,
+      "details": {
+        "totalLoAFs": 6,
+        "withBlockingTime": 5,
+        "totalBlockingTimeMs": 329,
+        "worstBlockingMs": 129,
+        "topScripts": [
+          {
+            "invoker": "DIV#root.onclick",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 166,
+            "count": 1
+          },
+          {
+            "invoker": "http://thirdparty:4000/ab.js?cpu=150",
+            "source": "ab.js",
+            "totalDurationMs": 155,
+            "count": 1
+          },
+          {
+            "invoker": "MessagePort.onmessage",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 72,
+            "count": 1
+          },
+          {
+            "invoker": "http://shop-candidate:3000/assets/index-BsVNkX21.js",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 68,
+            "count": 1
+          },
+          {
+            "invoker": "http://thirdparty:4000/chat.js?delay=300&cpu=60",
+            "source": "chat.js",
+            "totalDurationMs": 64,
+            "count": 1
+          }
+        ]
+      },
+      "items": [
+        {
+          "startTimeMs": 5283,
+          "durationMs": 185,
+          "blockingDurationMs": 129,
+          "scripts": [
+            {
+              "invoker": "DIV#root.onclick",
+              "source": "index-BsVNkX21.js",
+              "durationMs": 166,
+              "forcedStyleAndLayoutMs": 0
+            }
+          ]
+        },
+        {
+          "startTimeMs": 202,
+          "durationMs": 336,
+          "blockingDurationMs": 108,
+          "scripts": [
+            {
+              "invoker": "http://thirdparty:4000/ab.js?cpu=150",
+              "source": "ab.js",
+              "durationMs": 155,
+              "forcedStyleAndLayoutMs": 0
+            }
+          ]
+        },
+        {
+          "startTimeMs": 985,
+          "durationMs": 105,
+          "blockingDurationMs": 52,
+          "scripts": [
+            {
+              "invoker": "MessagePort.onmessage",
+              "source": "index-BsVNkX21.js",
+              "durationMs": 72,
+              "forcedStyleAndLayoutMs": 0
+            }
+          ]
+        },
+        {
+          "startTimeMs": 910,
+          "durationMs": 73,
+          "blockingDurationMs": 21,
+          "scripts": [
+            {
+              "invoker": "http://shop-candidate:3000/assets/index-BsVNkX21.js",
+              "source": "index-BsVNkX21.js",
+              "durationMs": 68,
+              "forcedStyleAndLayoutMs": 0
+            }
+          ]
+        },
+        {
+          "startTimeMs": 839,
+          "durationMs": 69,
+          "blockingDurationMs": 19,
+          "scripts": [
+            {
+              "invoker": "http://thirdparty:4000/chat.js?delay=300&cpu=60",
+              "source": "chat.js",
+              "durationMs": 64,
+              "forcedStyleAndLayoutMs": 0
+            }
+          ]
+        },
+        {
+          "startTimeMs": 5479,
+          "durationMs": 71,
+          "blockingDurationMs": 0,
+          "scripts": []
+        }
+      ]
+    },
+    {
+      "id": "scroll",
+      "script": "Scroll-Performance",
+      "status": "ok",
+      "details": {
+        "nonPassiveListeners": 0,
+        "cssAudit": {
+          "smoothScrollElements": 0,
+          "willChangeElements": 0,
+          "contentVisibilityElements": 0,
+          "overscrollElements": 0
+        },
+        "sessionCount": 1,
+        "avgFps": 55,
+        "worstSessionFps": 55,
+        "totalDrops": 1
+      },
+      "items": [],
+      "issues": []
+    },
+    {
+      "id": "layout-shifts",
+      "script": "Layout-Shift-Loading-and-Interaction",
+      "status": "ok",
+      "metric": "CLS",
+      "value": 0,
+      "unit": "score",
+      "rating": "good",
+      "thresholds": {
+        "good": 0.1,
+        "needsImprovement": 0.25
+      },
+      "details": {
+        "currentCLS": 0,
+        "shiftCount": 1,
+        "countedShifts": 0,
+        "excludedShifts": 1,
+        "topElements": [
+          {
+            "selector": "section.section",
+            "shiftCount": 1,
+            "totalImpact": 0.01
+          }
+        ]
+      }
+    },
+    {
+      "id": "forced-layout",
+      "script": "Forced-Synchronous-Layout",
+      "status": "ok",
+      "count": 0,
+      "details": {},
+      "items": [],
+      "issues": []
+    },
+    {
+      "id": "INP",
+      "script": "INP",
+      "status": "ok",
+      "metric": "INP",
+      "value": 192,
+      "unit": "ms",
+      "rating": "good",
+      "thresholds": {
+        "good": 200,
+        "needsImprovement": 500
+      },
+      "details": {
+        "totalInteractions": 1,
+        "worstEvent": "click → button.button",
+        "phases": {
+          "inputDelay": 7,
+          "processingTime": 169,
+          "presentationDelay": 16
+        }
+      }
+    },
+    {
+      "id": "interactions",
+      "script": "Interactions",
+      "status": "ok",
+      "count": 1,
+      "details": {
+        "totalInteractions": 1,
+        "worstMs": 192,
+        "avgMs": 192,
+        "p75Ms": 192,
+        "byRating": {
+          "good": 1,
+          "needs-improvement": 0,
+          "poor": 0
+        }
+      },
+      "items": [
+        {
+          "type": "click",
+          "durationMs": 192,
+          "rating": "good"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": "input-latency",
+      "script": "Input-Latency-Breakdown",
+      "status": "ok",
+      "count": 1,
+      "details": {
+        "eventTypes": {
+          "click": {
+            "count": 1,
+            "p75Ms": 192,
+            "inputDelayMs": 7,
+            "processingMs": 169,
+            "presentationMs": 16
+          }
+        }
+      },
+      "items": [
+        {
+          "type": "click",
+          "count": 1,
+          "p75Ms": 192,
+          "inputDelayMs": 7,
+          "processingMs": 169,
+          "presentationMs": 16,
+          "rating": "good"
+        }
+      ],
+      "issues": []
+    }
+  ],
+  "workflow": "interaction",
+  "viewport": "mobile",
+  "navMs": 4379,
+  "pageErrors": [],
+  "throttling": {
+    "cpu": 4,
+    "network": "fast-4g"
+  },
+  "runs": {
+    "count": 3,
+    "failed": 0,
+    "medianRun": 1,
+    "medianBy": "INP",
+    "summary": {
+      "CLS": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "values": [
+          0,
+          0,
+          0
+        ],
+        "unit": "score"
+      },
+      "INP": {
+        "median": 192,
+        "min": 184,
+        "max": 192,
+        "values": [
+          192,
+          184,
+          192
+        ],
+        "unit": "ms",
+        "cv": 2.4,
+        "agreement": "consistent"
+      }
+    }
+  }
+}

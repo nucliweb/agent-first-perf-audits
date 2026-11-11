@@ -10,11 +10,12 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { cls } from "./subagents/cls.ts";
 import { lcp } from "./subagents/lcp.ts";
+import { loaf } from "./subagents/loaf.ts";
 import { navigator } from "./subagents/navigator.ts";
 import type { Side, Subagent } from "./subagents/subagent.ts";
 
 // The subagents, in the order they run: the Navigator first, so the others measure journeys that complete
-const SUBAGENTS: Subagent<any>[] = [navigator, lcp, cls];
+const SUBAGENTS: Subagent<any>[] = [navigator, lcp, cls, loaf];
 
 const SIDES: Side[] = ["baseline", "candidate"];
 

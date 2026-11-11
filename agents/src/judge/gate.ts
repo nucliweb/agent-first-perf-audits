@@ -29,7 +29,7 @@ export interface GateScenario {
   traces: TraceSpec[];
 }
 
-const TASKS = ["tasks", "--tree", "bottom-up", "--top", "5"];
+export const TASKS = ["tasks", "--tree", "bottom-up", "--top", "5"];
 
 export const SCENARIOS: GateScenario[] = [
   { id: "home", path: "/", cli: [], traces: [{ name: "load", summaries: { overview: ["overview"], shifts: ["shifts"], tasks: TASKS } }] },

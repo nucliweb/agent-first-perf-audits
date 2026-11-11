@@ -1,0 +1,265 @@
+{
+  "url": "http://shop-candidate:3000/",
+  "runId": "14bbd8b7-2352-4e17-bbb7-01ac1cdb88cc",
+  "detail": "full",
+  "results": [
+    {
+      "id": "long-tasks",
+      "script": "LongTask",
+      "status": "ok",
+      "count": 4,
+      "details": {
+        "totalBlockingTimeMs": 161,
+        "worstTaskMs": 154,
+        "avgDurationMs": 90,
+        "bySeverity": {
+          "critical": 0,
+          "high": 1,
+          "medium": 0,
+          "low": 3
+        }
+      },
+      "items": [
+        {
+          "startTimeMs": 362,
+          "durationMs": 154,
+          "blockingTimeMs": 104,
+          "severity": "high",
+          "attribution": "window"
+        },
+        {
+          "startTimeMs": 978,
+          "durationMs": 74,
+          "blockingTimeMs": 24,
+          "severity": "low",
+          "attribution": "window"
+        },
+        {
+          "startTimeMs": 895,
+          "durationMs": 71,
+          "blockingTimeMs": 21,
+          "severity": "low",
+          "attribution": "window"
+        },
+        {
+          "startTimeMs": 833,
+          "durationMs": 62,
+          "blockingTimeMs": 12,
+          "severity": "low",
+          "attribution": "window"
+        }
+      ]
+    },
+    {
+      "id": "long-frames",
+      "script": "Long-Animation-Frames",
+      "status": "ok",
+      "count": 3,
+      "details": {
+        "totalLoAFs": 3,
+        "withBlockingTime": 3,
+        "totalBlockingTimeMs": 193,
+        "worstBlockingMs": 108,
+        "topScripts": [
+          {
+            "invoker": "http://thirdparty:4000/ab.js?cpu=150",
+            "source": "ab.js",
+            "totalDurationMs": 154,
+            "count": 1
+          },
+          {
+            "invoker": "MessagePort.onmessage",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 72,
+            "count": 1
+          },
+          {
+            "invoker": "http://shop-candidate:3000/assets/index-BsVNkX21.js",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 68,
+            "count": 1
+          },
+          {
+            "invoker": "http://thirdparty:4000/chat.js?delay=300&cpu=60",
+            "source": "chat.js",
+            "totalDurationMs": 62,
+            "count": 1
+          }
+        ]
+      },
+      "items": [
+        {
+          "startTimeMs": 199,
+          "durationMs": 335,
+          "blockingDurationMs": 108,
+          "scripts": [
+            {
+              "invoker": "http://thirdparty:4000/ab.js?cpu=150",
+              "source": "ab.js",
+              "durationMs": 154,
+              "forcedStyleAndLayoutMs": 0
+            }
+          ]
+        },
+        {
+          "startTimeMs": 978,
+          "durationMs": 97,
+          "blockingDurationMs": 47,
+          "scripts": [
+            {
+              "invoker": "MessagePort.onmessage",
+              "source": "index-BsVNkX21.js",
+              "durationMs": 72,
+              "forcedStyleAndLayoutMs": 0
+            }
+          ]
+        },
+        {
+          "startTimeMs": 833,
+          "durationMs": 139,
+          "blockingDurationMs": 38,
+          "scripts": [
+            {
+              "invoker": "http://shop-candidate:3000/assets/index-BsVNkX21.js",
+              "source": "index-BsVNkX21.js",
+              "durationMs": 68,
+              "forcedStyleAndLayoutMs": 0
+            },
+            {
+              "invoker": "http://thirdparty:4000/chat.js?delay=300&cpu=60",
+              "source": "chat.js",
+              "durationMs": 62,
+              "forcedStyleAndLayoutMs": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scroll",
+      "script": "Scroll-Performance",
+      "status": "ok",
+      "details": {
+        "nonPassiveListeners": 0,
+        "cssAudit": {
+          "smoothScrollElements": 0,
+          "willChangeElements": 0,
+          "contentVisibilityElements": 0,
+          "overscrollElements": 0
+        },
+        "sessionCount": 2,
+        "avgFps": 60,
+        "worstSessionFps": 60,
+        "totalDrops": 0
+      },
+      "items": [],
+      "issues": []
+    },
+    {
+      "id": "layout-shifts",
+      "script": "Layout-Shift-Loading-and-Interaction",
+      "status": "ok",
+      "metric": "CLS",
+      "value": 0,
+      "unit": "score",
+      "rating": "good",
+      "thresholds": {
+        "good": 0.1,
+        "needsImprovement": 0.25
+      },
+      "details": {
+        "currentCLS": 0,
+        "shiftCount": 0,
+        "countedShifts": 0,
+        "excludedShifts": 0,
+        "topElements": []
+      }
+    },
+    {
+      "id": "forced-layout",
+      "script": "Forced-Synchronous-Layout",
+      "status": "ok",
+      "count": 0,
+      "details": {},
+      "items": [],
+      "issues": []
+    },
+    {
+      "id": "INP",
+      "status": "skipped",
+      "reason": "This step measures clicks and key presses: run the workflow with interactions that click or type on an element of the page, or open the page with open_page and this snippet in track, use it with interact, and read it with read_results."
+    },
+    {
+      "id": "interactions",
+      "status": "skipped",
+      "reason": "This step measures clicks and key presses: run the workflow with interactions that click or type on an element of the page, or open the page with open_page and this snippet in track, use it with interact, and read it with read_results."
+    },
+    {
+      "id": "input-latency",
+      "status": "skipped",
+      "reason": "This step measures clicks and key presses: run the workflow with interactions that click or type on an element of the page, or open the page with open_page and this snippet in track, use it with interact, and read it with read_results."
+    }
+  ],
+  "workflow": "interaction",
+  "viewport": "mobile",
+  "navMs": 4468,
+  "pageErrors": [],
+  "throttling": {
+    "cpu": 4,
+    "network": "fast-4g"
+  },
+  "runs": {
+    "count": 3,
+    "failed": 0,
+    "medianRun": 1,
+    "medianBy": "navMs",
+    "summary": {
+      "CLS": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "values": [
+          0,
+          0,
+          0
+        ],
+        "unit": "score"
+      }
+    }
+  },
+  "nextSteps": [
+    {
+      "tool": "run_workflow",
+      "args": {
+        "url": "http://shop-candidate:3000/",
+        "workflow": "interaction",
+        "viewport": "mobile",
+        "waitMs": 3000,
+        "cpu": 4,
+        "network": "fast-4g",
+        "interactions": [
+          {
+            "action": "click",
+            "selector": "<selector of the element to click>"
+          }
+        ]
+      },
+      "reason": "These steps measure clicks and key presses: run the workflow again with interactions, a click or type step on an element of the page in place of this selector; runs and baseline work with them"
+    },
+    {
+      "tool": "open_page",
+      "args": {
+        "url": "http://shop-candidate:3000/",
+        "track": [
+          "CoreWebVitals/INP",
+          "Interaction/Interactions",
+          "Interaction/Input-Latency-Breakdown"
+        ],
+        "viewport": "mobile",
+        "cpu": 4,
+        "network": "fast-4g"
+      },
+      "reason": "These steps measure clicks and key presses: open the page with them, interact with it and read them with read_results"
+    }
+  ]
+}
