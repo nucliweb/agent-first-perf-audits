@@ -100,3 +100,33 @@ test("does not mark a complete sentence that fits the limit exactly", () => {
   });
   assert.ok(md.includes(`- ${complete}\n`));
 });
+
+// The orchestrator adds the findings of the subagents; ci has none
+const findings = [
+  {
+    metric: "LCP",
+    scenario: "home",
+    subagent: "lcp",
+    facts: ["LCP of the home: 760 ms in the baseline, 1168 ms in the branch (median of 3 runs)", 'The LCP image changes: loading (not set) to lazy, preload removed'],
+  },
+];
+
+test("adds the findings of the subagents after the explanation, picked by the rules and not by the LLM", () => {
+  const md = reportMarkdown({ ...base, findings });
+  const section = md.slice(md.indexOf("## Findings of the subagents"));
+  assert.ok(md.indexOf("## Explanation") < md.indexOf("## Findings of the subagents"), md);
+  assert.match(section, /Facts that the rules pick from what the subagents measured; the LLM does not see them\./);
+  assert.match(section, /### LCP in home, from the lcp subagent\n\n- LCP of the home: 760 ms in the baseline, 1168 ms in the branch \(median of 3 runs\)\n- The LCP image changes/);
+  const html = reportHtml({ ...base, findings });
+  assert.match(html, /<h2>Findings of the subagents<\/h2>/);
+  assert.match(html, /<li>The LCP image changes: loading \(not set\) to lazy, preload removed<\/li>/);
+});
+
+test("the lite profile shows the findings too, though it has no explanation", () => {
+  assert.match(reportMarkdown({ ...base, profile: "lite", explanations: null, findings }), /### LCP in home, from the lcp subagent/);
+});
+
+test("without findings, as in ci, there is no section for them", () => {
+  assert.doesNotMatch(reportMarkdown(base), /Findings of the subagents/);
+  assert.doesNotMatch(reportHtml(base), /Findings of the subagents/);
+});

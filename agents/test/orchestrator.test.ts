@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { orchestrate, pick } from "../src/orchestrator.ts";
+import { orchestrate, pick, plan } from "../src/orchestrator.ts";
 import type { Page, Subagent } from "../src/subagents/subagent.ts";
 
 const PAGES = { baseline: "http://shop-baseline:3000", candidate: "http://shop-candidate:3000" };
@@ -74,4 +74,17 @@ test("a subagent by name brings what it needs, in the order of the orchestrator"
 
 test("an unknown name lists the subagents there are", () => {
   assert.throws(() => pick(["inp"], ALL), /No subagent inp: navigator, lcp, cls/);
+});
+
+// The Judge runs after the subagents, on both sides at once, so it is chosen apart from them
+test("without names, every subagent runs and then the Judge", () => {
+  const { subagents, judge } = plan([], ALL);
+  assert.deepEqual(names(subagents), ["navigator", "lcp", "cls"]);
+  assert.equal(judge, true);
+});
+
+test("the Judge by name runs alone or after the subagents named with it", () => {
+  assert.deepEqual([names(plan(["judge"], ALL).subagents), plan(["judge"], ALL).judge], [[], true]);
+  assert.deepEqual([names(plan(["lcp", "judge"], ALL).subagents), plan(["lcp", "judge"], ALL).judge], [["lcp"], true]);
+  assert.deepEqual([names(plan(["cls"], ALL).subagents), plan(["cls"], ALL).judge], [["navigator", "cls"], false]);
 });

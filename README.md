@@ -98,9 +98,10 @@ El orquestador pasa cada subagente por la tienda de `BASELINE` y por la de `CAND
 CANDIDATE=pr-lcp-hero-lazy docker compose up -d
 CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts
 CANDIDATE=pr-cls-promo-banner docker compose run --rm agents node src/orchestrator.ts cls   # uno, con lo que necesita
+CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp judge
 ```
 
-Sin nombres pasa todos los subagentes; con nombres, solo esos y los que necesitan, como el Navigator para el de CLS.
+Sin nombres pasa todos los subagentes y después el Judge; con nombres, solo esos y los que necesitan, como el Navigator para el de CLS, y el Judge si se nombra.
 
 El Navigator va primero: recorre en las dos tiendas los cuatro recorridos de `agents/journeys/` (home, listado, ficha y añadir al carrito), paso a paso y con el throttling del gate, y anota la URL en la que deja la página cada paso y los errores de la página. Si el elemento de un paso no aparece, el orquestador se para con el recorrido, el lado y el paso: medir un recorrido que no termina da cifras que no significan nada. Cada recorrido es un JSON con su página y sus pasos (`click`, `type`, `hover`, `scroll` y `wait`), el mismo formato que `--interact-script` de la CLI, y el gate mide añadir al carrito con el mismo fichero.
 
@@ -109,6 +110,8 @@ El subagente de LCP mide la home con el throttling del gate (CPU 4x y fast-4g) y
 El subagente de CLS mide cada recorrido del Navigator, desde la carga de su página hasta el último paso, con los pasos que el Navigator ha comprobado, el throttling del gate y la mediana de 3 ejecuciones. Con el snippet `Layout-Shift-Loading-and-Interaction` de WebPerf Snippets MCP obtiene el CLS, cuántos desplazamientos cuentan y cuántos no (los que siguen a una interacción) y los selectores de los nodos que se mueven, del que más al que menos. En `pr/cls-promo-banner`, el CLS pasa de 0 a 0,053 en la home y a 0,0547 en los otros tres recorridos, y el primer nodo es siempre `main.main`: el banner empuja la página hacia abajo.
 
 El subagente de LoAF/INP mide lo que bloquea el hilo principal en cada recorrido del Navigator, con el workflow `interaction` de WebPerf Snippets MCP, los pasos del Navigator, el throttling del gate y la mediana de 3 ejecuciones: el INP del click con sus tres fases (retraso de entrada, procesamiento y presentación), los long animation frames con los scripts que los provocan y su invoker, y las tareas largas. En los recorridos con un click graba además un trace del click con el mismo código que el Judge, y trace-engine-cli lo resume: los snippets nombran el script y el trace nombra la función. En `pr/loaf-cart-handler`, el INP de añadir al carrito pasa de 32 a 192 ms, casi todo procesamiento (169 ms), el script es el handler del click (`DIV#root.onclick`) y el trace nombra `recommendFor`.
+
+El Judge va al final y hace lo mismo que `ci`: el gate de la CLI, los traces, las reglas y la explicación del LLM local (o el handoff con `lite`), en `out/agents/judge/`. Además, para cada métrica que empeora, su informe añade los hallazgos del subagente que la mide, escogidos por reglas: las fases del LCP y los cambios de la imagen LCP, los nodos que se mueven en el CLS, y las fases del INP, los scripts que solo ejecuta la rama y la función del trace. El LLM no los ve: recibe el mismo prompt que en `ci`, el que se ha comprobado en el benchmark de modelos.
 
 ### Perfil `lite`, para equipos de 8 GB
 

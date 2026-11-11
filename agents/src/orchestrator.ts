@@ -1,13 +1,16 @@
 // The orchestrator: runs each subagent on the baseline shop and on the candidate shop and writes
 // what each one finds to OUT/agents, as <subagent>-<side>.json. Each subagent gets what the earlier
 // ones found on the same side, such as the journeys of the Navigator. One measurement at a time, so
-// two Chromiums never share the CPU. Inside Docker Compose, every subagent, or some by name with
-// the ones they need:
+// two Chromiums never share the CPU. Then the Judge runs the gate of ci on both shops, explains it,
+// and adds to its report the findings of the subagents for each regressed metric (OUT/agents/judge).
+// Inside Docker Compose, every subagent and the Judge, or some by name with the ones they need:
 //   CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts
 //   CANDIDATE=pr-cls-promo-banner docker compose run --rm agents node src/orchestrator.ts cls
+//   CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp judge
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { gateRunFromEnv, runGate } from "./ci/pipeline.ts";
 import { cls } from "./subagents/cls.ts";
 import { lcp } from "./subagents/lcp.ts";
 import { loaf } from "./subagents/loaf.ts";
@@ -31,6 +34,14 @@ export function pick(names: string[], all: Subagent<any>[]): Subagent<any>[] {
   };
   names.forEach(add);
   return all.filter((s) => wanted.has(s.name));
+}
+
+// What runs for these names: the subagents, with the ones they need, and whether the Judge runs
+// after them. Without names, everything.
+export function plan(names: string[], all: Subagent<any>[]): { subagents: Subagent<any>[]; judge: boolean } {
+  const measured = names.filter((name) => name !== "judge");
+  if (!names.length) return { subagents: all, judge: true };
+  return { subagents: measured.length ? pick(measured, all) : [], judge: measured.length < names.length };
 }
 
 export async function orchestrate(
@@ -73,7 +84,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     const origins = { baseline: env("BASELINE_URL"), candidate: env("CANDIDATE_URL") };
     const out = join(process.env.OUT || "/out", "agents");
-    await orchestrate(pick(process.argv.slice(2), SUBAGENTS), origins, out, log);
+    const { subagents, judge } = plan(process.argv.slice(2), SUBAGENTS);
+    const found = await orchestrate(subagents, origins, out, log);
+    if (judge) {
+      const report = await runGate(gateRunFromEnv(join(out, "judge"), (message) => log(`judge: ${message}`)), found);
+      const findings = report.findings?.map((f) => `${f.metric} in ${f.scenario} (${f.facts.length} facts)`).join(", ");
+      log(`judge: findings of the subagents: ${findings || "none"}`);
+    }
     log(`done: ${out}`);
   } catch (error) {
     console.error(error);

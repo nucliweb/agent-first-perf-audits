@@ -1,5 +1,7 @@
 // The report of the ci service, in Markdown and in HTML. The verdict comes first and comes from the
-// rules; the explanation of the LLM follows, with any discrepancy with the rules in sight.
+// rules; the explanation of the LLM follows, with any discrepancy with the rules in sight. When the
+// orchestrator runs the Judge, the findings of the subagents close the report.
+import type { Finding } from "../judge/findings.ts";
 import { SCHEMA } from "../judge/prompt.ts";
 import type { Gate } from "../judge/types.ts";
 import type { MetricExplanation } from "../subagents/judge.ts";
@@ -13,6 +15,8 @@ export interface Report {
   gate: Gate;
   // null in the lite profile: the explanation comes from the handoff
   explanations: MetricExplanation[] | null;
+  // Only from the orchestrator: what the subagents measured for each regressed metric
+  findings?: Finding[];
 }
 
 // The schema bounds each text and the grammar of the model stops it there: a text at the limit that
@@ -39,6 +43,16 @@ const discrepancyText = (d: { field: string; llm: string; rules: string }) => `T
 
 const heading = (e: MetricExplanation) => (e.metric === "none" ? "No regression" : `${e.metric} in ${e.scenario}`);
 
+const FINDINGS = "Facts that the rules pick from what the subagents measured; the LLM does not see them.";
+const findingHeading = (f: Finding) => `${f.metric} in ${f.scenario}, from the ${f.subagent} subagent`;
+
+function findingsMarkdown(findings: Finding[] | undefined): string[] {
+  if (!findings) return [];
+  const lines = ["## Findings of the subagents", "", FINDINGS, ""];
+  for (const f of findings) lines.push(`### ${findingHeading(f)}`, "", ...f.facts.map((fact) => `- ${fact}`), "");
+  return lines;
+}
+
 export function reportMarkdown(report: Report): string {
   const lines = [
     `# Performance gate: ${report.branch}`,
@@ -56,7 +70,7 @@ export function reportMarkdown(report: Report): string {
   ];
   if (!report.explanations) {
     lines.push(LITE, "");
-    return lines.join("\n");
+    return [...lines, ...findingsMarkdown(report.findings)].join("\n");
   }
   for (const e of report.explanations) {
     lines.push(`### ${heading(e)}`, "");
@@ -67,7 +81,7 @@ export function reportMarkdown(report: Report): string {
     lines.push(cause(e.answer.suspected_cause), "", ...e.answer.evidence.map((f) => `- ${fact(f)}`), "", `Confidence: ${e.answer.confidence}. Source: ${e.source === "llm" ? "the LLM" : "the rules"}.`, "");
     for (const d of e.discrepancies) lines.push(`> ${discrepancyText(d)}`, "");
   }
-  return lines.join("\n");
+  return [...lines, ...findingsMarkdown(report.findings)].join("\n");
 }
 
 const escape = (text: string) => text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -92,6 +106,13 @@ export function reportHtml(report: Report): string {
           return `<section><h3>${escape(heading(e))}</h3>\n${body}</section>`;
         })
         .join("\n");
+  const findings = !report.findings
+    ? ""
+    : [
+        `<h2>Findings of the subagents</h2>`,
+        `<p class="meta">${escape(FINDINGS)}</p>`,
+        ...report.findings.map((f) => `<section><h3>${escape(findingHeading(f))}</h3>\n<ul>${f.facts.map((fact) => `<li>${escape(fact)}</li>`).join("")}</ul></section>`),
+      ].join("\n");
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -120,6 +141,7 @@ ${rows}
 </table>
 <h2>Explanation</h2>
 ${explanations}
+${findings}
 </body>
 </html>
 `;

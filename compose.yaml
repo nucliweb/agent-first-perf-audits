@@ -60,9 +60,14 @@ services:
       OLLAMA_MODEL: llama3.2:3b
       COMPOSE_PROFILES: ${COMPOSE_PROFILES:-}
       OUT: /out
-    # What the orchestrator and ci write: the JSON of the subagents, the reports and the traces
+      # The shop images under comparison; the Judge finds their branches in the repo for the diff
+      BASELINE: ${BASELINE:-main}
+      CANDIDATE: ${CANDIDATE:-pr-noop-refactor}
+      REPO: /repo
     volumes:
+      # What the orchestrator and ci write: the JSON of the subagents, the reports and the traces
       - ./out:/out
+      - .:/repo:ro
     depends_on:
       shop-baseline:
         condition: service_healthy
@@ -79,13 +84,6 @@ services:
   ci:
     extends: agents
     command: ["node", "src/ci/gate.ts"]
-    environment:
-      # The shop images under comparison; ci finds their branches in the repo
-      BASELINE: ${BASELINE:-main}
-      CANDIDATE: ${CANDIDATE:-pr-noop-refactor}
-      REPO: /repo
-    volumes:
-      - .:/repo:ro
 
 networks:
   lab:

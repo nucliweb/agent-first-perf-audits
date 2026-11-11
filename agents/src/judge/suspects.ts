@@ -28,7 +28,7 @@ function tableRows(toon: string): Record<string, string | null>[] {
 
 // The shop is served from another origin in each side and Vite hashes its bundle, so the code of
 // the app is known by its path without the hash; a third-party script keeps its whole URL
-function codeKey(url: string) {
+export function codeKey(url: string) {
   const { origin, pathname, search } = new URL(url);
   return /^http:\/\/shop-/.test(origin) ? pathname.replace(/-[\w-]{8}(\.js)$/, "$1") : `${origin}${pathname}${search}`;
 }

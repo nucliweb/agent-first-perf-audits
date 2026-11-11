@@ -1,0 +1,246 @@
+{
+  "conditions": {
+    "cpu": 4,
+    "network": "fast-4g",
+    "runs": 3
+  },
+  "journeys": [
+    {
+      "name": "home",
+      "url": "http://shop-candidate:3000/",
+      "inp": null,
+      "longFrames": {
+        "count": 3,
+        "withBlockingTime": 3,
+        "totalBlockingTimeMs": 255,
+        "worstBlockingMs": 111,
+        "topScripts": [
+          {
+            "invoker": "http://thirdparty:4000/ab.js?cpu=150",
+            "source": "ab.js",
+            "totalDurationMs": 157,
+            "count": 1
+          },
+          {
+            "invoker": "http://shop-candidate:3000/assets/index-BsVNkX21.js",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 110,
+            "count": 1
+          },
+          {
+            "invoker": "MessagePort.onmessage",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 89,
+            "count": 1
+          },
+          {
+            "invoker": "http://thirdparty:4000/chat.js?delay=300&cpu=60",
+            "source": "chat.js",
+            "totalDurationMs": 63,
+            "count": 1
+          }
+        ]
+      },
+      "longTasks": {
+        "totalBlockingTimeMs": 225,
+        "worstTaskMs": 157
+      },
+      "trace": null
+    },
+    {
+      "name": "shop",
+      "url": "http://shop-candidate:3000/shop",
+      "inp": {
+        "value": 24,
+        "rating": "good",
+        "runs": {
+          "median": 24,
+          "min": 24,
+          "max": 40,
+          "agreement": "consistent"
+        },
+        "event": "click → button.chip",
+        "phases": {
+          "inputDelay": 8,
+          "processingTime": 10,
+          "presentationDelay": 5
+        }
+      },
+      "longFrames": {
+        "count": 3,
+        "withBlockingTime": 3,
+        "totalBlockingTimeMs": 275,
+        "worstBlockingMs": 112,
+        "topScripts": [
+          {
+            "invoker": "http://thirdparty:4000/ab.js?cpu=150",
+            "source": "ab.js",
+            "totalDurationMs": 156,
+            "count": 1
+          },
+          {
+            "invoker": "MessagePort.onmessage",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 115,
+            "count": 1
+          },
+          {
+            "invoker": "http://shop-candidate:3000/assets/index-BsVNkX21.js",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 92,
+            "count": 1
+          },
+          {
+            "invoker": "http://thirdparty:4000/chat.js?delay=300&cpu=60",
+            "source": "chat.js",
+            "totalDurationMs": 62,
+            "count": 1
+          }
+        ]
+      },
+      "longTasks": {
+        "totalBlockingTimeMs": 228,
+        "worstTaskMs": 156
+      },
+      "trace": {
+        "file": "traces/loaf-shop-candidate.json",
+        "summaries": {
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,58.9,14.43,38.28,6.19,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  83.5,83.43,\"CpuProfiler::StartProfiling\",null,null,null\n  114.34,22.61,EvaluateScript,null,null,null\n  142.1,20.81,Receive mojo message,null,null,null\n  43.56,15.48,FunctionCall,null,null,null\n  225.25,11.78,RunTask,null,null,null"
+        }
+      }
+    },
+    {
+      "name": "product",
+      "url": "http://shop-candidate:3000/product/kenya-aa",
+      "inp": {
+        "value": 32,
+        "rating": "good",
+        "runs": {
+          "median": 32,
+          "min": 32,
+          "max": 32,
+          "agreement": "consistent"
+        },
+        "event": "click → input",
+        "phases": {
+          "inputDelay": 6,
+          "processingTime": 10,
+          "presentationDelay": 16
+        }
+      },
+      "longFrames": {
+        "count": 4,
+        "withBlockingTime": 3,
+        "totalBlockingTimeMs": 176,
+        "worstBlockingMs": 104,
+        "topScripts": [
+          {
+            "invoker": "http://thirdparty:4000/ab.js?cpu=150",
+            "source": "ab.js",
+            "totalDurationMs": 153,
+            "count": 1
+          },
+          {
+            "invoker": "MessagePort.onmessage",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 70,
+            "count": 1
+          },
+          {
+            "invoker": "http://shop-candidate:3000/assets/index-BsVNkX21.js",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 66,
+            "count": 1
+          },
+          {
+            "invoker": "http://thirdparty:4000/chat.js?delay=300&cpu=60",
+            "source": "chat.js",
+            "totalDurationMs": 61,
+            "count": 1
+          }
+        ]
+      },
+      "longTasks": {
+        "totalBlockingTimeMs": 149,
+        "worstTaskMs": 153
+      },
+      "trace": {
+        "file": "traces/loaf-product-candidate.json",
+        "summaries": {
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,39.69,8.55,16.77,14.36,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  86.08,86,\"CpuProfiler::StartProfiling\",null,null,null\n  116.32,26.94,EvaluateScript,null,null,null\n  142.52,20.53,Receive mojo message,null,null,null\n  17.87,5.91,FunctionCall,null,null,null\n  187.35,5.45,RunTask,null,null,null"
+        }
+      }
+    },
+    {
+      "name": "add-to-cart",
+      "url": "http://shop-candidate:3000/product/kenya-aa",
+      "inp": {
+        "value": 200,
+        "rating": "good",
+        "runs": {
+          "median": 200,
+          "min": 192,
+          "max": 216,
+          "agreement": "consistent"
+        },
+        "event": "click → button.button",
+        "phases": {
+          "inputDelay": 9,
+          "processingTime": 170,
+          "presentationDelay": 21
+        }
+      },
+      "longFrames": {
+        "count": 5,
+        "withBlockingTime": 4,
+        "totalBlockingTimeMs": 345,
+        "worstBlockingMs": 134,
+        "topScripts": [
+          {
+            "invoker": "DIV#root.onclick",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 167,
+            "count": 1
+          },
+          {
+            "invoker": "http://thirdparty:4000/ab.js?cpu=150",
+            "source": "ab.js",
+            "totalDurationMs": 154,
+            "count": 1
+          },
+          {
+            "invoker": "http://shop-candidate:3000/assets/index-BsVNkX21.js",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 80,
+            "count": 1
+          },
+          {
+            "invoker": "MessagePort.onmessage",
+            "source": "index-BsVNkX21.js",
+            "totalDurationMs": 76,
+            "count": 1
+          },
+          {
+            "invoker": "http://thirdparty:4000/chat.js?delay=300&cpu=60",
+            "source": "chat.js",
+            "totalDurationMs": 63,
+            "count": 1
+          }
+        ]
+      },
+      "longTasks": {
+        "totalBlockingTimeMs": 308,
+        "worstTaskMs": 182
+      },
+      "trace": {
+        "file": "traces/loaf-add-to-cart-candidate.json",
+        "summaries": {
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,211.51,11.98,181.73,17.8,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  160.02,154.95,recommendFor,\"http://shop-candidate:3000/assets/index-BsVNkX21.js\",8,69676\n  87.83,85.45,\"CpuProfiler::StartProfiling\",null,null,null\n  118.59,28.33,EvaluateScript,null,null,null\n  146.67,20.77,Receive mojo message,null,null,null\n  187.17,10.77,FunctionCall,null,null,null"
+        }
+      }
+    }
+  ]
+}
