@@ -1,0 +1,69 @@
+{
+  "url": "http://shop-candidate:3000/product/kenya-aa",
+  "runId": "5576fa33-44cb-419f-ba65-45e0f191e706",
+  "detail": "full",
+  "snippet": "Interaction/Layout-Shift-Loading-and-Interaction",
+  "viewport": "mobile",
+  "navMs": 4077,
+  "pageErrors": [],
+  "throttling": {
+    "cpu": 4,
+    "network": "fast-4g"
+  },
+  "result": {
+    "script": "Layout-Shift-Loading-and-Interaction",
+    "status": "ok",
+    "metric": "CLS",
+    "value": 0.0547,
+    "unit": "score",
+    "rating": "good",
+    "thresholds": {
+      "good": 0.1,
+      "needsImprovement": 0.25
+    },
+    "details": {
+      "currentCLS": 0.0547,
+      "shiftCount": 1,
+      "countedShifts": 1,
+      "excludedShifts": 0,
+      "topElements": [
+        {
+          "selector": "main.main",
+          "shiftCount": 1,
+          "totalImpact": 0.0547
+        },
+        {
+          "selector": "label.chip:nth-of-type(1)",
+          "shiftCount": 1,
+          "totalImpact": 0.0547
+        },
+        {
+          "selector": "label.chip:nth-of-type(2)",
+          "shiftCount": 1,
+          "totalImpact": 0.0547
+        }
+      ]
+    }
+  },
+  "runs": {
+    "count": 3,
+    "failed": 0,
+    "medianRun": 3,
+    "medianBy": "navMs",
+    "summary": {
+      "CLS": {
+        "median": 0.0547,
+        "min": 0.0547,
+        "max": 0.0547,
+        "values": [
+          0.0547,
+          0.0547,
+          0.0547
+        ],
+        "unit": "score",
+        "cv": 0,
+        "agreement": "consistent"
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "url": "http://shop-baseline:3000/",
+  "runId": "e2414339-57d9-43ac-aa3b-f720d6992248",
+  "detail": "full",
+  "snippet": "Interaction/Layout-Shift-Loading-and-Interaction",
+  "viewport": "mobile",
+  "navMs": 4142,
+  "pageErrors": [],
+  "throttling": {
+    "cpu": 4,
+    "network": "fast-4g"
+  },
+  "result": {
+    "script": "Layout-Shift-Loading-and-Interaction",
+    "status": "ok",
+    "metric": "CLS",
+    "value": 0,
+    "unit": "score",
+    "rating": "good",
+    "thresholds": {
+      "good": 0.1,
+      "needsImprovement": 0.25
+    },
+    "details": {
+      "currentCLS": 0,
+      "shiftCount": 0,
+      "countedShifts": 0,
+      "excludedShifts": 0,
+      "topElements": []
+    }
+  },
+  "runs": {
+    "count": 3,
+    "failed": 0,
+    "medianRun": 3,
+    "medianBy": "navMs",
+    "summary": {
+      "CLS": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "values": [
+          0,
+          0,
+          0
+        ],
+        "unit": "score"
+      }
+    }
+  }
+}

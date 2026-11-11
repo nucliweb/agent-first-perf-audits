@@ -8,7 +8,7 @@
 import { readFileSync } from "node:fs";
 import type { Client } from "@modelcontextprotocol/client";
 import { callTool, connect } from "../mcp/client.ts";
-import type { Subagent } from "./subagent.ts";
+import { CONDITIONS, type Subagent } from "./subagent.ts";
 
 export type Step =
   | { action: "click" | "hover"; selector: string }
@@ -30,7 +30,7 @@ export const JOURNEYS: Journey[] = NAMES.map((name) =>
 );
 
 // The throttling of the gate, so a step that waits for an element waits as long as in the measurements
-const CONDITIONS = { cpu: 4, network: "fast-4g" };
+const THROTTLING = { cpu: CONDITIONS.cpu, network: CONDITIONS.network };
 
 export interface JourneyRun {
   name: string;
@@ -49,7 +49,7 @@ const described = (step: Step) =>
 
 async function runJourney(webperf: Client, origin: string, journey: Journey): Promise<JourneyRun> {
   // open_page needs a tracking snippet; INP records nothing until a click and costs nothing
-  const opened = await callTool(webperf, "open_page", { url: `${origin}${journey.path}`, track: ["INP"], ...CONDITIONS });
+  const opened = await callTool(webperf, "open_page", { url: `${origin}${journey.path}`, track: ["INP"], ...THROTTLING });
   const { sessionId, url } = opened.structuredContent as { sessionId: string; url: string };
   try {
     // One step per call, so a step that breaks is known by its number

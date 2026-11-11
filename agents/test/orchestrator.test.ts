@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { orchestrate } from "../src/orchestrator.ts";
+import { orchestrate, pick } from "../src/orchestrator.ts";
 import type { Page, Subagent } from "../src/subagents/subagent.ts";
 
 const PAGES = { baseline: "http://shop-baseline:3000", candidate: "http://shop-candidate:3000" };
@@ -55,4 +55,23 @@ test("a subagent that fails stops the orchestrator", async () => {
   const out = await mkdtemp(join(tmpdir(), "orchestrator-"));
   const failing: Subagent<never> = { name: "lcp", run: async () => Promise.reject(new Error("no LCP")), summary: () => "" };
   await assert.rejects(orchestrate([failing], PAGES, out, () => {}), /lcp, baseline: no LCP/);
+});
+
+// Subagents that only have a name and what they need, to choose among them
+const named = (name: string, needs?: string[]): Subagent<null> => ({ name, needs, run: async () => null, summary: () => "" });
+const ALL = [named("navigator"), named("lcp"), named("cls", ["navigator"])];
+const names = (subagents: Subagent<unknown>[]) => subagents.map((s) => s.name);
+
+test("without names, every subagent runs", () => {
+  assert.deepEqual(names(pick([], ALL)), ["navigator", "lcp", "cls"]);
+});
+
+test("a subagent by name brings what it needs, in the order of the orchestrator", () => {
+  assert.deepEqual(names(pick(["cls"], ALL)), ["navigator", "cls"]);
+  assert.deepEqual(names(pick(["lcp"], ALL)), ["lcp"]);
+  assert.deepEqual(names(pick(["cls", "lcp"], ALL)), ["navigator", "lcp", "cls"]);
+});
+
+test("an unknown name lists the subagents there are", () => {
+  assert.throws(() => pick(["inp"], ALL), /No subagent inp: navigator, lcp, cls/);
 });

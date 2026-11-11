@@ -9,11 +9,7 @@ import { chmod, copyFile, mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { callTool, connect } from "../mcp/client.ts";
-import type { Subagent } from "./subagent.ts";
-
-// The throttling of the gate, with the median of 3 runs: steady enough to explain, fast enough to
-// run during the workshop
-export const CONDITIONS = { cpu: 4, network: "fast-4g", runs: 3 };
+import { CONDITIONS, type Subagent } from "./subagent.ts";
 
 // The same throttling in the presets of Chrome DevTools, and the viewport of the traces of the Judge
 const EMULATION = { cpuThrottlingRate: 4, networkConditions: "Fast 4G", viewport: "412x823x1,mobile,touch" };

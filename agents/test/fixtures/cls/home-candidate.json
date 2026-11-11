@@ -1,0 +1,69 @@
+{
+  "url": "http://shop-candidate:3000/",
+  "runId": "a522fe7b-cad1-4422-abb5-ded2cacf4c2f",
+  "detail": "full",
+  "snippet": "Interaction/Layout-Shift-Loading-and-Interaction",
+  "viewport": "mobile",
+  "navMs": 4272,
+  "pageErrors": [],
+  "throttling": {
+    "cpu": 4,
+    "network": "fast-4g"
+  },
+  "result": {
+    "script": "Layout-Shift-Loading-and-Interaction",
+    "status": "ok",
+    "metric": "CLS",
+    "value": 0.053,
+    "unit": "score",
+    "rating": "good",
+    "thresholds": {
+      "good": 0.1,
+      "needsImprovement": 0.25
+    },
+    "details": {
+      "currentCLS": 0.053,
+      "shiftCount": 1,
+      "countedShifts": 1,
+      "excludedShifts": 0,
+      "topElements": [
+        {
+          "selector": "main.main",
+          "shiftCount": 1,
+          "totalImpact": 0.053
+        },
+        {
+          "selector": "section.section:nth-of-type(2) > div.grid > article.card:nth-of-type(1) > a.card__link > h3.card__name",
+          "shiftCount": 1,
+          "totalImpact": 0.053
+        },
+        {
+          "selector": "section.section:nth-of-type(2) > div.grid > article.card:nth-of-type(2) > a.card__link > h3.card__name",
+          "shiftCount": 1,
+          "totalImpact": 0.053
+        }
+      ]
+    }
+  },
+  "runs": {
+    "count": 3,
+    "failed": 0,
+    "medianRun": 3,
+    "medianBy": "navMs",
+    "summary": {
+      "CLS": {
+        "median": 0.053,
+        "min": 0.053,
+        "max": 0.053,
+        "values": [
+          0.053,
+          0.053,
+          0.053
+        ],
+        "unit": "score",
+        "cv": 0,
+        "agreement": "consistent"
+      }
+    }
+  }
+}
