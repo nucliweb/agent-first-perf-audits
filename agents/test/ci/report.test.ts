@@ -90,3 +90,13 @@ test("marks a text that reached the limit of the schema as cut", () => {
   assert.ok(md.includes("- A short fact.\n"));
   assert.ok(reportHtml({ ...base, explanations: [{ ...base.explanations![0], answer: { ...base.explanations![0].answer!, evidence: [cut] } }] }).includes(`${cut}…</li>`));
 });
+
+// A real evidence of the benchmark (experiments/models, rules stage) fits the limit exactly
+test("does not mark a complete sentence that fits the limit exactly", () => {
+  const complete = "x".repeat(198) + "y.";
+  const md = reportMarkdown({
+    ...base,
+    explanations: [{ ...base.explanations![0], answer: { ...base.explanations![0].answer!, evidence: [complete] } }],
+  });
+  assert.ok(md.includes(`- ${complete}\n`));
+});

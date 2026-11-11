@@ -139,12 +139,14 @@ La primera versión le pedía al modelo todo: repetir el veredicto, elegir la m�
 
 ### Qué probamos
 
-| Etapa | Qué hacen las reglas antes del LLM | `llama3.2:3b` nombra la causa |
-|---|---|---|
-| `llm` | Deciden el veredicto y qué métrica explicar | 9 de 15 |
-| `suspects` | Además, comparan los traces y dan al modelo los sospechosos: funciones y scripts nuevos o que crecen | 9 de 15 |
-| `rules` | Además, no preguntan al modelo si nada empeora, y relacionan cada sospechoso con la línea del diff que lo añade | 14 de 15 |
-| `quotes` | Además, escapan las comillas dobles del diff y de la línea relacionada | 15 de 15, en frío |
+| Etapa | Qué hacen las reglas antes del LLM | `llama3.2:3b` nombra la causa: primera medida | Con los fixtures actuales, en frío |
+|---|---|---|---|
+| `llm` | Deciden el veredicto y qué métrica explicar | 9 de 15 | 3 de 5 |
+| `suspects` | Además, comparan los traces y dan al modelo los sospechosos: funciones y scripts nuevos o que crecen | 9 de 15 | 3 de 5 |
+| `rules` | Además, no preguntan al modelo si nada empeora, y relacionan cada sospechoso con la línea del diff que lo añade | 14 de 15 | 5 de 5 |
+| `quotes` | Además, escapan las comillas dobles del diff y de la línea relacionada | 15 de 15, en frío | 5 de 5 |
+
+La primera medida se hizo en caliente y con tres repeticiones de cada caso, sobre los fixtures del 10 de noviembre. Los fixtures actuales tienen traces nuevos y el gate de otra ejecución, y en frío basta una repetición, porque todas dan la misma respuesta.
 
 Por el camino:
 
@@ -166,22 +168,24 @@ Además, el fallo no salía siempre. En la etapa `rules`, solo una de las tres r
 
 Con las comillas del diff escapadas en la entrada (`loading=\"lazy\"`), el modelo copia una forma válida dentro de una cadena JSON, y en frío nombra la causa en 15 de 15. Escapar en la entrada no depende de que el modelo obedezca una instrucción más del prompt.
 
+Con los fixtures actuales la frase ya no se corta sin escapar, pero tampoco es buena: dice que se añadió "el atributo `loading` a la propiedad `fetchPriority`", que ahora valdría `'lazy'` en lugar de `'high'`. La puntuación la da por buena, porque nombra `lazy`. Con las comillas escapadas, la frase nombra el atributo `loading="lazy"` del `img`.
+
 - **El Judge escapa las comillas dobles del código que pone en el prompt.** El handoff lleva la misma entrada.
 - **Las pruebas de un modelo se hacen en frío.** En caliente, la misma entrada puede dar otra redacción, y un fallo puede salir en una repetición y no en otra. En frío, la imagen `ollama` del taller da las mismas respuestas que el contenedor del benchmark, y las da igual con la máquina cargada: la carga cambia la latencia, no el texto.
 
 ### Compruébalo
 
-El experimento está en [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models). Las respuestas están guardadas en `results/`, así que el test comprueba estas cifras sin necesitar Ollama. Las etapas `llm`, `suspects` y `rules` se midieron en caliente; las pasadas en frío (`COLD=1`) son las de `rules` y `quotes`:
+El experimento está en [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models). Las respuestas están guardadas, las actuales en `results/` y las de la primera medida en `history/2026-11-10/` con sus fixtures, así que el test comprueba estas cifras sin necesitar Ollama:
 
 ```bash
 cd experiments/models
 npm install
 npm test                          # reglas, puntuación y las cifras de cada etapa
-MODES=schema node bench.mjs       # el benchmark completo, con Ollama
-STAGE=quotes COLD=1 MODES=schema node bench.mjs llama3.2:3b   # la etapa del Judge, en frío
+STAGE=llm COLD=1 REPS=1 MODES=schema node bench.mjs   # una etapa con los cuatro modelos, en frío
+STAGE=quotes COLD=1 REPS=1 MODES=schema node bench.mjs llama3.2:3b   # la etapa del Judge
 ```
 
-La latencia depende mucho de la carga de la máquina. En la etapa `rules`, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal. En frío, cada llamada incluye cargar el modelo y la mediana sube a 46-48 s.
+La latencia depende mucho de la carga de la máquina. En la etapa `rules` de la primera medida, en caliente, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal. En frío, cada llamada incluye cargar el modelo y la mediana sube a 46-48 s.
 
 ### Cómo aplicarlo en tu plataforma
 

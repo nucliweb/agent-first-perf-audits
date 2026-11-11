@@ -15,10 +15,11 @@ export interface Report {
   explanations: MetricExplanation[] | null;
 }
 
-// The schema bounds each text and the grammar of the model stops it there: a text at the limit was cut
+// The schema bounds each text and the grammar of the model stops it there: a text at the limit that
+// does not end a sentence was cut. A complete sentence can fit the limit exactly.
 const CAUSE_MAX = SCHEMA.properties.suspected_cause.maxLength;
 const EVIDENCE_MAX = SCHEMA.properties.evidence.items.maxLength;
-const marked = (text: string, max: number) => (text.length >= max ? `${text}…` : text);
+const marked = (text: string, max: number) => (text.length >= max && !/[.!?)]$/.test(text) ? `${text}…` : text);
 const cause = (text: string) => marked(text, CAUSE_MAX);
 const fact = (text: string) => marked(text, EVIDENCE_MAX);
 

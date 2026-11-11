@@ -41,15 +41,15 @@ test("the model answers JSON constrained by a schema", { skip, timeout: 180_000 
   assert.deepEqual(JSON.parse(message.content), { slower: true });
 });
 
-// The answers of the benchmark (experiments/models, run 6) are cold: the model unloaded before
+// The answers of the benchmark (experiments/models, the quotes stage) are cold: the model unloaded before
 // each call, so no call reuses the prompt cache of another. Cold, the image of the workshop has to
 // give the same answers, or the figures of the benchmark do not hold for it. It needs the fixtures
 // of the experiment: on the host, or mounted with -v "$PWD/experiments:/experiments:ro".
 const BENCHMARK = new URL("../../experiments/models/", import.meta.url);
-const skipBenchmark = skip || (!existsSync(new URL("results/6-quotes-cold.json", BENCHMARK)) && "needs experiments/models");
+const skipBenchmark = skip || (!existsSync(new URL("results/quotes.json", BENCHMARK)) && "needs experiments/models");
 
 test("cold, the model gives the answers of the benchmark", { skip: skipBenchmark, timeout: 600_000 }, async () => {
-  const saved = JSON.parse(readFileSync(new URL("results/6-quotes-cold.json", BENCHMARK), "utf8"));
+  const saved = JSON.parse(readFileSync(new URL("results/quotes.json", BENCHMARK), "utf8"));
   const chat = ollama(OLLAMA_URL!, OLLAMA_MODEL!);
   const fixtures = readdirSync(new URL("fixtures/", BENCHMARK)).filter((f) => f.endsWith(".json")).sort();
   let cases = 0;

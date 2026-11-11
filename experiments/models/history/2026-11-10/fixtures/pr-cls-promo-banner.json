@@ -1,0 +1,83 @@
+{
+  "ref": "pr/cls-promo-banner",
+  "expected": {
+    "CLS": "min-height|promo-slot|reserve|font-display|swap"
+  },
+  "input": {
+    "branch": "pr/cls-promo-banner",
+    "gate": {
+      "verdict": "fail",
+      "scenarios": [
+        {
+          "scenario": "home",
+          "exitCode": 1,
+          "metrics": {
+            "LCP": {
+              "baseline": 656,
+              "candidate": 656,
+              "deltaPercent": 0,
+              "threshold": 100,
+              "p": 0.638,
+              "verdict": "unchanged"
+            },
+            "CLS": {
+              "baseline": 0,
+              "candidate": 0.0696,
+              "deltaPercent": null,
+              "threshold": 0.05,
+              "p": 0.002,
+              "verdict": "regressed"
+            }
+          }
+        },
+        {
+          "scenario": "add-to-cart",
+          "exitCode": 1,
+          "metrics": {
+            "CLS": {
+              "baseline": 0,
+              "candidate": 0.0547,
+              "deltaPercent": null,
+              "threshold": 0.05,
+              "p": 0.002,
+              "verdict": "regressed"
+            },
+            "INP": {
+              "baseline": 48,
+              "candidate": 40,
+              "deltaPercent": -16.7,
+              "threshold": 50,
+              "p": 0.1864,
+              "verdict": "unchanged"
+            }
+          }
+        }
+      ]
+    },
+    "diff": "diff --git a/apps/shop/index.html b/apps/shop/index.html\nindex 3c324d7..1120ab3 100644\n--- a/apps/shop/index.html\n+++ b/apps/shop/index.html\n@@ -7,7 +7,6 @@\n     <meta name=\"description\" content=\"Specialty coffee and brewing gear, roasted every week.\" />\n     <link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\" />\n     <!-- lcp-preload -->\n-    <link rel=\"preload\" href=\"/fonts/fraunces-latin-600-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin />\n     <script async src=\"__THIRDPARTY_ORIGIN__/analytics.js?delay=100&cpu=30\"></script>\n     <script async src=\"__THIRDPARTY_ORIGIN__/promo.js?delay=800&cpu=20\"></script>\n     <script defer src=\"__THIRDPARTY_ORIGIN__/chat.js?delay=300&cpu=60\"></script>\ndiff --git a/apps/shop/src/styles.css b/apps/shop/src/styles.css\nindex 833ad0f..52e34d8 100644\n--- a/apps/shop/src/styles.css\n+++ b/apps/shop/src/styles.css\n@@ -5,7 +5,7 @@\n   src: url(\"/fonts/fraunces-latin-600-normal.woff2\") format(\"woff2\");\n   font-weight: 600;\n   font-style: normal;\n-  font-display: optional;\n+  font-display: swap;\n }\n \n :root {\n@@ -99,11 +99,6 @@ h3 {\n   line-height: 22px;\n }\n \n-/* Reserves the height of the third-party promo banner */\n-.promo-slot {\n-  min-height: 48px;\n-}\n-\n .hero {\n   display: grid;\n   gap: 24px;",
+    "traces": {
+      "home": {
+        "baseline": {
+          "overview": "bounds:\n  durationMs: 2524.41\nmainUrl: \"http://shop-baseline:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 570.36\n    rating: good\n  lcp:\n    valueMs: 637.84\n    rating: good\n    url: \"http://shop-baseline:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 5.66\n  layoutMs: 5.08\n  renderingMs: 7.8\n  gcMs: 0\n  systemMs: 241.55\n  idleMs: 2264.32\n  totalMs: 2524.41\nwarnings[1]: 1 render-blocking resource(s) detected.",
+          "shifts": "clusters: []",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  60.3,59.61,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  31.23,30.48,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1\n  20.38,20.29,ProfileCall,\"http://thirdparty:4000/promo.js?delay=800&cpu=20\",0,1\n  19.84,19.84,formatPrice,\"http://shop-baseline:3000/assets/index-Dq8xWP3D.js\",8,66440\n  247.45,17.98,\"ThreadControllerImpl::RunTask\",null,null,null"
+        },
+        "candidate": {
+          "overview": "bounds:\n  durationMs: 2632.4\nmainUrl: \"http://shop-candidate:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 612.24\n    rating: good\n  lcp:\n    valueMs: 688.04\n    rating: good\n    url: \"http://shop-candidate:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0.0524\n    rating: good\n    worstClusterScore: 0.0524\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 4.97\n  layoutMs: 5.7\n  renderingMs: 7.13\n  gcMs: 0\n  systemMs: 293.36\n  idleMs: 2321.25\n  totalMs: 2632.4\nwarnings[1]: 1 render-blocking resource(s) detected.",
+          "shifts": "clusters[1]:\n  - durationMs: 1000\n    cumulativeScore: 0.0524\n    culprits[3]{nodeId,tagName,selector,debugName,scoreDelta}:\n      17,null,Node #17,null,0.0524\n      37,null,Node #37,null,0.0524\n      43,null,Node #43,null,0.0524",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  61.35,61.01,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  55.17,55.17,\"LocalFrameView::performLayout\",null,null,null\n  32.42,32.15,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1\n  298.81,19.94,\"ThreadControllerImpl::RunTask\",null,null,null\n  20.25,19.87,ProfileCall,\"http://thirdparty:4000/promo.js?delay=800&cpu=20\",0,1"
+        }
+      },
+      "add-to-cart": {
+        "baseline": {
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,39.49,3.13,8.8,27.55,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  44.41,44.4,\"CpuProfiler::StartProfiling\",null,null,null\n  109.38,19.82,\"ThreadControllerImpl::RunTask\",null,null,null\n  57.59,10.47,EvaluateScript,null,null,null\n  70.27,8.86,Receive mojo message,null,null,null\n  10.49,3.71,FunctionCall,null,null,null"
+        },
+        "candidate": {
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,54.25,3.35,6.51,44.39,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  44.58,44.57,\"CpuProfiler::StartProfiling\",null,null,null\n  125.49,39.68,\"ThreadControllerImpl::RunTask\",null,null,null\n  58.11,10.72,EvaluateScript,null,null,null\n  69.31,8.18,Receive mojo message,null,null,null\n  1.77,1.77,InjectedScript,null,6809,13"
+        }
+      }
+    }
+  }
+}

@@ -11,11 +11,11 @@
           "exitCode": 0,
           "metrics": {
             "LCP": {
-              "baseline": 656,
+              "baseline": 660,
               "candidate": 648,
-              "deltaPercent": -1.2,
+              "deltaPercent": -1.8,
               "threshold": 100,
-              "p": 0.0987,
+              "p": 0.07,
               "verdict": "unchanged"
             },
             "CLS": {
@@ -42,10 +42,10 @@
             },
             "INP": {
               "baseline": 48,
-              "candidate": 40,
-              "deltaPercent": -16.7,
+              "candidate": 56,
+              "deltaPercent": 16.7,
               "threshold": 50,
-              "p": 0.0416,
+              "p": 0.0943,
               "verdict": "unchanged"
             }
           }
@@ -56,24 +56,26 @@
     "traces": {
       "home": {
         "baseline": {
-          "overview": "bounds:\n  durationMs: 2535.75\nmainUrl: \"http://shop-baseline:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 598.1\n    rating: good\n  lcp:\n    valueMs: 657.14\n    rating: good\n    url: \"http://shop-baseline:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 4.09\n  layoutMs: 5.75\n  renderingMs: 8.74\n  gcMs: 0\n  systemMs: 264.78\n  idleMs: 2252.4\n  totalMs: 2535.75\nwarnings[1]: 1 render-blocking resource(s) detected.",
+          "overview": "bounds:\n  durationMs: 2525.38\nmainUrl: \"http://shop-baseline:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 587.21\n    rating: good\n  lcp:\n    valueMs: 634.36\n    rating: good\n    url: \"http://shop-baseline:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 7.29\n  layoutMs: 4.12\n  renderingMs: 5.97\n  gcMs: 0\n  systemMs: 243.59\n  idleMs: 2264.42\n  totalMs: 2525.38\nwarnings[1]: 1 render-blocking resource(s) detected.",
           "shifts": "clusters: []",
-          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  59.19,59.15,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  31.41,31.33,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1\n  23.38,23.38,\"LocalFrameView::performLayout\",null,null,null\n  265.3,19.93,\"ThreadControllerImpl::RunTask\",null,null,null\n  20.49,19.6,ProfileCall,\"http://thirdparty:4000/promo.js?delay=800&cpu=20\",0,1"
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  60,59.98,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  31.53,30.76,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1\n  20.8,20.79,formatPrice,\"http://shop-baseline:3000/assets/index-Dq8xWP3D.js\",8,66440\n  19.65,19.06,ProfileCall,\"http://thirdparty:4000/promo.js?delay=800&cpu=20\",0,1\n  246.81,18.53,\"ThreadControllerImpl::RunTask\",null,null,null"
         },
         "candidate": {
-          "overview": "bounds:\n  durationMs: 2525.29\nmainUrl: \"http://shop-candidate:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 567.54\n    rating: good\n  lcp:\n    valueMs: 648.16\n    rating: good\n    url: \"http://shop-candidate:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 6.15\n  layoutMs: 5.31\n  renderingMs: 5.83\n  gcMs: 0\n  systemMs: 241.31\n  idleMs: 2266.68\n  totalMs: 2525.29\nwarnings[1]: 1 render-blocking resource(s) detected.",
+          "overview": "bounds:\n  durationMs: 2526.92\nmainUrl: \"http://shop-candidate:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 580.27\n    rating: good\n  lcp:\n    valueMs: 649.96\n    rating: good\n    url: \"http://shop-candidate:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 5.73\n  layoutMs: 5.14\n  renderingMs: 5.68\n  gcMs: 0\n  systemMs: 233.93\n  idleMs: 2276.44\n  totalMs: 2526.92\nwarnings[1]: 1 render-blocking resource(s) detected.",
           "shifts": "clusters: []",
-          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  60.03,59.47,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  30.95,30.88,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1\n  21.57,21.57,formatPrice,\"http://shop-candidate:3000/assets/index-DbbniX0m.js\",8,66440\n  18.96,18.91,ProfileCall,\"http://thirdparty:4000/promo.js?delay=800&cpu=20\",0,1\n  18.11,18.11,\"LocalFrameView::performLayout\",null,null,null"
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  60.77,60.15,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  32.18,31.36,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1\n  20.04,20.04,formatPrice,\"http://shop-candidate:3000/assets/index-DbbniX0m.js\",8,66440\n  20.14,19.63,ProfileCall,\"http://thirdparty:4000/promo.js?delay=800&cpu=20\",0,1\n  241.54,16.78,\"ThreadControllerImpl::RunTask\",null,null,null"
         }
       },
       "add-to-cart": {
         "baseline": {
-          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,51.03,3.13,8.26,39.65,null",
-          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  44.06,44.04,\"CpuProfiler::StartProfiling\",null,null,null\n  122.51,31.24,\"ThreadControllerImpl::RunTask\",null,null,null\n  57.28,10.81,EvaluateScript,null,null,null\n  70.67,5.61,Receive mojo message,null,null,null\n  9.87,2.26,FunctionCall,null,null,null"
+          "shifts": "clusters: []",
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,40.82,4.05,7.17,29.6,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  44.71,44.7,\"CpuProfiler::StartProfiling\",null,null,null\n  115.22,22.8,\"ThreadControllerImpl::RunTask\",null,null,null\n  58.91,11.08,EvaluateScript,null,null,null\n  74.09,10.05,Receive mojo message,null,null,null\n  8.62,3.29,FunctionCall,null,null,null"
         },
         "candidate": {
-          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,40.5,3.35,7.06,30.1,null",
-          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  44.24,44.22,\"CpuProfiler::StartProfiling\",null,null,null\n  111.91,22.2,\"ThreadControllerImpl::RunTask\",null,null,null\n  56.97,10.02,EvaluateScript,null,null,null\n  73.19,8.3,Receive mojo message,null,null,null\n  114.31,2.36,RunTask,null,null,null"
+          "shifts": "clusters: []",
+          "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,38.53,3.48,6.64,28.41,null",
+          "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  44.78,44.76,\"CpuProfiler::StartProfiling\",null,null,null\n  110.95,21.85,\"ThreadControllerImpl::RunTask\",null,null,null\n  59.11,11.64,EvaluateScript,null,null,null\n  73.78,8.81,Receive mojo message,null,null,null\n  8.54,2.84,RunMicrotasks,null,null,null"
         }
       }
     }

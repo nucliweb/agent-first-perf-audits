@@ -7,7 +7,7 @@ Reproduce los datos del benchmark de modelos: qué modelo local explica mejor la
 1. [`fixtures.mjs`](fixtures.mjs) genera la entrada del Judge para cada rama de regresión, con datos reales:
    - el veredicto y las métricas del gate, de [`experiments/regressions`](../regressions);
    - el diff de la rama, sin los tests;
-   - los resúmenes de trace-engine-cli de la versión base y de la candidata en los dos escenarios, con CPU 4x y red fast-4g.
+   - los resúmenes de trace-engine-cli de la versión base y de la candidata en los dos escenarios, con CPU 4x y red fast-4g. En `add-to-cart` hay dos traces por lado: el de la carga da los layout shifts y el del click, las interacciones y las tareas.
 
    Los guarda en [`fixtures/`](fixtures), así que todos los modelos reciben exactamente el mismo prompt.
 2. [`bench.mjs`](bench.mjs) pasa cada caso por cada modelo en Ollama, con Chromium abierto en otro contenedor, como en el laboratorio. Mide:
@@ -16,7 +16,7 @@ Reproduce los datos del benchmark de modelos: qué modelo local explica mejor la
    - si repite el veredicto y la métrica de las reglas;
    - si nombra la causa real;
    - la RAM que Ollama da al modelo.
-3. [`claims.test.mjs`](claims.test.mjs) comprueba las cifras de la documentación sobre las respuestas guardadas en [`results/`](results).
+3. [`claims.test.mjs`](claims.test.mjs) comprueba las cifras de la documentación sobre las respuestas guardadas en [`results/`](results), una por etapa, y en [`history/`](history).
 
 Las reglas y el prompt son los del Judge: viven en [`agents/src/judge`](../../agents/src/judge), con sus tests en `agents/test/judge`, y el experimento los importa desde allí. Así el benchmark mide el mismo código que ejecuta el Judge.
 
@@ -42,10 +42,12 @@ npm install
 npm test                          # tests de la puntuación y las cifras de results/
 npm run fixtures                  # regenera fixtures/ con traces nuevos
 node fixtures.mjs --gate-only     # actualiza el gate de fixtures/ sin traces nuevos
-MODES=schema node bench.mjs       # los cuatro modelos; llama3.2:3b para uno solo
-STAGE=quotes COLD=1 MODES=schema node bench.mjs llama3.2:3b   # la pasada 6, en frío
-node bench.mjs --rescore results/4-rules.json   # vuelve a puntuar respuestas guardadas, sin modelos
+STAGE=llm COLD=1 REPS=1 MODES=schema node bench.mjs   # una etapa con los cuatro modelos, en frío
+STAGE=quotes COLD=1 REPS=1 MODES=schema node bench.mjs llama3.2:3b   # la etapa del Judge
+node bench.mjs --rescore results/rules.json   # vuelve a puntuar respuestas guardadas, sin modelos
 ```
+
+Cada pasada escribe en `out/results.json`; las de `results/` son copias con el nombre de su etapa.
 
 `STAGE` dice cuánto hacen las reglas antes del LLM. Cada etapa añade algo a la anterior:
 
@@ -60,15 +62,30 @@ node bench.mjs --rescore results/4-rules.json   # vuelve a puntuar respuestas gu
 
 ## Qué comprueba el test
 
-El test vuelve a puntuar las respuestas guardadas en lugar de llamar a los modelos. Con temperatura 0 y semilla fija, las respuestas son deterministas en frío: las tres repeticiones de cada caso de las pasadas 5 y 6 son idénticas. En caliente no lo son del todo, porque Ollama reutiliza la caché del prompt de la llamada anterior, que comparte el prompt de sistema, y con ella la misma entrada puede dar otra redacción. Las pasadas 1 a 4 se hicieron en caliente.
+El test vuelve a puntuar las respuestas guardadas en lugar de llamar a los modelos. Con temperatura 0 y semilla fija, las respuestas son deterministas en frío: las tres repeticiones de cada caso de las pasadas 5 y 6 de la historia son idénticas, así que las pasadas actuales hacen una sola. En caliente no lo son del todo, porque Ollama reutiliza la caché del prompt de la llamada anterior, que comparte el prompt de sistema, y con ella la misma entrada puede dar otra redacción.
 
-En frío, la imagen `ollama` del taller da las mismas respuestas que la pasada 6, así que sus cifras valen para lo que verán los asistentes. Lo comprueba [`agents/test/ollama.test.ts`](../../agents/test/ollama.test.ts) dentro de Docker Compose, con este experimento montado:
+En frío, la imagen `ollama` del taller da las mismas respuestas que la etapa `quotes`, así que sus cifras valen para lo que verán los asistentes. Lo comprueba [`agents/test/ollama.test.ts`](../../agents/test/ollama.test.ts) dentro de Docker Compose, con este experimento montado:
 
 ```bash
 docker compose run --rm -v "$PWD/experiments:/experiments:ro" agents npm test
 ```
 
-Las afirmaciones de cada pasada:
+### Pasadas actuales
+
+En frío y con una repetición, sobre los fixtures de [`fixtures/`](fixtures):
+
+| Etapa | Afirmación |
+|---|---|
+| `llm` | `llama3.2:3b` nombra la causa en 3 de 5 respuestas; `qwen3:1.7b` y `qwen2.5-coder:1.5b` en 2 y `gemma3:1b` en ninguna. Los cuatro cumplen el schema en todas |
+| `suspects` | `llama3.2:3b` sigue en 3 de 5, y `qwen3:1.7b` sube a 3 |
+| `rules` | `llama3.2:3b` acierta 5 de 5, con 4 llamadas al LLM. La puntuación da por buena la frase del hero, pero mezcla el atributo `loading` con una "propiedad `fetchPriority`" |
+| `quotes` | 5 de 5, y la frase del hero nombra el atributo `loading="lazy"` del `img` |
+
+Una de las 22 evidencias de `rules` y `quotes` mide justo 200 caracteres, el límite del schema, y es una frase completa.
+
+### Historia: fixtures del 10 de noviembre
+
+En [`history/2026-11-10`](history/2026-11-10), con los fixtures en los que se midieron. Las pasadas 1 a 4 se hicieron en caliente y con tres repeticiones; la 1 pedía al modelo también la métrica, y el código actual ya no la reproduce:
 
 | Pasada | Afirmación |
 |---|---|
@@ -79,22 +96,26 @@ Las afirmaciones de cada pasada:
 | `5-rules-cold` | La misma etapa en frío: 12 de 15. La frase del hero se corta en `loading=` en las tres repeticiones, porque la comilla de `loading="lazy"` cierra la cadena del JSON restringido por el schema |
 | `6-quotes-cold` | Con las comillas del diff escapadas, en frío: 15 de 15, con la frase del hero completa |
 
+Ninguna de las 108 evidencias de las pasadas 4 a 6 llega al límite de 200 caracteres.
+
 La puntuación de la causa es estricta ([`score.mjs`](score.mjs)): la causa tiene que estar en la frase, no basta con la evidencia, y en una rama sin regresión la frase tiene que decir que no hay regresión, sin culpar a ningún cambio ni copiar las instrucciones del prompt.
 
 ## Resultados en el Mac de referencia
 
 Apple Silicon de 16 GB, Ollama en Docker en CPU, VM de 8 GB:
 
-| Modelo | RAM del modelo | Causa (`llm`) | Causa (`suspects`) | Causa (`rules`) |
-|---|---|---|---|---|
-| `llama3.2:3b` | 3295 MiB | 9/15 | 9/15 | 14/15 (12/15 en frío; 15/15 con `quotes`) |
-| `qwen3:1.7b` | 2315 MiB | 6/15 | 8/15 | |
-| `qwen2.5-coder:1.5b` | 1493 MiB | 6/15 | 6/15 | |
-| `gemma3:1b` | 1225 MiB | 0/15 | 0/15 | |
+| Modelo | RAM del modelo | Causa (`llm`) | Causa (`suspects`) | Causa (`rules`) | Causa (`quotes`) |
+|---|---|---|---|---|---|
+| `llama3.2:3b` | 3295 MiB | 3/5 | 3/5 | 5/5 | 5/5 |
+| `qwen3:1.7b` | 2315 MiB | 2/5 | 3/5 | | |
+| `qwen2.5-coder:1.5b` | 1493 MiB | 2/5 | 2/5 | | |
+| `gemma3:1b` | 1225 MiB | 0/5 | 0/5 | | |
+
+En la historia, con tres repeticiones en caliente: `llama3.2:3b` 9/15, 9/15 y 14/15; `qwen3:1.7b` 6/15 y 8/15; `qwen2.5-coder:1.5b` 6/15 y 6/15; `gemma3:1b` 0/15 y 0/15.
 
 La RAM del modelo es la que Ollama le asigna con un contexto de 8192 tokens, con un solo modelo cargado cada vez.
 
-La latencia cambia mucho con la carga de la máquina. En la pasada `rules`, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal. Es la cifra de orientación para el taller: entre 15 y 20 segundos por explicación. En frío la mediana sube a 46-48 s, porque cada llamada incluye cargar el modelo.
+La latencia cambia mucho con la carga de la máquina. En la pasada `4-rules` de la historia, en caliente, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal. Es la cifra de orientación para el taller: entre 15 y 20 segundos por explicación. En frío cada llamada incluye cargar el modelo, y la mediana sube a 46-48 s (pasadas 5 y 6); las pasadas actuales se midieron con la máquina cargada por otros procesos (carga media de más de 20 durante buena parte de la pasada), y sus latencias no sirven de referencia.
 
 ## Versiones
 

@@ -6,15 +6,18 @@
 import { before, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { loadFixtures, rescoreRows, summarize } from "./bench.mjs";
 
-const load = async (name) => JSON.parse(await readFile(new URL(`results/${name}.json`, import.meta.url), "utf8"));
+// The runs of 2026-11-10 and 11, with the fixtures they were measured on
+const HISTORY = new URL("history/2026-11-10/", import.meta.url);
+const load = async (name) => JSON.parse(await readFile(new URL(`results/${name}.json`, HISTORY), "utf8"));
 const ofModel = (summary, model, mode = "schema") => summary.find((s) => s.model === model && s.mode === mode);
 const causes = (summary, model) => Math.round(ofModel(summary, model).cause * ofModel(summary, model).calls);
 
 let fixtures;
 before(async () => {
-  fixtures = await loadFixtures();
+  fixtures = await loadFixtures(fileURLToPath(new URL("fixtures/", HISTORY)));
 });
 
 test("run 1: with the schema every model returns valid JSON; in the prompt alone qwen2.5-coder never does", async () => {
@@ -93,4 +96,48 @@ test("runs 4 to 6: none of the 108 evidences of llama3.2:3b reaches the limit of
     }
   }
   assert.equal(evidences, 108);
+});
+
+// The runs on the current fixtures: cold, one repetition (cold, every repetition is the same)
+const loadCurrent = async (stage) => JSON.parse(await readFile(new URL(`results/${stage}.json`, import.meta.url), "utf8"));
+let current;
+before(async () => {
+  current = await loadFixtures();
+});
+
+test("current fixtures, llm and suspects: llama3.2:3b names the cause in 3 of 5, and no model does better", async () => {
+  const expected = { llm: { "llama3.2:3b": 3, "qwen3:1.7b": 2, "qwen2.5-coder:1.5b": 2, "gemma3:1b": 0 }, suspects: { "llama3.2:3b": 3, "qwen3:1.7b": 3, "qwen2.5-coder:1.5b": 2, "gemma3:1b": 0 } };
+  for (const [stage, byModel] of Object.entries(expected)) {
+    const rows = rescoreRows(await loadCurrent(stage), current);
+    assert.ok(rows.every((r) => r.cold));
+    const summary = summarize(rows);
+    for (const [model, n] of Object.entries(byModel)) assert.equal(causes(summary, model), n, `${stage} ${model}`);
+    for (const s of summary) assert.equal(s.schema, 1, `${stage} ${s.model} follows the schema`);
+  }
+});
+
+test("current fixtures, rules and quotes: llama3.2:3b names the cause in 5 of 5, with 4 calls to the LLM", async () => {
+  for (const stage of ["rules", "quotes"]) {
+    const summary = summarize(rescoreRows(await loadCurrent(stage), current));
+    assert.equal(causes(summary, "llama3.2:3b"), 5, stage);
+    assert.equal(ofModel(summary, "llama3.2:3b").llmCalls, 4, stage);
+  }
+});
+
+test("current fixtures: without escaping, the hero sentence mixes loading with fetchPriority; escaped, it names the attribute", async () => {
+  const [rules] = heroRows(await loadCurrent("rules"));
+  const [quotes] = heroRows(await loadCurrent("quotes"));
+  assert.match(causeOf(rules), /'loading' attribute to the 'fetchPriority' property/);
+  assert.match(causeOf(quotes), /`loading="lazy"` attribute to the `img`/);
+});
+
+test("current fixtures, rules and quotes: one of the 22 evidences fits the limit of 200 characters exactly, as a complete sentence", async () => {
+  const facts = [];
+  for (const stage of ["rules", "quotes"]) {
+    for (const row of (await loadCurrent(stage)).filter((r) => r.source === "llm")) facts.push(...JSON.parse(row.content).evidence);
+  }
+  assert.equal(facts.length, 22);
+  const atLimit = facts.filter((f) => f.length >= 200);
+  assert.equal(atLimit.length, 1);
+  assert.match(atLimit[0], /\.$/);
 });

@@ -231,9 +231,10 @@ export async function bench(modelIds = MODELS.map((m) => m.id)) {
   return rows;
 }
 
-export async function loadFixtures() {
-  const files = (await readdir(join(HERE, "fixtures"))).filter((f) => f.endsWith(".json")).sort();
-  return Promise.all(files.map(async (f) => JSON.parse(await readFile(join(HERE, "fixtures", f), "utf8"))));
+// The fixtures of the benchmark, or those of a run of history/
+export async function loadFixtures(dir = join(HERE, "fixtures")) {
+  const files = (await readdir(dir)).filter((f) => f.endsWith(".json")).sort();
+  return Promise.all(files.map(async (f) => JSON.parse(await readFile(join(dir, f), "utf8"))));
 }
 
 // Scores saved answers again with the current score.mjs, without calling any model. It needs the rows of a run with one case per
