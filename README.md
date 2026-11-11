@@ -46,6 +46,14 @@ En casa, con buena conexión:
 ```bash
 git clone https://github.com/nucliweb/agent-first-perf-audits.git
 cd agent-first-perf-audits
+scripts/preflight.sh                                  # con 8 GB: COMPOSE_PROFILES=lite scripts/preflight.sh
+```
+
+El preflight comprueba el runtime, la versión de Compose, la arquitectura, la memoria de la VM, las ramas de regresión y el disco libre. Después descarga todas las imágenes y pasa un smoke test dentro de Compose: Chromium arranca, se graba un trace, las dos tiendas responden, el laboratorio no tiene salida a internet y, con el perfil `llm`, el modelo responde. Imprime OK o KO en cada paso, con lo que hay que cambiar en tu runtime cuando algo falla, y sale con 0 si el equipo está listo. En Windows, ejecútalo desde WSL2.
+
+Las descargas del preflight, por si prefieres hacerlas a mano:
+
+```bash
 docker compose --profile llm --profile run pull       # Ollama, los mocks, agents y la tienda de main
 for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler pr-noop-refactor; do
   CANDIDATE=$branch docker compose pull shop-candidate # la tienda de cada rama
@@ -71,12 +79,12 @@ CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
 
 El exit code de `ci` es el veredicto: 0 si pasa, 1 si alguna métrica empeora y 2 si el gate no ha podido ejecutarse.
 
-En Linux, crea `out/` antes de la primera ejecución (`mkdir out`). Si no existe, Docker la crea como root y el contenedor no puede escribir en ella.
+El preflight crea `out/`. Si no lo has pasado, en Linux créala antes de la primera ejecución (`mkdir out`): si no existe, Docker la crea como root y el contenedor no puede escribir en ella.
 
 ### Perfil `lite`, para equipos de 8 GB
 
 ```bash
-docker compose --profile run pull                     # todo menos Ollama
+COMPOSE_PROFILES=lite scripts/preflight.sh            # o a mano: docker compose --profile run pull, todo menos Ollama
 COMPOSE_PROFILES=lite CANDIDATE=pr-lcp-hero-lazy docker compose up -d
 COMPOSE_PROFILES=lite CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
 ```
@@ -121,7 +129,7 @@ Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las dete
 │   └── schemas/          # el schema de la explicación del LLM
 ├── docker/               # un Dockerfile por imagen
 ├── experiments/          # los experimentos que respaldan cada cifra de la documentación
-├── scripts/              # build-shop.sh y publish-images.sh
+├── scripts/              # preflight.sh, build-shop.sh y publish-images.sh
 └── docs/                 # la documentación del taller (Astro Starlight)
 ```
 
