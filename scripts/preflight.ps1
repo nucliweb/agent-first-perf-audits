@@ -176,7 +176,8 @@ $probe = Join-Path $out '.preflight'
 try {
   New-Item -ItemType Directory -Force -Path $out -ErrorAction Stop | Out-Null
   Set-Content -Path $probe -Value '' -ErrorAction Stop
-  Remove-Item $probe -ErrorAction SilentlyContinue
+  # -Force: outside Windows, PowerShell treats a file that starts with a dot as hidden
+  Remove-Item $probe -Force -ErrorAction SilentlyContinue
   Ok 'out/ is writable'
 } catch {
   Ko 'out/ is not writable' 'Give your user write access to the out folder of the repo'

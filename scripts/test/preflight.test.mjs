@@ -7,13 +7,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SH = fileURLToPath(new URL("../preflight.sh", import.meta.url));
 const PS1 = fileURLToPath(new URL("../preflight.ps1", import.meta.url));
+const OUT = fileURLToPath(new URL("../../out/", import.meta.url));
 const PWSH = process.env.PWSH || spawnSync("sh", ["-c", "command -v pwsh"], { encoding: "utf8" }).stdout.trim();
 
 // Each script, with the command it tells to run the preflight again with the lite profile
@@ -117,6 +118,8 @@ both("a ready machine passes every check with the llm profile of the .env", (pre
   // The smoke test runs in a Compose project of its own, removed at the end
   assert.match(calls, /docker compose .*-p agent-first-perf-audits-preflight .*run --rm -T agents/);
   assert.match(calls, /docker compose .*-p agent-first-perf-audits-preflight .*down/);
+  // The check of out/ leaves nothing behind
+  assert.deepEqual(readdirSync(OUT).filter((f) => f.startsWith(".preflight")), []);
 });
 
 both("without docker on the PATH it stops at the first check", (preflight, shell) => {
