@@ -14,7 +14,28 @@ test("measures add to cart with the interaction workflow and the journey, and cl
   assert.equal(scenario.cli[1], "interaction");
   assert.equal(scenario.cli[2], "--interact-script");
   assert.match(scenario.cli[3], /journeys\/add-to-cart\.json$/);
-  assert.equal(scenario.click, 'button:has-text("Add to cart")');
+  const click = scenario.traces.find((t) => t.click)!;
+  assert.equal(click.click, 'button:has-text("Add to cart")');
+  assert.deepEqual(Object.keys(click.summaries), ["interactions", "tasks"]);
+});
+
+// The CLI measures the CLS of add to cart over the whole journey, load included, and the promo banner
+// shifts the page while it loads. The tasks of the load would hide the handler of the click, so the
+// layout shifts come from a trace of the load and the tasks from a trace of the click.
+test("records the load of every scenario for its layout shifts, apart from the click", () => {
+  for (const scenario of SCENARIOS) {
+    const load = scenario.traces.find((t) => !t.click);
+    assert.ok(load?.summaries.shifts, `${scenario.id} has no layout shifts of its load`);
+  }
+  const addToCart = SCENARIOS.find((s) => s.id === "add-to-cart")!;
+  assert.deepEqual(Object.keys(addToCart.traces.find((t) => !t.click)!.summaries), ["shifts"]);
+});
+
+test("names each trace of a scenario differently, so their files do not overwrite each other", () => {
+  for (const scenario of SCENARIOS) {
+    const names = scenario.traces.map((t) => t.name);
+    assert.equal(new Set(names).size, names.length, scenario.id);
+  }
 });
 
 const cliMetric = (baseline: number, current: number, verdict: string, p: number) => ({

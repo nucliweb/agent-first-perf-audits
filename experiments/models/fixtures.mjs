@@ -72,13 +72,16 @@ export async function generate() {
         const { id } = scenario;
         traces[id] = {};
         for (const [side, shopRef] of [["baseline", "main"], ["candidate", ref]]) {
-          const file = join(TRACES, `${ref.replaceAll("/", "-")}-${id}-${side}.json`);
-          await record(browser, shops[shopRef].origin + scenario.path, scenario, file);
           const names = [
             [shops[shopRef].origin, `http://shop-${side}:3000`],
             [thirdParty.origin, "http://thirdparty:4000"],
           ];
-          traces[id][side] = summarize(file, scenario.summaries, names);
+          traces[id][side] = {};
+          for (const trace of scenario.traces) {
+            const file = join(TRACES, `${ref.replaceAll("/", "-")}-${id}-${trace.name}-${side}.json`);
+            await record(browser, shops[shopRef].origin + scenario.path, trace, file);
+            Object.assign(traces[id][side], summarize(file, trace.summaries, names));
+          }
         }
       }
       const fixture = { ref, expected: EXPECTED[ref], input: { branch: ref, gate: gateOf(results, ref), diff: diffOf(REPO, "main", ref), traces } };

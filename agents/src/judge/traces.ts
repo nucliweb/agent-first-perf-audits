@@ -4,7 +4,7 @@
 import { execFileSync } from "node:child_process";
 import type { Browser } from "playwright";
 import { normalizeSummary } from "./normalize.ts";
-import type { GateScenario } from "./gate.ts";
+import type { TraceSpec } from "./gate.ts";
 
 // The same conditions as the gate: 4x CPU and the fast-4g preset of WebPerf Snippets
 const CPU_RATE = 4;
@@ -17,18 +17,18 @@ const CATEGORIES = [
   "blink.console", "loading", "latencyInfo", "toplevel", "rail", "__metadata",
 ];
 
-export async function record(browser: Browser, url: string, scenario: GateScenario, file: string) {
+export async function record(browser: Browser, url: string, trace: TraceSpec, file: string) {
   const context = await browser.newContext({ viewport: { width: 412, height: 823 } });
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: CPU_RATE });
   await cdp.send("Network.enable");
   await cdp.send("Network.emulateNetworkConditions", FAST_4G);
-  if (scenario.click) {
+  if (trace.click) {
     await page.goto(url, { waitUntil: "load" });
     await page.waitForTimeout(1000);
     await browser.startTracing(page, { path: file, categories: CATEGORIES });
-    await page.click(scenario.click);
+    await page.click(trace.click);
     await page.waitForTimeout(800);
   } else {
     await browser.startTracing(page, { path: file, categories: CATEGORIES });

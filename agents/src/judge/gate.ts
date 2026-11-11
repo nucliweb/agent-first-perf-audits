@@ -12,27 +12,38 @@ const JOURNEY = fileURLToPath(new URL("../../journeys/add-to-cart.json", import.
 const clickOf = (journey: string) =>
   JSON.parse(readFileSync(journey, "utf8")).interactions.find((i: { action: string }) => i.action === "click").selector as string;
 
-// Each scenario of the gate: its page, the arguments of the CLI, and for the traces of the Judge,
-// what to click and which summaries of trace-engine-cli explain its metrics
+// A trace of the Judge: of the load of the page, or of a click after the load, with the summaries
+// of trace-engine-cli that explain the metrics of its scenario
+export interface TraceSpec {
+  name: string;
+  click?: string;
+  summaries: Record<string, string[]>;
+}
+
+// Each scenario of the gate: its page, the arguments of the CLI and the traces of the Judge
 export interface GateScenario {
   id: string;
   path: string;
   cli: string[];
-  click?: string;
-  summaries: Record<string, string[]>;
+  traces: TraceSpec[];
 }
 
 const TASKS = ["tasks", "--tree", "bottom-up", "--top", "5"];
 
 export const SCENARIOS: GateScenario[] = [
-  { id: "home", path: "/", cli: [], summaries: { overview: ["overview"], shifts: ["shifts"], tasks: TASKS } },
+  { id: "home", path: "/", cli: [], traces: [{ name: "load", summaries: { overview: ["overview"], shifts: ["shifts"], tasks: TASKS } }] },
   {
     id: "add-to-cart",
     path: "/product/kenya-aa",
     // The default workflow does not give the INP
     cli: ["--workflow", "interaction", "--interact-script", JOURNEY],
-    click: clickOf(JOURNEY),
-    summaries: { interactions: ["interactions"], tasks: TASKS },
+    // The CLI measures the CLS over the whole journey, load included, where the promo banner shifts
+    // the page. The tasks of the load would hide the handler of the click in the bottom-up tree, so
+    // the layout shifts come from a trace of the load and the tasks from a trace of the click.
+    traces: [
+      { name: "load", summaries: { shifts: ["shifts"] } },
+      { name: "click", click: clickOf(JOURNEY), summaries: { interactions: ["interactions"], tasks: TASKS } },
+    ],
   },
 ];
 

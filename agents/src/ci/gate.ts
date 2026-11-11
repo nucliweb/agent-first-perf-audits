@@ -68,10 +68,13 @@ async function main() {
     for (const scenario of SCENARIOS) {
       traces[scenario.id] = {};
       for (const side of ["baseline", "candidate"] as const) {
-        log(`trace, ${scenario.id}: ${side}`);
-        const file = join(out, "traces", `${scenario.id}-${side}.json`);
-        await record(browser, urls[side] + scenario.path, scenario, file);
-        traces[scenario.id][side] = summarize(join(BIN, "trace-engine-cli"), file, scenario.summaries);
+        traces[scenario.id][side] = {};
+        for (const trace of scenario.traces) {
+          log(`trace, ${scenario.id}: ${side}, ${trace.name}`);
+          const file = join(out, "traces", `${scenario.id}-${trace.name}-${side}.json`);
+          await record(browser, urls[side] + scenario.path, trace, file);
+          Object.assign(traces[scenario.id][side], summarize(join(BIN, "trace-engine-cli"), file, trace.summaries));
+        }
       }
     }
   } finally {
