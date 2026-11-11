@@ -167,7 +167,7 @@ Además, el fallo no salía siempre. En la etapa `rules`, solo una de las tres r
 Con las comillas del diff escapadas en la entrada (`loading=\"lazy\"`), el modelo copia una forma válida dentro de una cadena JSON, y en frío nombra la causa en 15 de 15. Escapar en la entrada no depende de que el modelo obedezca una instrucción más del prompt.
 
 - **El Judge escapa las comillas dobles del código que pone en el prompt.** El handoff lleva la misma entrada.
-- **Las pruebas de un modelo se hacen en frío.** En caliente, la misma entrada puede dar otra redacción, y un fallo puede salir en una repetición y no en otra.
+- **Las pruebas de un modelo se hacen en frío.** En caliente, la misma entrada puede dar otra redacción, y un fallo puede salir en una repetición y no en otra. En frío, la imagen `ollama` del taller da las mismas respuestas que el contenedor del benchmark, y las da igual con la máquina cargada: la carga cambia la latencia, no el texto.
 
 ### Compruébalo
 

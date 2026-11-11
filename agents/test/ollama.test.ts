@@ -3,6 +3,9 @@
 // is no local LLM, and outside Docker Compose there is no service, so the tests are skipped.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { requestsFor, SCHEMA } from "../src/judge/prompt.ts";
+import { ollama } from "../src/subagents/judge.ts";
 
 const OLLAMA_URL = process.env.OLLAMA_URL;
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL;
@@ -37,3 +40,36 @@ test("the model answers JSON constrained by a schema", { skip, timeout: 180_000 
   const { message } = await res.json();
   assert.deepEqual(JSON.parse(message.content), { slower: true });
 });
+
+// The answers of the benchmark (experiments/models, run 6) are cold: the model unloaded before
+// each call, so no call reuses the prompt cache of another. Cold, the image of the workshop has to
+// give the same answers, or the figures of the benchmark do not hold for it. It needs the fixtures
+// of the experiment: on the host, or mounted with -v "$PWD/experiments:/experiments:ro".
+const BENCHMARK = new URL("../../experiments/models/", import.meta.url);
+const skipBenchmark = skip || (!existsSync(new URL("results/6-quotes-cold.json", BENCHMARK)) && "needs experiments/models");
+
+test("cold, the model gives the answers of the benchmark", { skip: skipBenchmark, timeout: 600_000 }, async () => {
+  const saved = JSON.parse(readFileSync(new URL("results/6-quotes-cold.json", BENCHMARK), "utf8"));
+  const chat = ollama(OLLAMA_URL!, OLLAMA_MODEL!);
+  const fixtures = readdirSync(new URL("fixtures/", BENCHMARK)).filter((f) => f.endsWith(".json")).sort();
+  let cases = 0;
+  for (const file of fixtures) {
+    const { ref, input } = JSON.parse(readFileSync(new URL(`fixtures/${file}`, BENCHMARK), "utf8"));
+    for (const { target, messages } of requestsFor(input)) {
+      await unload();
+      const expected = saved.find((r: { ref: string; metric: string; rep: number }) => r.ref === ref && r.metric === target.metric && r.rep === 0);
+      assert.equal(await chat(messages, SCHEMA), expected.content, `${ref} ${target.metric}`);
+      cases++;
+    }
+  }
+  assert.equal(cases, 4);
+});
+
+async function unload() {
+  await fetch(`${OLLAMA_URL}/api/generate`, { method: "POST", body: JSON.stringify({ model: OLLAMA_MODEL, keep_alive: 0 }) });
+  for (let i = 0; i < 50; i++) {
+    const { models } = await (await fetch(`${OLLAMA_URL}/api/ps`)).json();
+    if (!models.length) return;
+    await new Promise((ok) => setTimeout(ok, 200));
+  }
+}

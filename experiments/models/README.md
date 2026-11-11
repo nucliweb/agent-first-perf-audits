@@ -60,7 +60,15 @@ node bench.mjs --rescore results/4-rules.json   # vuelve a puntuar respuestas gu
 
 ## Qué comprueba el test
 
-El test vuelve a puntuar las respuestas guardadas en lugar de llamar a los modelos. Con temperatura 0 y semilla fija, las respuestas son deterministas en frío: las tres repeticiones de cada caso de las pasadas 5 y 6 son idénticas. En caliente no lo son del todo, porque Ollama reutiliza la caché del prompt de la llamada anterior, que comparte el prompt de sistema, y con ella la misma entrada puede dar otra redacción. Las pasadas 1 a 4 se hicieron en caliente:
+El test vuelve a puntuar las respuestas guardadas en lugar de llamar a los modelos. Con temperatura 0 y semilla fija, las respuestas son deterministas en frío: las tres repeticiones de cada caso de las pasadas 5 y 6 son idénticas. En caliente no lo son del todo, porque Ollama reutiliza la caché del prompt de la llamada anterior, que comparte el prompt de sistema, y con ella la misma entrada puede dar otra redacción. Las pasadas 1 a 4 se hicieron en caliente.
+
+En frío, la imagen `ollama` del taller da las mismas respuestas que la pasada 6, así que sus cifras valen para lo que verán los asistentes. Lo comprueba [`agents/test/ollama.test.ts`](../../agents/test/ollama.test.ts) dentro de Docker Compose, con este experimento montado:
+
+```bash
+docker compose run --rm -v "$PWD/experiments:/experiments:ro" agents npm test
+```
+
+Las afirmaciones de cada pasada:
 
 | Pasada | Afirmación |
 |---|---|
