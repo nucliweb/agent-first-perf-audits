@@ -1,0 +1,9 @@
+{
+  "name": "shop",
+  "path": "/shop",
+  "interactions": [
+    { "action": "wait", "ms": 500 },
+    { "action": "click", "selector": "button:has-text(\"Coffee\")" },
+    { "action": "wait", "ms": 500 }
+  ]
+}

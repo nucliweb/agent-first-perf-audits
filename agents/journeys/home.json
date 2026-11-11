@@ -1,0 +1,11 @@
+{
+  "name": "home",
+  "path": "/",
+  "interactions": [
+    { "action": "wait", "ms": 500 },
+    { "action": "scroll", "y": 600 },
+    { "action": "wait", "ms": 500 },
+    { "action": "scroll", "y": 600 },
+    { "action": "wait", "ms": 500 }
+  ]
+}

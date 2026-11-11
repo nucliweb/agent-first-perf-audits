@@ -99,6 +99,8 @@ CANDIDATE=pr-lcp-hero-lazy docker compose up -d
 CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts
 ```
 
+El Navigator va primero: recorre en las dos tiendas los cuatro recorridos de `agents/journeys/` (home, listado, ficha y añadir al carrito), paso a paso y con el throttling del gate, y anota la URL en la que deja la página cada paso y los errores de la página. Si el elemento de un paso no aparece, el orquestador se para con el recorrido, el lado y el paso: medir un recorrido que no termina da cifras que no significan nada. Cada recorrido es un JSON con su página y sus pasos (`click`, `type`, `hover`, `scroll` y `wait`), el mismo formato que `--interact-script` de la CLI, y el gate mide añadir al carrito con el mismo fichero.
+
 El subagente de LCP mide la home con el throttling del gate (CPU 4x y fast-4g) y la mediana de 3 ejecuciones. Con WebPerf Snippets MCP obtiene el LCP, su elemento, el desglose en sus cuatro fases (TTFB, retraso y tiempo de carga del recurso y retraso de render) y, cuando el LCP es una imagen, cómo carga: `loading`, `fetchpriority`, si tiene preload y los avisos de la auditoría. Con Chrome DevTools MCP graba un trace de la carga en `out/agents/traces/`. Mide, no decide: el veredicto es del gate.
 
 ### Perfil `lite`, para equipos de 8 GB
@@ -145,8 +147,8 @@ Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las dete
 │   ├── src/judge/        # gate, traces, diff, reglas, prompt y handoff
 │   ├── src/ci/           # el servicio ci y su informe
 │   ├── src/orchestrator.ts  # pasa los subagentes por las dos tiendas
-│   ├── src/subagents/    # los subagentes: LCP y el Judge
-│   ├── journeys/         # los recorridos de interacción en JSON
+│   ├── src/subagents/    # los subagentes: Navigator, LCP y el Judge
+│   ├── journeys/         # los recorridos en JSON, uno por página
 │   └── schemas/          # el schema de la explicación del LLM
 ├── docker/               # un Dockerfile por imagen
 ├── experiments/          # los experimentos que respaldan cada cifra de la documentación

@@ -8,9 +8,10 @@ import type { Gate, Scenario } from "./types.ts";
 
 export const CONDITIONS = ["--cpu", "4", "--network", "fast-4g", "--runs", "5"];
 
+// The journey of add to cart, with its page and its steps: the same file the Navigator runs
 const JOURNEY = fileURLToPath(new URL("../../journeys/add-to-cart.json", import.meta.url));
-const clickOf = (journey: string) =>
-  JSON.parse(readFileSync(journey, "utf8")).interactions.find((i: { action: string }) => i.action === "click").selector as string;
+const journey = JSON.parse(readFileSync(JOURNEY, "utf8")) as { path: string; interactions: Array<{ action: string; selector?: string }> };
+const click = journey.interactions.find((i) => i.action === "click")!.selector!;
 
 // A trace of the Judge: of the load of the page, or of a click after the load, with the summaries
 // of trace-engine-cli that explain the metrics of its scenario
@@ -34,7 +35,7 @@ export const SCENARIOS: GateScenario[] = [
   { id: "home", path: "/", cli: [], traces: [{ name: "load", summaries: { overview: ["overview"], shifts: ["shifts"], tasks: TASKS } }] },
   {
     id: "add-to-cart",
-    path: "/product/kenya-aa",
+    path: journey.path,
     // The default workflow does not give the INP
     cli: ["--workflow", "interaction", "--interact-script", JOURNEY],
     // The CLI measures the CLS over the whole journey, load included, where the promo banner shifts
@@ -42,7 +43,7 @@ export const SCENARIOS: GateScenario[] = [
     // the layout shifts come from a trace of the load and the tasks from a trace of the click.
     traces: [
       { name: "load", summaries: { shifts: ["shifts"] } },
-      { name: "click", click: clickOf(JOURNEY), summaries: { interactions: ["interactions"], tasks: TASKS } },
+      { name: "click", click, summaries: { interactions: ["interactions"], tasks: TASKS } },
     ],
   },
 ];

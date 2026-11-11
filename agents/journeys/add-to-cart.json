@@ -1,4 +1,6 @@
 {
+  "name": "add-to-cart",
+  "path": "/product/kenya-aa",
   "interactions": [
     { "action": "wait", "ms": 500 },
     { "action": "click", "selector": "button:has-text(\"Add to cart\")" },

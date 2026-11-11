@@ -107,7 +107,9 @@ async function recordTrace(url: string, file: string) {
 
 export const lcp: Subagent<LcpReport> = {
   name: "lcp",
-  async run({ side, url, out }) {
+  async run({ side, origin, out }) {
+    // The home: the LCP of the workshop
+    const url = `${origin}/`;
     const webperf = await connect("webperf");
     let report: LcpReport;
     try {

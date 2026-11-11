@@ -1,0 +1,9 @@
+{
+  "name": "product",
+  "path": "/product/kenya-aa",
+  "interactions": [
+    { "action": "wait", "ms": 500 },
+    { "action": "click", "selector": "label:has-text(\"1 kg\")" },
+    { "action": "wait", "ms": 500 }
+  ]
+}

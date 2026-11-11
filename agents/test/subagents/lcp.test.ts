@@ -69,7 +69,7 @@ const BASELINE_URL = process.env.BASELINE_URL;
 
 test("inside Compose, it measures the home of the baseline shop and records its trace", { skip: !BASELINE_URL && "only inside Docker Compose", timeout: 180_000 }, async () => {
   const out = await mkdtemp(join(tmpdir(), "lcp-"));
-  const report = await lcp.run({ side: "baseline", url: `${BASELINE_URL}/`, out });
+  const report = await lcp.run({ side: "baseline", origin: BASELINE_URL!, out, earlier: {} });
   assert.equal(report.element.selector, "img.hero__image");
   assert.ok(report.lcp.value > 0);
   // Relative to out, so it reads the same inside and outside the container
