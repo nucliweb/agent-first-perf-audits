@@ -6,8 +6,10 @@ FROM node:22.23.4-bookworm-slim
 WORKDIR /app
 
 COPY agents/package.json agents/package-lock.json ./
+# git reads the diff of the branch in the ci service, from the repo mounted in /repo
 RUN npm ci --omit=dev \
  && npx playwright install-deps chromium \
+ && apt-get install -y --no-install-recommends git \
  && rm -rf /var/lib/apt/lists/* /root/.npm
 
 # Chromium goes to the default path, /home/node/.cache/ms-playwright. The stdio client

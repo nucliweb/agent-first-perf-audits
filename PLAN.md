@@ -49,7 +49,7 @@ Nunca `@latest`. Versiones exactas en `package.json` y en las imágenes.
 - **`thirdparty`**: mocks locales (analytics, chat, banner de promo, A/B testing) con latencia y coste de CPU configurables.
 - **`agents`**: Node 22, Chromium de Playwright, Chrome DevTools MCP, WebPerf Snippets y trace-engine-cli. Contiene el orquestador y los subagentes.
 - **`ollama`**: imagen con el modelo ya incluido, en el perfil `llm`. El `.env` del repo lo activa; con `COMPOSE_PROFILES=lite` no se descarga ni se arranca.
-- **`ci`**: ejecuta el gate, escribe `report.json`, `report.md` y `report.html`, y sale con 0 o 1.
+- **`ci`**: la imagen de `agents` con otro comando (`agents/src/ci/gate.ts`). Ejecuta el gate, graba los traces, pide la explicación al Judge y escribe en `out/` `report.json`, `report.md`, `report.html`, `handoff.json` y `handoff.md`. Sale con 0 si pasa, 1 si falla y 2 si el gate no ha podido ejecutarse. Lee el diff del repo, montado en solo lectura en `/repo`.
 
 ### Flujo de subagentes
 
@@ -102,11 +102,11 @@ Las cifras salen de `experiments/regressions/` (`npm run measure`), y su test co
 ├── agents/
 │   ├── src/orchestrator.ts
 │   ├── src/subagents/{navigator,lcp,cls,loaf,judge}.ts
-│   ├── src/judge/               # reglas, sospechosos, match con el diff y prompt del Judge
+│   ├── src/judge/               # gate, traces, diff, reglas, sospechosos, prompt y handoff del Judge
+│   ├── src/ci/                  # el servicio ci y su informe
 │   ├── src/mcp/client.ts
 │   ├── journeys/                # pasos de interacción en JSON
 │   └── schemas/verdict.schema.json
-├── ci/gate.ts
 ├── experiments/
 │   └── trace-engine-cli/        # reproduce los datos de Learnings
 ├── docker/{agents,shop,thirdparty,ollama}/Dockerfile
@@ -195,10 +195,13 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - **Servicio `ollama`** (`docker/ollama/Dockerfile`, imagen `ollama:llama3.2-3b`): `llama3.2:3b` dentro de la imagen, con el digest `a80c4f17acd5` comprobado en el build, y sin las librerías CUDA de la imagen oficial (unos 3,6 GB que en CPU no se usan). Con el modelo dentro ocupa 2,04 GB en `docker image inspect`, frente a 2,85 GB de la oficial sin modelo. `OLLAMA_NO_CLOUD=1` evita las consultas a ollama.com en la red sin salida. Perfil `llm` activado por el `.env` del repo; `agents` depende de `ollama` con `required: false`, así que con `COMPOSE_PROFILES=lite` arranca sin él. `agents/test/ollama.test.ts` comprueba que el modelo está en la imagen y responde JSON restringido por un schema; en `lite` se salta. Verificado en los dos perfiles: 7 tests en verde con `llm` y 5 más 2 saltados con `lite`. Sin el modelo cargado, el contenedor ocupa 23 MB; con el modelo, 2,7 GB con el contexto por defecto de 4.096 tokens (`docker stats`).
 - **Reglas del Judge en `agents/src/judge/`**: `rules.ts`, `suspects.ts`, `match.ts`, `normalize.ts` y `prompt.ts`, pasados a TypeScript sin cambiar la lógica, con sus 17 tests en `agents/test/judge/`. `experiments/models` los importa desde allí y solo conserva lo propio del benchmark (el modo sin salida estructurada y la puntuación); `claims.test.mjs` sigue en verde y el rescore de `4-rules` da las mismas cifras (14 de 15 causas).
 - **Explicación del Judge** en `agents/src/subagents/judge.ts`: `explain(input, chat)` aplica las reglas, pide a ollama una explicación por métrica con el schema como `format` y las opciones del benchmark (temperatura 0, semilla 42, contexto de 8.192 tokens), valida la respuesta con `ajv` y, si contradice el veredicto o la métrica de las reglas, se queda con los de las reglas y anota la discrepancia. Sin regresión responde sin LLM; un JSON inválido, una respuesta fuera del schema o una llamada fallida quedan como error sin explicación, y el veredicto no cambia. 5 tests con un LLM de respuestas fijadas y uno de integración con `llama3.2:3b` sobre el fixture de `pr/loaf-cart-handler` (se salta si no están el modelo o `experiments/models`): dentro de Compose nombra `ab.js` para el LCP y `recommendFor` para el INP, sin discrepancias, en unos 35 s las dos llamadas.
+- **Servicio `ci`** en `agents/src/ci/gate.ts`, con la imagen de `agents` (que ahora lleva `git`) y el repo montado en solo lectura. El gate de `experiments/regressions` y la grabación y los resúmenes de traces de `experiments/models` pasan a `agents/src/judge/` (`gate.ts`, `traces.ts`, `diff.ts`), y los experimentos los importan: los fixtures salen idénticos con `--gate-only` y `npm test` de regresiones da los cuatro veredictos. `ci` encuentra la rama de cada imagen de la tienda por su tag (local o en `origin`). Escribe siempre el handoff en JSON y en Markdown (`agents/src/judge/handoff.ts`), con las mismas peticiones que recibe el LLM local (`requestsFor` en `prompt.ts`) y el aviso de que enviar el diff fuera es decisión de cada equipo. Sin regresión, las reglas responden en los dos perfiles. Verificado de punta a punta: `pr-lcp-hero-lazy` con `llm` (exit 1, LCP de 652 a 1064 ms, una llamada al LLM, unos 3 minutos en total), `pr-noop-refactor` con `lite` (exit 0, la respuesta de las reglas en el informe, sin arrancar ollama) y `pr-cls-promo-banner` con `lite` (exit 1, el informe remite al handoff).
 
 ## Pendiente
 
-- `ci` tras el Judge, con los perfiles `llm` y `lite`. En `lite`, el fichero de handoff para un agente externo. El Judge pasa `num_ctx: 8192` en cada llamada, como el benchmark.
+- El CLS de `pr/cls-promo-banner` queda casi igual en los dos escenarios (0,053 en la home y 0,055 en `add-to-cart` en una ejecución de `ci`), así que el ruido decide cuál explica el Judge. El trace de `add-to-cart` empieza después de la carga y no tiene resumen `shifts`, y cuando gana ese escenario el prompt dice que no hay sospechosos. Opciones: añadir `shifts` y grabar la carga en `add-to-cart`, o que para el CLS las reglas prefieran el escenario con trace de carga. Cambia los fixtures del benchmark.
+- En Linux, Compose crea `out/` como root si no existe y el usuario `node` del contenedor no puede escribir. El preflight debería crearla, o `ci` correr con el UID del host. Probarlo en la prueba de Linux amd64.
+- La explicación del LCP de `pr/lcp-hero-lazy` sigue siendo la floja, como en el benchmark: en la primera ejecución de `ci` nombra `lazy` pero lo mezcla con `fetchPriority`, con confianza baja.
 - Probar la imagen `ollama` en amd64: allí las librerías de CPU son otras y no se ha comprobado que el `rm -rf cuda_*` deje todo lo necesario.
 - El JSON restringido por el schema corta la frase en las comillas de `loading="lazy"`: probar si escaparlas en la entrada o pedir el código entre comillas invertidas lo evita.
 - Las respuestas de `llama3.2:3b` no son idénticas entre contenedores ni frente a las guardadas en `results/`, aun con temperatura 0 y semilla 42: en `pr/loaf-cart-handler` la causa es la misma y cambia la redacción (el LCP coincide entre `ollama-bench` y la imagen `ollama`, el INP no). En la misma imagen, dos ejecuciones seguidas sí coinciden. Averiguar si es la caché del prompt de Ollama y matizar "las respuestas son deterministas" en el README de `experiments/models`.
@@ -207,7 +210,7 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - Workflow de GHCR: publicar multiarch `agents`, `thirdparty`, `ollama` y una imagen `shop` por cada ref (`main` y las cuatro `pr/*`).
 - Experimentos reproducibles de dos datos que hoy solo cuenta la página mapa, sin cifras: sin throttling de red la regresión de LCP no se ve, y sin preload el `lazy` del hero apenas cambia el LCP.
 - Experimento reproducible de la atribución con y sin `keepNames` (hoy solo hay un spike en el scratchpad), antes de llevarlo a Learnings como candidato: "si quieres que un agente atribuya, conserva los nombres".
-- `--workspace` en `agents/src/mcp/client.ts` cuando exista la carpeta de salida compartida con `ci`.
+- `--workspace` en `agents/src/mcp/client.ts`, apuntando a `out/`, la carpeta de salida de `ci`.
 - Medir el tamaño de descarga real de la imagen `agents` (con un solo Chromium, Docker Desktop muestra 1,51 GB y `docker image inspect`, 416 MB).
 - Decidir si se añaden a Learnings estos cuatro candidatos:
   1. El cliente stdio de MCP no pasa todo el entorno al servidor (el caso de `TMPDIR` ya está en "Chrome DevTools MCP fuera del editor"; falta el de `PLAYWRIGHT_BROWSERS_PATH`).

@@ -8,20 +8,15 @@ import { mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { CONDITIONS, measureWithCli, SCENARIOS } from "../../agents/src/judge/gate.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "../..");
 const OUT = join(HERE, "out");
 const CLI = join(HERE, "node_modules/.bin/webperf-snippets");
-const JOURNEY = join(REPO, "agents/journeys/add-to-cart.json");
 
-// The conditions of the gate
-export const CONDITIONS = ["--cpu", "4", "--network", "fast-4g", "--runs", "5"];
-
-export const SCENARIOS = [
-  { id: "home", path: "/", args: [] },
-  { id: "add-to-cart", path: "/product/kenya-aa", args: ["--workflow", "interaction", "--interact-script", JOURNEY] },
-];
+// The conditions and the scenarios of the gate are those of the Judge (agents/src/judge/gate.ts)
+export { CONDITIONS, SCENARIOS };
 
 export const BASELINE = "main";
 
@@ -100,13 +95,7 @@ function serve(script, cwd, env) {
   return child;
 }
 
-async function gate(url, scenario, baselineFile) {
-  const args = [url, ...scenario.args, ...CONDITIONS, "--json"];
-  if (baselineFile) args.push("--baseline", baselineFile, "--fail-on-regression");
-  const { code, stdout, stderr } = await run(CLI, args);
-  if (code > 1) throw new Error(`The CLI exited with ${code} on ${url}:\n${stderr}`);
-  return { exitCode: code, report: JSON.parse(stdout) };
-}
+const gate = (url, scenario, baselineFile) => measureWithCli(CLI, url, scenario, baselineFile);
 
 export async function measure() {
   await mkdir(OUT, { recursive: true });

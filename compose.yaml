@@ -68,6 +68,22 @@ services:
         required: false
     networks: [lab]
 
+  # The performance gate of a pull request: it measures CANDIDATE against BASELINE, explains the
+  # verdict and writes the reports to out/. It exits with 0 on pass and 1 on fail:
+  #   CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
+  ci:
+    extends: agents
+    command: ["node", "src/ci/gate.ts"]
+    environment:
+      # The shop images under comparison; ci finds their branches in the repo
+      BASELINE: ${BASELINE:-main}
+      CANDIDATE: ${CANDIDATE:-pr-noop-refactor}
+      REPO: /repo
+      OUT: /out
+    volumes:
+      - .:/repo:ro
+      - ./out:/out
+
 networks:
   lab:
     internal: true

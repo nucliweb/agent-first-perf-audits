@@ -1,7 +1,14 @@
 // The prompt of the Judge. The rules have decided the verdict and which metric to explain; the
 // model explains the cause of that one metric. A branch that regresses several metrics gets one
 // prompt per metric.
+import { readFileSync } from "node:fs";
+import { matchSuspects } from "./match.ts";
+import { regressedMetrics } from "./rules.ts";
+import { suspectsFor } from "./suspects.ts";
 import type { Explanation, JudgeInput, Match, MetricResult, Suspect, Target } from "./types.ts";
+
+// The answer for one metric, as structured output of the LLM (agents/schemas/verdict.schema.json)
+export const SCHEMA = JSON.parse(readFileSync(new URL("../../schemas/verdict.schema.json", import.meta.url), "utf8"));
 
 export const SYSTEM = `You are the Judge of a web performance gate for pull requests.
 The rules have already decided the verdict and the metric to explain: repeat both, never change them.
@@ -70,4 +77,26 @@ export function rulesAnswer(input: JudgeInput): Explanation {
     evidence: input.gate.scenarios.map((s) => `${s.scenario}: ${Object.entries(s.metrics).map(([name, m]) => `${name} ${m.verdict}`).join(", ")}`).slice(0, 3),
     confidence: "high",
   };
+}
+
+export interface Message {
+  role: "system" | "user";
+  content: string;
+}
+
+// What the Judge asks for each regressed metric, the one furthest beyond its threshold first: the
+// suspects of the traces and the cause the rules related to the diff go into the prompt. Without a
+// regression there are no requests. The local LLM and the handoff get the same ones.
+export function requestsFor(input: JudgeInput): { target: Target; messages: Message[] }[] {
+  return regressedMetrics(input.gate.scenarios).map((target) => {
+    const suspects = suspectsFor(input.traces, target);
+    const matches = matchSuspects(suspects, input.diff);
+    return {
+      target,
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: userPrompt(input, target, suspects, matches) },
+      ],
+    };
+  });
 }

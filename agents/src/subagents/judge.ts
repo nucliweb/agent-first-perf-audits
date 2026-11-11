@@ -2,25 +2,15 @@
 // explain, find the suspects in the traces and relate them to the diff; the LLM only writes the
 // explanation of each regressed metric, as JSON constrained by the schema of the verdict. When it
 // contradicts the rules, the rules win and the discrepancy is marked.
-import { readFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
-import { matchSuspects } from "../judge/match.ts";
-import { rulesAnswer, SYSTEM, userPrompt } from "../judge/prompt.ts";
-import { regressedMetrics } from "../judge/rules.ts";
-import { suspectsFor } from "../judge/suspects.ts";
+import { requestsFor, rulesAnswer, SCHEMA, type Message } from "../judge/prompt.ts";
 import type { Explanation, JudgeInput, MetricName } from "../judge/types.ts";
 
-export const SCHEMA = JSON.parse(readFileSync(new URL("../../schemas/verdict.schema.json", import.meta.url), "utf8"));
 const ajv = new Ajv2020({ strict: false });
 const validate = ajv.compile(SCHEMA);
 
 // The options of the model benchmark (experiments/models): the same answers for the same input
 const OPTIONS = { temperature: 0, seed: 42, num_ctx: 8192 };
-
-export interface Message {
-  role: "system" | "user";
-  content: string;
-}
 
 // Sends the messages to an LLM with the schema as structured output and returns its text
 export type Chat = (messages: Message[], schema: object) => Promise<string>;
@@ -76,23 +66,17 @@ function checked(content: string, rules: { verdict: string; metric: string }) {
 
 export async function explain(input: JudgeInput, chat: Chat): Promise<JudgeReport> {
   const verdict = input.gate.verdict;
-  const targets = regressedMetrics(input.gate.scenarios);
+  const requests = requestsFor(input);
 
   // Without a regression there is nothing to explain, and a question would only give a small
   // model the chance to invent one
-  if (!targets.length) {
+  if (!requests.length) {
     return { verdict, explanations: [{ metric: "none", scenario: null, source: "rules", answer: rulesAnswer(input), discrepancies: [] }] };
   }
 
   // One call at a time: a single model on the CPU of a laptop
   const explanations: MetricExplanation[] = [];
-  for (const target of targets) {
-    const suspects = suspectsFor(input.traces, target);
-    const matches = matchSuspects(suspects, input.diff);
-    const messages: Message[] = [
-      { role: "system", content: SYSTEM },
-      { role: "user", content: userPrompt(input, target, suspects, matches) },
-    ];
+  for (const { target, messages } of requests) {
     const base = { metric: target.metric as MetricName, scenario: target.scenario, source: "llm" as const };
     try {
       const content = await chat(messages, SCHEMA);
