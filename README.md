@@ -28,7 +28,12 @@ La comparación ocurre en la misma máquina y en la misma ejecución, así que l
 ## Requisitos
 
 - 16 GB de RAM. Con 8 GB, el perfil `lite`, sin LLM local.
-- Un runtime de contenedores con Compose v2 (Docker Desktop, OrbStack, Colima o Podman) con **al menos 8 GB asignados a la VM**. En Docker Desktop el valor por defecto suele ser menor.
+- Un runtime de contenedores con el comando `docker compose`, Compose v2.20.2 o superior (`docker compose version`), y **al menos 8 GB asignados a la VM**. En Docker Desktop el valor por defecto suele ser menor.
+  - Docker Desktop y OrbStack: tal cual.
+  - Colima: arráncala con memoria suficiente, por ejemplo `colima start --memory 8 --cpu 4`.
+  - Podman: usa su modo compatible con Docker y el comando `docker compose`, no `podman-compose`, que no cubre todo lo que usa el laboratorio.
+
+  Solo se ha probado Docker Desktop en macOS; el resto de runtimes se probará antes del taller.
 - 15 GB libres de disco.
 - macOS, Linux o Windows con WSL2, y git.
 

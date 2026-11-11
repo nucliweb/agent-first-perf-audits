@@ -21,7 +21,7 @@ Estado a 9 de noviembre de 2026. Las decisiones de este documento ya están cerr
 | Pipeline | Servicio `ci` en Docker Compose (gate local, sin red) |
 | Distribución | Imágenes multiarch en GHCR; los asistentes hacen `docker compose pull` en casa |
 | Requisitos | 16 GB recomendado; perfil `lite` sin LLM para equipos de 8 GB |
-| Runtime de contenedores | Cualquiera compatible con Compose v2 (Docker Desktop, OrbStack, Colima, Podman) |
+| Runtime de contenedores | Cualquiera con el CLI `docker` y Compose v2.20.2 o superior (Docker Desktop, OrbStack, Colima, Podman en modo compatible con Docker). El comando es siempre `docker compose`; con Podman, no `podman-compose` |
 | Audiencia | Mixta, más de 30 personas; checkpoints y soluciones por paso |
 | Documentación | Fuente en castellano, traducción a catalán e inglés; Markdown en el repo y web con Astro Starlight |
 
@@ -161,6 +161,7 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 **Semana 4: ensayo**
 - Ensayo completo cronometrado desde un `git clone` limpio.
 - Prueba en Linux amd64 y en un equipo de 8 GB con `lite`.
+- Prueba de los runtimes: OrbStack, Colima (arrancada con `--memory 8`) y Podman con el socket compatible con Docker, con los comandos del README tal cual. Lo único probado es Docker Desktop en el Mac de referencia.
 - Ajustes y congelación de versiones.
 
 ## Riesgos
@@ -225,3 +226,4 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - Posible línea en `content/MCP.mdx` de WebPerf Snippets sobre el entorno del cliente stdio.
 - Traducciones de Learnings a catalán e inglés.
 - Traducir el README a catalán (`README.ca.md`) e inglés (`README.en.md`).
+- El preflight comprueba que `docker compose version` es Compose v2.20.2 o superior: `compose.yaml` usa `depends_on` con `required: false`, que no existe antes (Compose 2.19 exigía todas las dependencias), además de perfiles activados desde `.env`, `extends` y una red `internal`. Debe avisar si el comando no es Compose v2, por ejemplo `podman-compose`, que no cubre toda la especificación.
