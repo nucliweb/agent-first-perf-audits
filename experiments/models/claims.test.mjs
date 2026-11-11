@@ -141,3 +141,14 @@ test("current fixtures, rules and quotes: one of the 22 evidences fits the limit
   assert.equal(atLimit.length, 1);
   assert.match(atLimit[0], /\.$/);
 });
+
+test("current fixtures, quotes warm: 12 calls to llama3.2:3b with a median of 23.2 s, from 13.7 to 40.3 s", async () => {
+  const rows = (await loadCurrent("quotes-warm")).filter((r) => r.source === "llm");
+  assert.ok(rows.every((r) => !r.cold));
+  const ms = rows.map((r) => r.wallMs).sort((a, b) => a - b);
+  assert.equal(ms.length, 12);
+  assert.equal(summarize(rows)[0].p50Ms, 23217);
+  assert.equal(Math.round(ms[0] / 100) / 10, 13.7);
+  assert.equal(Math.round(ms.at(-1) / 100) / 10, 40.3);
+  assert.equal(rows.filter((r) => r.score.cause).length, 12);
+});

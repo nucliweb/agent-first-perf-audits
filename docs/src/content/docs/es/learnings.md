@@ -171,7 +171,7 @@ Con las comillas del diff escapadas en la entrada (`loading=\"lazy\"`), el model
 Con los fixtures actuales la frase ya no se corta sin escapar, pero tampoco es buena: dice que se añadió "el atributo `loading` a la propiedad `fetchPriority`", que ahora valdría `'lazy'` en lugar de `'high'`. La puntuación la da por buena, porque nombra `lazy`. Con las comillas escapadas, la frase nombra el atributo `loading="lazy"` del `img`.
 
 - **El Judge escapa las comillas dobles del código que pone en el prompt.** El handoff lleva la misma entrada.
-- **Las pruebas de un modelo se hacen en frío.** En caliente, la misma entrada puede dar otra redacción, y un fallo puede salir en una repetición y no en otra. En frío, la imagen `ollama` del taller da las mismas respuestas que el contenedor del benchmark, y las da igual con la máquina cargada: la carga cambia la latencia, no el texto.
+- **Las pruebas de un modelo se hacen en frío.** En caliente, la misma entrada puede dar otra redacción, y un fallo puede salir en una repetición y no en otra. En frío, la imagen `ollama` del taller da las mismas respuestas que el contenedor del benchmark.
 
 ### Compruébalo
 
@@ -185,7 +185,7 @@ STAGE=llm COLD=1 REPS=1 MODES=schema node bench.mjs   # una etapa con los cuatro
 STAGE=quotes COLD=1 REPS=1 MODES=schema node bench.mjs llama3.2:3b   # la etapa del Judge
 ```
 
-La latencia depende mucho de la carga de la máquina. En la etapa `rules` de la primera medida, en caliente, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal. En frío, cada llamada incluye cargar el modelo y la mediana sube a 46-48 s.
+La latencia depende mucho de la carga de la máquina. En caliente, en la etapa `quotes` y con la máquina en reposo al empezar, las 12 llamadas de `llama3.2:3b` tardaron entre 13,7 y 40,3 segundos, con una mediana de 23,2 s. En la etapa `rules` de la primera medida, en un portátil en uso normal, entre 9 y 37 segundos, con una mediana de 15,8 s. En frío, cada llamada incluye cargar el modelo y la mediana sube a 46-48 s. La carga media del host no sirve para vigilar la medida mientras corre: durante cada llamada, Ollama usa casi todos los núcleos de la VM de Docker y la carga se dispara. Hay que mirarla antes de empezar.
 
 ### Cómo aplicarlo en tu plataforma
 

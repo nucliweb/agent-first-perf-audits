@@ -44,6 +44,7 @@ npm run fixtures                  # regenera fixtures/ con traces nuevos
 node fixtures.mjs --gate-only     # actualiza el gate de fixtures/ sin traces nuevos
 STAGE=llm COLD=1 REPS=1 MODES=schema node bench.mjs   # una etapa con los cuatro modelos, en frío
 STAGE=quotes COLD=1 REPS=1 MODES=schema node bench.mjs llama3.2:3b   # la etapa del Judge
+STAGE=quotes REPS=3 MODES=schema node bench.mjs llama3.2:3b   # la latencia en caliente, con la máquina en reposo
 node bench.mjs --rescore results/rules.json   # vuelve a puntuar respuestas guardadas, sin modelos
 ```
 
@@ -115,7 +116,9 @@ En la historia, con tres repeticiones en caliente: `llama3.2:3b` 9/15, 9/15 y 14
 
 La RAM del modelo es la que Ollama le asigna con un contexto de 8192 tokens, con un solo modelo cargado cada vez.
 
-La latencia cambia mucho con la carga de la máquina. En la pasada `4-rules` de la historia, en caliente, las 12 llamadas de `llama3.2:3b` tardaron entre 9 y 37 segundos, con una mediana de 15,8 s, en un portátil en uso normal. Es la cifra de orientación para el taller: entre 15 y 20 segundos por explicación. En frío cada llamada incluye cargar el modelo, y la mediana sube a 46-48 s (pasadas 5 y 6); las pasadas actuales se midieron con la máquina cargada por otros procesos (carga media de más de 20 durante buena parte de la pasada), y sus latencias no sirven de referencia.
+La latencia cambia mucho con la carga de la máquina. En caliente, en la etapa `quotes` y con la máquina en reposo al empezar, las 12 llamadas de `llama3.2:3b` tardaron entre 13,7 y 40,3 segundos, con una mediana de 23,2 s ([`results/quotes-warm.json`](results/quotes-warm.json)). En la pasada `4-rules` de la historia, en un portátil en uso normal, entre 9 y 37 segundos, con una mediana de 15,8 s. Es la cifra de orientación para el taller: entre 15 y 25 segundos por explicación. En frío cada llamada incluye cargar el modelo, y la mediana sube a 46-48 s (pasadas 5 y 6 de la historia).
+
+La carga media del host no sirve para vigilar la medida mientras corre: durante cada llamada, Ollama usa casi todos los núcleos de la VM de Docker y la carga se dispara. Hay que mirarla antes de empezar.
 
 ## Versiones
 
