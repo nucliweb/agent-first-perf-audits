@@ -29,6 +29,26 @@ Open both versions in Chrome with the Performance panel of DevTools, in a mobile
 
 Without network throttling, the LCP regression does not show: on a fast connection, the `lazy` image arrives in time anyway. The CLS and INP regressions show without network throttling too.
 
+## What you see
+
+### LCP: the hero arrives late
+
+<img src="/evidence/lcp-filmstrip-en.jpg" alt="The load of the home page of main and of pr/lcp-hero-lazy, frame by frame: on the branch, the page has its text before the hero image" width="2800" height="1608" loading="lazy" decoding="async">
+
+The load of the home page in the median run of five: the LCP of `main` lands at 0.98 s and the one of `pr/lcp-hero-lazy` at 1.46 s. On the branch, the page already has its text and buttons, but the slot of the hero stays empty for several frames: with `loading="lazy"` and no preload, the browser does not request the image until it knows it is on screen.
+
+### CLS: the banner pushes the page
+
+<img src="/evidence/cls-shift-en.jpg" alt="The home page of main, with the space of the banner reserved, next to the one of pr/cls-promo-banner, where the content moves down when the banner arrives" width="2264" height="1870" loading="lazy" decoding="async">
+
+On `main`, the promo banner has its space reserved. On `pr/cls-promo-banner` it arrives once the page is painted, takes the place of the hero and all the content moves down 48 px at once. The dashed line marks where the hero started and the solid one where it ends.
+
+### INP: the cart handler
+
+<img src="/evidence/inp-phases-en.png" alt="The three phases of the Add to cart click on main and on pr/loaf-cart-handler: processing is the one that grows" width="2800" height="480" loading="lazy" decoding="async">
+
+The "Add to cart" click, with the median of each phase: processing goes from 9 ms to 168 ms, and the input delay and the presentation delay barely change. The extra time is in the handler, which computes the recommendations before painting.
+
 ## The figures
 
 Medians of five runs per site, each in a fresh Chromium context with a mobile viewport: the LCP and the CLS of the home page, and the duration of the click on "Add to cart" on the `kenya-aa` product page. Measured on 12 November 2026 from a laptop against Vercel; each run goes over the network, so your figures will be similar, not the same.
@@ -37,21 +57,21 @@ With 4x CPU and `fast-4g`, the conditions of the gate:
 
 | Branch | LCP | CLS | Click |
 |---|---|---|---|
-| `main` | 1000 ms | 0 | 64 ms |
-| `pr/lcp-hero-lazy` | 1488 ms | 0 | 56 ms |
-| `pr/cls-promo-banner` | 1100 ms | 0.0524 | 64 ms |
-| `pr/loaf-cart-handler` | 1296 ms | 0 | 216 ms |
-| `pr/noop-refactor` | 1024 ms | 0 | 64 ms |
+| `main` | 1028 ms | 0 | 56 ms |
+| `pr/lcp-hero-lazy` | 1488 ms | 0 | 64 ms |
+| `pr/cls-promo-banner` | 1016 ms | 0.0524 | 64 ms |
+| `pr/loaf-cart-handler` | 1340 ms | 0 | 224 ms |
+| `pr/noop-refactor` | 1072 ms | 0 | 64 ms |
 
 With 4x CPU, without network throttling:
 
 | Branch | LCP | CLS | Click |
 |---|---|---|---|
-| `main` | 940 ms | 0 | 64 ms |
-| `pr/lcp-hero-lazy` | 940 ms | 0 | 64 ms |
-| `pr/cls-promo-banner` | 964 ms | 0.0524 | 56 ms |
-| `pr/loaf-cart-handler` | 1236 ms | 0 | 216 ms |
-| `pr/noop-refactor` | 852 ms | 0 | 64 ms |
+| `main` | 988 ms | 0 | 80 ms |
+| `pr/lcp-hero-lazy` | 908 ms | 0 | 64 ms |
+| `pr/cls-promo-banner` | 884 ms | 0.0524 | 64 ms |
+| `pr/loaf-cart-handler` | 1232 ms | 0 | 224 ms |
+| `pr/noop-refactor` | 864 ms | 0 | 64 ms |
 
 The LCP and CLS regressions stay within "good" in absolute terms: they show when compared with `main`, as the gate does.
 

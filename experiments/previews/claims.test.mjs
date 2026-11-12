@@ -80,3 +80,53 @@ for (const [lang, file] of Object.entries(SLIDES)) {
     for (const name of Object.keys(results.sites)) assert.ok(text.includes(slideRow(name, lang)), slideRow(name, lang));
   });
 }
+
+test("on pr/loaf-cart-handler the click spends its extra time in processing, the handler", () => {
+  const main = site("main", "cpu-4x-fast-4g");
+  const loaf = site("pr/loaf-cart-handler", "cpu-4x-fast-4g");
+  const sum = (phases) => phases.inputDelay + phases.processing + phases.presentation;
+  for (const entry of [main, loaf]) assert.ok(Math.abs(sum(entry.phases) - entry.median.click) <= 24, JSON.stringify(entry.phases));
+  const growth = loaf.median.click - main.median.click;
+  assert.ok(loaf.phases.processing - main.phases.processing >= growth * 0.7, `processing ${main.phases.processing} to ${loaf.phases.processing}, click +${growth} ms`);
+});
+
+// The evidence of the page and the slides: evidence.json, written by evidence.mjs with the images
+const evidence = JSON.parse(readFileSync(new URL("./evidence.json", import.meta.url), "utf8"));
+const IMAGES = ["lcp-filmstrip.jpg", "cls-shift.jpg", "inp-phases.png"];
+
+test("in the filmstrip the LCP of pr/lcp-hero-lazy lands later than the one of main", () => {
+  assert.ok(evidence.lcp["pr/lcp-hero-lazy"] > evidence.lcp.main * 1.2, JSON.stringify(evidence.lcp));
+});
+
+test("the layout shift of pr/cls-promo-banner moves the content down, and main has none", () => {
+  assert.equal(evidence.cls.main, 0);
+  assert.ok(evidence.cls.branch >= 0.05, `CLS ${evidence.cls.branch}`);
+  assert.ok(evidence.cls.px > 0, `${evidence.cls.px} px`);
+});
+
+for (const lang of Object.keys(PAGES)) {
+  test(`the images of the evidence exist in ${lang}, and the page and the slides show them`, () => {
+    const slides = readFileSync(new URL(`../../docs/public/slides/${SLIDES[lang]}`, import.meta.url), "utf8");
+    for (const image of IMAGES) {
+      const file = image.replace(".", `-${lang}.`);
+      const bytes = readFileSync(new URL(`../../docs/public/evidence/${file}`, import.meta.url)).length;
+      assert.ok(bytes > 10_000 && bytes < 400_000, `${file}: ${bytes} bytes`);
+      assert.ok(page(lang).includes(`/evidence/${file}`), `the page shows ${file}`);
+      assert.ok(slides.includes(`/evidence/${file}`), `the slides show ${file}`);
+    }
+  });
+}
+
+// The captions of the evidence on the page: the LCP of the filmstrip, the pixels of the shift and
+// the processing of the click, with the decimal separator of the language
+const secondsOf = (ms, lang) => `${(ms / 1000).toFixed(2)} s`.replace(".", lang === "en" ? "." : ",");
+
+for (const lang of Object.keys(PAGES)) {
+  test(`the captions of the evidence in ${lang} cite evidence.json and results.json`, () => {
+    const text = page(lang);
+    const processing = (name) => `${site(name, "cpu-4x-fast-4g").phases.processing} ms`;
+    for (const figure of [secondsOf(evidence.lcp.main, lang), secondsOf(evidence.lcp["pr/lcp-hero-lazy"], lang), `${evidence.cls.px} px`, processing("main"), processing("pr/loaf-cart-handler")]) {
+      assert.ok(text.includes(figure), figure);
+    }
+  });
+}

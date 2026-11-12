@@ -5,6 +5,7 @@
   "description": "Reproduce las cifras de la página \"Las ramas en el navegador\": la tienda de main y las previews de las cuatro ramas en Vercel, con y sin throttling de red",
   "scripts": {
     "measure": "node measure.mjs",
+    "evidence": "node evidence.mjs",
     "test": "node --test"
   },
   "dependencies": {

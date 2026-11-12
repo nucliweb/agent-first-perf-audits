@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-11-12T22:08:23.424Z",
+  "measuredAt": "2026-11-12T22:31:20.191Z",
   "runs": 5,
   "conditions": [
     "cpu-4x",
@@ -14,36 +14,66 @@
           "fetchpriority": "high"
         },
         "median": {
-          "lcp": 940,
+          "lcp": 988,
           "cls": 0,
-          "click": 64
+          "click": 80
+        },
+        "phases": {
+          "inputDelay": 7,
+          "processing": 15,
+          "presentation": 52
         },
         "errors": [],
         "runs": [
           {
-            "lcp": 1112,
+            "lcp": 1152,
             "cls": 0,
-            "click": 80
+            "click": 96,
+            "phases": {
+              "inputDelay": 27,
+              "processing": 18,
+              "presentation": 52
+            }
           },
           {
-            "lcp": 996,
+            "lcp": 988,
             "cls": 0,
-            "click": 56
+            "click": 80,
+            "phases": {
+              "inputDelay": 8,
+              "processing": 15,
+              "presentation": 57
+            }
           },
           {
-            "lcp": 844,
+            "lcp": 1036,
             "cls": 0,
-            "click": 80
+            "click": 96,
+            "phases": {
+              "inputDelay": 7,
+              "processing": 17,
+              "presentation": 73
+            }
           },
           {
-            "lcp": 940,
+            "lcp": 880,
             "cls": 0,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 49
+            }
           },
           {
-            "lcp": 872,
+            "lcp": 852,
             "cls": 0,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 8,
+              "presentation": 51
+            }
           }
         ]
       },
@@ -54,36 +84,66 @@
           "fetchpriority": "high"
         },
         "median": {
-          "lcp": 1000,
+          "lcp": 1028,
           "cls": 0,
-          "click": 64
+          "click": 56
+        },
+        "phases": {
+          "inputDelay": 5,
+          "processing": 9,
+          "presentation": 44
         },
         "errors": [],
         "runs": [
           {
-            "lcp": 1000,
+            "lcp": 1924,
             "cls": 0,
-            "click": 64
+            "click": 56,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 43
+            }
+          },
+          {
+            "lcp": 1088,
+            "cls": 0,
+            "click": 56,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 8,
+              "presentation": 44
+            }
+          },
+          {
+            "lcp": 964,
+            "cls": 0,
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 49
+            }
           },
           {
             "lcp": 1028,
             "cls": 0,
-            "click": 64
+            "click": 72,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 11,
+              "presentation": 56
+            }
           },
           {
-            "lcp": 972,
+            "lcp": 1012,
             "cls": 0,
-            "click": 64
-          },
-          {
-            "lcp": 992,
-            "cls": 0,
-            "click": 56
-          },
-          {
-            "lcp": 1004,
-            "cls": 0,
-            "click": 56
+            "click": 56,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 7,
+              "presentation": 44
+            }
           }
         ]
       }
@@ -96,36 +156,66 @@
           "fetchpriority": "(not set)"
         },
         "median": {
-          "lcp": 940,
+          "lcp": 908,
           "cls": 0,
           "click": 64
+        },
+        "phases": {
+          "inputDelay": 5,
+          "processing": 10,
+          "presentation": 51
         },
         "errors": [],
         "runs": [
           {
-            "lcp": 912,
+            "lcp": 1276,
             "cls": 0,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 51
+            }
           },
           {
-            "lcp": 940,
+            "lcp": 892,
             "cls": 0,
-            "click": 72
+            "click": 80,
+            "phases": {
+              "inputDelay": 8,
+              "processing": 13,
+              "presentation": 60
+            }
           },
           {
-            "lcp": 1024,
+            "lcp": 992,
             "cls": 0,
-            "click": 64
+            "click": 88,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 73
+            }
           },
           {
-            "lcp": 1048,
+            "lcp": 864,
             "cls": 0,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 50
+            }
           },
           {
-            "lcp": 884,
+            "lcp": 908,
             "cls": 0,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 49
+            }
           }
         ]
       },
@@ -138,34 +228,64 @@
         "median": {
           "lcp": 1488,
           "cls": 0,
-          "click": 56
+          "click": 64
+        },
+        "phases": {
+          "inputDelay": 4,
+          "processing": 9,
+          "presentation": 51
         },
         "errors": [],
         "runs": [
           {
-            "lcp": 1520,
-            "cls": 0,
-            "click": 56
-          },
-          {
-            "lcp": 1436,
-            "cls": 0,
-            "click": 56
-          },
-          {
             "lcp": 1564,
             "cls": 0,
-            "click": 64
+            "click": 72,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 57
+            }
+          },
+          {
+            "lcp": 1544,
+            "cls": 0,
+            "click": 56,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 43
+            }
+          },
+          {
+            "lcp": 1428,
+            "cls": 0,
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 51
+            }
+          },
+          {
+            "lcp": 1444,
+            "cls": 0,
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 51
+            }
           },
           {
             "lcp": 1488,
             "cls": 0,
-            "click": 56
-          },
-          {
-            "lcp": 1424,
-            "cls": 0,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 11,
+              "presentation": 49
+            }
           }
         ]
       }
@@ -178,36 +298,66 @@
           "fetchpriority": "high"
         },
         "median": {
-          "lcp": 964,
+          "lcp": 884,
           "cls": 0.0524,
-          "click": 56
+          "click": 64
+        },
+        "phases": {
+          "inputDelay": 5,
+          "processing": 10,
+          "presentation": 52
         },
         "errors": [],
         "runs": [
           {
-            "lcp": 964,
+            "lcp": 884,
             "cls": 0.0524,
-            "click": 64
+            "click": 72,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 12,
+              "presentation": 56
+            }
           },
           {
-            "lcp": 900,
+            "lcp": 920,
             "cls": 0.0524,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 8,
+              "presentation": 52
+            }
           },
           {
-            "lcp": 860,
+            "lcp": 844,
             "cls": 0.0524,
-            "click": 56
+            "click": 72,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 11,
+              "presentation": 57
+            }
           },
           {
-            "lcp": 968,
+            "lcp": 924,
             "cls": 0.0524,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 50
+            }
           },
           {
-            "lcp": 1108,
+            "lcp": 840,
             "cls": 0.0524,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 51
+            }
           }
         ]
       },
@@ -218,36 +368,66 @@
           "fetchpriority": "high"
         },
         "median": {
-          "lcp": 1100,
+          "lcp": 1016,
           "cls": 0.0524,
           "click": 64
+        },
+        "phases": {
+          "inputDelay": 5,
+          "processing": 10,
+          "presentation": 49
         },
         "errors": [],
         "runs": [
           {
+            "lcp": 1016,
+            "cls": 0.0524,
+            "click": 56,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 9,
+              "presentation": 43
+            }
+          },
+          {
+            "lcp": 1012,
+            "cls": 0.0524,
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 49
+            }
+          },
+          {
+            "lcp": 1104,
+            "cls": 0.0524,
+            "click": 64,
+            "phases": {
+              "inputDelay": 6,
+              "processing": 10,
+              "presentation": 49
+            }
+          },
+          {
             "lcp": 1100,
             "cls": 0.0524,
-            "click": 56
+            "click": 72,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 9,
+              "presentation": 58
+            }
           },
           {
-            "lcp": 1064,
+            "lcp": 988,
             "cls": 0.0524,
-            "click": 64
-          },
-          {
-            "lcp": 1148,
-            "cls": 0.0524,
-            "click": 56
-          },
-          {
-            "lcp": 1124,
-            "cls": 0.0524,
-            "click": 64
-          },
-          {
-            "lcp": 1060,
-            "cls": 0.0524,
-            "click": 80
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 10,
+              "presentation": 50
+            }
           }
         ]
       }
@@ -260,36 +440,66 @@
           "fetchpriority": "high"
         },
         "median": {
-          "lcp": 1236,
+          "lcp": 1232,
           "cls": 0,
-          "click": 216
+          "click": 224
+        },
+        "phases": {
+          "inputDelay": 5,
+          "processing": 166,
+          "presentation": 53
         },
         "errors": [],
         "runs": [
           {
-            "lcp": 1236,
+            "lcp": 1216,
             "cls": 0,
-            "click": 224
+            "click": 216,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 163,
+              "presentation": 48
+            }
           },
           {
-            "lcp": 1292,
+            "lcp": 1276,
             "cls": 0,
-            "click": 216
+            "click": 224,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 167,
+              "presentation": 53
+            }
+          },
+          {
+            "lcp": 1232,
+            "cls": 0,
+            "click": 224,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 166,
+              "presentation": 54
+            }
+          },
+          {
+            "lcp": 1208,
+            "cls": 0,
+            "click": 224,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 167,
+              "presentation": 52
+            }
           },
           {
             "lcp": 1264,
             "cls": 0,
-            "click": 216
-          },
-          {
-            "lcp": 1180,
-            "cls": 0,
-            "click": 224
-          },
-          {
-            "lcp": 1180,
-            "cls": 0,
-            "click": 216
+            "click": 224,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 165,
+              "presentation": 54
+            }
           }
         ]
       },
@@ -300,36 +510,66 @@
           "fetchpriority": "high"
         },
         "median": {
-          "lcp": 1296,
+          "lcp": 1340,
           "cls": 0,
-          "click": 216
+          "click": 224
+        },
+        "phases": {
+          "inputDelay": 5,
+          "processing": 168,
+          "presentation": 52
         },
         "errors": [],
         "runs": [
           {
-            "lcp": 1296,
+            "lcp": 1340,
             "cls": 0,
-            "click": 224
+            "click": 224,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 166,
+              "presentation": 54
+            }
           },
           {
-            "lcp": 1324,
+            "lcp": 1336,
             "cls": 0,
-            "click": 216
+            "click": 232,
+            "phases": {
+              "inputDelay": 7,
+              "processing": 171,
+              "presentation": 54
+            }
           },
           {
-            "lcp": 1288,
+            "lcp": 1340,
             "cls": 0,
-            "click": 216
+            "click": 224,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 168,
+              "presentation": 52
+            }
           },
           {
-            "lcp": 1296,
+            "lcp": 1460,
             "cls": 0,
-            "click": 216
+            "click": 224,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 169,
+              "presentation": 51
+            }
           },
           {
-            "lcp": 1356,
+            "lcp": 1440,
             "cls": 0,
-            "click": 216
+            "click": 224,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 168,
+              "presentation": 52
+            }
           }
         ]
       }
@@ -342,36 +582,66 @@
           "fetchpriority": "high"
         },
         "median": {
-          "lcp": 852,
+          "lcp": 864,
           "cls": 0,
           "click": 64
+        },
+        "phases": {
+          "inputDelay": 4,
+          "processing": 9,
+          "presentation": 51
         },
         "errors": [],
         "runs": [
           {
             "lcp": 856,
             "cls": 0,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 51
+            }
           },
           {
-            "lcp": 828,
+            "lcp": 864,
             "cls": 0,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 49
+            }
           },
           {
-            "lcp": 852,
+            "lcp": 928,
             "cls": 0,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 8,
+              "presentation": 51
+            }
           },
           {
-            "lcp": 944,
+            "lcp": 860,
             "cls": 0,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 51
+            }
           },
           {
-            "lcp": 820,
+            "lcp": 936,
             "cls": 0,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 8,
+              "presentation": 52
+            }
           }
         ]
       },
@@ -382,36 +652,66 @@
           "fetchpriority": "high"
         },
         "median": {
-          "lcp": 1024,
+          "lcp": 1072,
           "cls": 0,
           "click": 64
+        },
+        "phases": {
+          "inputDelay": 5,
+          "processing": 10,
+          "presentation": 51
         },
         "errors": [],
         "runs": [
           {
-            "lcp": 968,
+            "lcp": 1040,
             "cls": 0,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 49
+            }
           },
           {
-            "lcp": 1228,
+            "lcp": 980,
             "cls": 0,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 4,
+              "processing": 9,
+              "presentation": 51
+            }
           },
           {
-            "lcp": 960,
+            "lcp": 1072,
             "cls": 0,
-            "click": 64
+            "click": 80,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 16,
+              "presentation": 59
+            }
           },
           {
-            "lcp": 1024,
+            "lcp": 1280,
             "cls": 0,
-            "click": 64
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 10,
+              "presentation": 49
+            }
           },
           {
-            "lcp": 1036,
+            "lcp": 1084,
             "cls": 0,
-            "click": 56
+            "click": 64,
+            "phases": {
+              "inputDelay": 5,
+              "processing": 9,
+              "presentation": 51
+            }
           }
         ]
       }

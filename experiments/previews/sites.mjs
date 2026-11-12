@@ -17,3 +17,16 @@ export const CONDITIONS = {
 };
 
 export const RUNS = 5;
+
+// A page with the viewport of a phone and the CPU and network of one of the CONDITIONS
+export async function openPage(browser, { cpu, network }, deviceScaleFactor = 1) {
+  const context = await browser.newContext({ viewport: { width: 412, height: 823 }, isMobile: true, hasTouch: true, deviceScaleFactor });
+  const page = await context.newPage();
+  const cdp = await context.newCDPSession(page);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: cpu });
+  if (network) {
+    await cdp.send("Network.enable");
+    await cdp.send("Network.emulateNetworkConditions", network);
+  }
+  return { context, page };
+}

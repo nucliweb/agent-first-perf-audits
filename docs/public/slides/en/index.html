@@ -125,14 +125,34 @@
   <h2>The four branches, in your browser</h2>
   <table class="compact">
     <tr><th style="width:40%">Branch</th><th style="width:18%">LCP</th><th style="width:16%">CLS</th><th style="width:26%">“Add to cart” click</th></tr>
-    <tr><td><a href="https://perf-coffee.vercel.app/"><code>main</code></a></td><td>1000 ms</td><td>0</td><td>64 ms</td></tr>
-    <tr><td><a href="https://perf-coffee-git-pr-lcp-hero-lazy-nucliweb-projects.vercel.app/"><code>pr/lcp-hero-lazy</code></a></td><td>1488 ms</td><td>0</td><td>56 ms</td></tr>
-    <tr><td><a href="https://perf-coffee-git-pr-cls-promo-banner-nucliweb-projects.vercel.app/"><code>pr/cls-promo-banner</code></a></td><td>1100 ms</td><td>0.0524</td><td>64 ms</td></tr>
-    <tr><td><a href="https://perf-coffee-git-pr-loaf-cart-handler-nucliweb-projects.vercel.app/"><code>pr/loaf-cart-handler</code></a></td><td>1296 ms</td><td>0</td><td>216 ms</td></tr>
-    <tr><td><a href="https://perf-coffee-git-pr-noop-refactor-nucliweb-projects.vercel.app/"><code>pr/noop-refactor</code></a></td><td>1024 ms</td><td>0</td><td>64 ms</td></tr>
+    <tr><td><a href="https://perf-coffee.vercel.app/"><code>main</code></a></td><td>1028 ms</td><td>0</td><td>56 ms</td></tr>
+    <tr><td><a href="https://perf-coffee-git-pr-lcp-hero-lazy-nucliweb-projects.vercel.app/"><code>pr/lcp-hero-lazy</code></a></td><td>1488 ms</td><td>0</td><td>64 ms</td></tr>
+    <tr><td><a href="https://perf-coffee-git-pr-cls-promo-banner-nucliweb-projects.vercel.app/"><code>pr/cls-promo-banner</code></a></td><td>1016 ms</td><td>0.0524</td><td>64 ms</td></tr>
+    <tr><td><a href="https://perf-coffee-git-pr-loaf-cart-handler-nucliweb-projects.vercel.app/"><code>pr/loaf-cart-handler</code></a></td><td>1340 ms</td><td>0</td><td>224 ms</td></tr>
+    <tr><td><a href="https://perf-coffee-git-pr-noop-refactor-nucliweb-projects.vercel.app/"><code>pr/noop-refactor</code></a></td><td>1072 ms</td><td>0</td><td>64 ms</td></tr>
   </table>
   <p class="lead">With 4x CPU and Fast 4G in DevTools. On a fast network, LCP barely moves</p>
   <p class="small">Median of 5 runs · <a href="/en/previews/">agent-first-perf-audits.vercel.app/en/previews</a></p>
+</section>
+
+<section class="slide evidence" data-title="LCP in the browser">
+  <p class="eyebrow">LCP · pr/lcp-hero-lazy</p>
+  <h2>The hero arrives late</h2>
+  <img class="evidence" src="/evidence/lcp-filmstrip-en.jpg" alt="The load of the home page of main and of pr/lcp-hero-lazy, frame by frame: on the branch, the page has its text before the hero image">
+  <p class="lead">The page already has its text, but the slot of the hero is still empty</p>
+</section>
+
+<section class="slide evidence" data-title="CLS in the browser">
+  <p class="eyebrow">CLS · pr/cls-promo-banner</p>
+  <h2>The banner pushes the page</h2>
+  <img class="evidence" src="/evidence/cls-shift-en.jpg" alt="The home page of main, with the space of the banner reserved, next to the one of pr/cls-promo-banner, where the content moves down when the banner arrives">
+</section>
+
+<section class="slide evidence" data-title="INP in the browser">
+  <p class="eyebrow">INP · pr/loaf-cart-handler</p>
+  <h2>The extra time is in the handler</h2>
+  <img class="evidence" src="/evidence/inp-phases-en.png" alt="The three phases of the Add to cart click on main and on pr/loaf-cart-handler: processing is the one that grows">
+  <p class="lead">The input delay and the presentation delay barely change: processing grows</p>
 </section>
 
 <section class="slide" data-title="The rules decide">
