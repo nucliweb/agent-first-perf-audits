@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent Performance Audits</title>
+<meta name="description" content="Les diapositives del taller Multi-Agent Performance Audits de PerfReviews.">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../slides.css">
+</head>
+<body data-deck="Multi-Agent Performance Audits">
+<div class="progress" aria-hidden="true"></div>
+<main class="deck" aria-live="polite">
+
+<section class="slide dark spread" data-title="Portada">
+  <p class="eyebrow">PerfReviews · Taller</p>
+  <div style="display:flex;flex-direction:column;gap:32px">
+    <h1>Multi-Agent Performance Audits</h1>
+    <p class="lead">Automatizando Core Web Vitals en tu plataforma interna con MCP</p>
+  </div>
+  <p class="lead" style="font-size:28px">Les regles decideixen, l’LLM explica</p>
+</section>
+
+<section class="slide" data-title="Què farem">
+  <p class="eyebrow">Avui</p>
+  <h2>Què farem</h2>
+  <div class="grid two">
+    <div class="card"><h3>1. Alinear-nos</h3><p>Què és Web Performance i què mesuren les Core Web Vitals</p></div>
+    <div class="card"><h3>2. El problema</h3><p>Per què el CI clàssic no veu les regressions de rendiment</p></div>
+    <div class="card"><h3>3. Construir</h3><p>Subagents amb MCP, un Judge i un gate de rendiment per a pull requests</p></div>
+    <div class="card"><h3>4. Endur-nos-ho</h3><p>Què canviar i què conservar a la teva plataforma</p></div>
+  </div>
+</section>
+
+<section class="slide" data-title="Web Performance">
+  <p class="eyebrow">Web Performance</p>
+  <h2>El que la persona usuària percep, mesurat</h2>
+  <div class="grid three">
+    <div class="card"><h3>Càrrega</h3><p>Quan veig el que he vingut a veure?</p></div>
+    <div class="card"><h3>Estabilitat</h3><p>Es mou la pàgina mentre la faig servir?</p></div>
+    <div class="card"><h3>Resposta</h3><p>Reacciona tan bon punt toco alguna cosa?</p></div>
+  </div>
+  <p class="lead">Cada pregunta té una mètrica, i cada mètrica es pot descompondre per saber on se’n va el temps</p>
+</section>
+
+<section class="slide" data-title="Core Web Vitals">
+  <p class="eyebrow">Core Web Vitals</p>
+  <h2>Tres mètriques, tres llindars de “good”</h2>
+  <div class="grid three">
+    <div class="card"><h3>LCP</h3><p class="big">≤ 2,5 s</p><p>Largest Contentful Paint: quan es pinta l’element més gran</p></div>
+    <div class="card"><h3>CLS</h3><p class="big">≤ 0,1</p><p>Cumulative Layout Shift: quant es desplaça el contingut</p></div>
+    <div class="card"><h3>INP</h3><p class="big">≤ 200 ms</p><p>Interaction to Next Paint: quant triga a respondre a una interacció</p></div>
+  </div>
+  <p class="small">Els llindars que retorna WebPerf Snippets a cada mesura, els de Google per al percentil 75</p>
+</section>
+
+<section class="slide" data-title="L’LCP en quatre fases">
+  <p class="eyebrow">LCP</p>
+  <h2>L’LCP es descompon en quatre fases</h2>
+  <div class="phases" role="img" aria-label="Les quatre fases de l’LCP, una darrere l’altra">
+    <div class="p1">TTFB</div>
+    <div class="p2">Retard de càrrega</div>
+    <div class="p3">Temps de càrrega</div>
+    <div class="p4">Retard de render</div>
+  </div>
+  <ul class="list">
+    <li><b>TTFB:</b> fins que arriba el primer byte de l’HTML</li>
+    <li><b>Retard de càrrega:</b> fins que el navegador comença a demanar el recurs de l’LCP</li>
+    <li><b>Temps de càrrega:</b> el que triga a descarregar-se</li>
+    <li><b>Retard de render:</b> des que arriba fins que es pinta</li>
+  </ul>
+</section>
+
+<section class="slide" data-title="CLS">
+  <p class="eyebrow">CLS</p>
+  <h2>No tots els desplaçaments compten</h2>
+  <div class="columns">
+    <div class="card"><h3>Compten</h3><p>Els que la persona no ha provocat: un bàner que entra sense espai reservat, una font que canvia de mida en carregar</p></div>
+    <div class="card"><h3>No compten</h3><p>Els que arriben just després d’una interacció, com un panell que s’obre en fer clic</p></div>
+  </div>
+  <p class="lead">Per arreglar-ho no n’hi ha prou amb el número: cal saber quins nodes es mouen</p>
+</section>
+
+<section class="slide" data-title="INP y LoAF">
+  <p class="eyebrow">INP y LoAF</p>
+  <h2>Una interacció té tres fases</h2>
+  <div class="grid three">
+    <div class="card"><h3>Retard d’entrada</h3><p>El fil principal està ocupat i l’esdeveniment espera</p></div>
+    <div class="card"><h3>Processament</h3><p>S’executen els handlers de l’esdeveniment</p></div>
+    <div class="card"><h3>Retard de presentació</h3><p>Fins que el navegador pinta el frame següent</p></div>
+  </div>
+  <p class="lead"><b style="color:var(--ink)">Long Animation Frames (LoAF):</b> anomenen l’script que bloqueja i qui l’invoca. Un trace del clic anomena la funció</p>
+</section>
+
+<section class="slide" data-title="Laboratori i camp">
+  <p class="eyebrow">Com mesurem</p>
+  <h2>Laboratori i camp</h2>
+  <div class="columns">
+    <div class="card"><h3>Camp</h3><p>Persones usuàries reals, els seus dispositius i les seves xarxes. Diu què passa, però arriba tard per a una pull request</p></div>
+    <div class="card"><h3>Laboratori</h3><p>Condicions fixes i repetibles: el que necessita un gate abans de fer merge</p></div>
+  </div>
+  <p class="lead">Al taller: CPU 4x i Fast 4G, diverses execucions i la mediana, i cada branca comparada amb la seva versió base a la mateixa màquina</p>
+</section>
+
+<section class="slide accent spread" data-title="El problema">
+  <p class="eyebrow">El problema</p>
+  <p class="statement">Els tests de l’app passen a les quatre branques. El CI clàssic no veu cap regressió.</p>
+  <p class="lead">I les tres regressions queden dins de “good”: només es veuen comparant amb la versió base</p>
+</section>
+
+<section class="slide" data-title="Les quatre branques">
+  <p class="eyebrow">Perf Coffee</p>
+  <h2>Quatre pull requests contra la botiga</h2>
+  <table>
+    <tr><th style="width:28%">Branca</th><th style="width:52%">Canvi</th><th style="width:20%">Empitjora</th></tr>
+    <tr><td><code>pr/lcp-hero-lazy</code></td><td>El hero perd el preload i el fetchpriority, i passa a loading=“lazy”</td><td>LCP</td></tr>
+    <tr><td><code>pr/cls-promo-banner</code></td><td>Un bàner d’un tercer sense espai reservat i un swap de font</td><td>CLS</td></tr>
+    <tr><td><code>pr/loaf-cart-handler</code></td><td>Un script síncron d’A/B testing i recomanacions al handler de la cistella</td><td>INP i LCP</td></tr>
+    <tr><td><code>pr/noop-refactor</code></td><td>Extreu el hero a un component</td><td>Res</td></tr>
+  </table>
+</section>
+
+<section class="slide" data-title="Les regles decideixen">
+  <p class="eyebrow">Agent-First Design</p>
+  <h2>Les regles decideixen, l’LLM explica</h2>
+  <div class="grid three">
+    <div class="card"><h3>Veredicte</h3><p>La CLI de WebPerf Snippets: Mann-Whitney U, llindars i exit code</p></div>
+    <div class="card"><h3>Atribució</h3><p>trace-engine-cli: la funció, la URL i la línia</p></div>
+    <div class="card"><h3>Explicació</h3><p>Un model local amb sortida JSON validada per un schema. Si contradiu les regles, guanyen les regles</p></div>
+  </div>
+  <p class="lead">Sense regressió, ni tan sols es consulta l’LLM</p>
+</section>
+
+<section class="slide" data-title="El laboratori">
+  <p class="eyebrow">Arquitectura</p>
+  <h2>Tot al teu portàtil, sense sortida a internet</h2>
+  <div class="flow">
+    <div class="box"><b>shop-baseline</b>La botiga de main</div>
+    <div class="box"><b>shop-candidate</b>La botiga de la branca</div>
+    <span class="arrow" aria-hidden="true">→</span>
+    <div class="box"><b>agents · ci</b>Chromium, Chrome DevTools MCP, WebPerf Snippets i trace-engine-cli</div>
+    <span class="arrow" aria-hidden="true">→</span>
+    <div class="box"><b>ollama</b>llama3.2:3b, o un handoff amb el perfil lite</div>
+  </div>
+  <p class="lead"><code>thirdparty</code> serveix els scripts de tercers: analytics, xat, un bàner de promo i A/B testing</p>
+</section>
+
+<section class="slide" data-title="Els subagents">
+  <p class="eyebrow">Els subagents</p>
+  <h2>Cadascun mesura una cosa, cap no decideix</h2>
+  <table>
+    <tr><th style="width:22%">Subagent</th><th>Què fa</th></tr>
+    <tr><td>Navigator</td><td>Recorre la botiga pas a pas i comprova que cada recorregut acaba</td></tr>
+    <tr><td>LCP</td><td>L’LCP de la home, les seves quatre fases i com carrega la imatge</td></tr>
+    <tr><td>CLS</td><td>Els desplaçaments de cada recorregut i els nodes que es mouen</td></tr>
+    <tr><td>LoAF/INP</td><td>L’INP, els long animation frames i la funció que bloqueja</td></tr>
+    <tr><td>Judge</td><td>El gate, l’explicació i les troballes dels altres</td></tr>
+  </table>
+</section>
+
+<section class="slide dark" data-title="Abans de començar">
+  <p class="eyebrow">Abans de començar</p>
+  <h2>La teva branca, des de l’inici del taller</h2>
+  <pre><span class="comment"># amb les imatges descarregades i el preflight en verd</span>
+git fetch origin workshop --tags
+git switch -c taller workshop-start
+docker compose up -d</pre>
+  <p class="lead">Amb 8 GB, afegeix <code>COMPOSE_PROFILES=lite</code> davant de cada ordre de docker compose. Cada pas té la seva guia a la web del taller</p>
+</section>
+
+<section class="slide" data-title="Pas 1">
+  <p class="eyebrow">Pas 1</p>
+  <h2>La primera crida a un MCP</h2>
+  <div class="columns">
+    <div><h3>Escrius</h3><ul class="list"><li><code>recordTrace</code> a <code>agents/src/mcp/trace.ts</code></li><li>El trace de la càrrega de la home, en un fitxer</li></ul></div>
+    <div><h3>Amb Chrome DevTools MCP</h3><ul class="list"><li><code>emulate</code></li><li><code>navigate_page</code></li><li><code>performance_start_trace</code></li></ul></div>
+  </div>
+  <pre>docker compose run --rm agents npm run check -- step-01</pre>
+</section>
+
+<section class="slide" data-title="Pas 2">
+  <p class="eyebrow">Pas 2</p>
+  <h2>El subagent d’LCP</h2>
+  <div class="columns">
+    <div><h3>Escrius</h3><ul class="list"><li><code>askWebPerf</code> i <code>lcpReportOf</code> a <code>lcp.ts</code></li><li>L’LCP de cada botiga, les seves fases i com carrega la imatge</li></ul></div>
+    <div><h3>Amb WebPerf Snippets MCP</h3><ul class="list"><li><code>run_workflow</code> core-web-vitals</li><li><code>run_snippet</code> LCP-Subparts</li></ul></div>
+  </div>
+  <pre>docker compose run --rm agents npm run check -- step-02</pre>
+</section>
+
+<section class="slide" data-title="Pas 3">
+  <p class="eyebrow">Pas 3</p>
+  <h2>Navigator, CLS i LoAF/INP</h2>
+  <div class="columns">
+    <div><h3>Escrius</h3><ul class="list"><li>El recorregut del Navigator</li><li>La mesura de CLS i de LoAF/INP sobre els seus recorreguts</li></ul></div>
+    <div><h3>Amb WebPerf Snippets MCP</h3><ul class="list"><li><code>open_page</code>, <code>interact</code> i <code>read_results</code></li><li><code>run_snippet</code> Layout-Shift-Loading-and-Interaction</li><li><code>run_workflow</code> interaction</li></ul></div>
+  </div>
+  <pre>docker compose run --rm agents npm run check -- step-03</pre>
+</section>
+
+<section class="slide" data-title="Pas 4">
+  <p class="eyebrow">Pas 4</p>
+  <h2>El Judge</h2>
+  <div class="columns">
+    <div><h3>Escrius</h3><ul class="list"><li><code>lcpFacts</code>, <code>clsFacts</code> i <code>inpFacts</code> a <code>findings.ts</code></li><li>Els fets que avalen l’explicació</li></ul></div>
+    <div><h3>Sense MCP</h3><ul class="list"><li>Regles sobre els JSON dels subagents</li><li>L’LLM no veu aquests fets: el seu prompt és el del benchmark</li></ul></div>
+  </div>
+  <pre>docker compose run --rm agents npm run check -- step-04</pre>
+</section>
+
+<section class="slide dark" data-title="Pas 5">
+  <p class="eyebrow">Pas 5</p>
+  <h2>El gate al CI de cada pull request</h2>
+  <pre class="wide">for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler pr-noop-refactor; do
+  CANDIDATE=$branch docker compose run --rm -e OUT=/out/ci/$branch ci
+  echo "$branch: exit $?"
+done</pre>
+  <p class="lead">Tres fallades i un pass. Llegeix el <code>report.md</code> de cada branca: el veredicte, l’explicació i el que l’avala</p>
+</section>
+
+<section class="slide" data-title="Si et quedes enrere">
+  <p class="eyebrow">Si et quedes enrere</p>
+  <h2>Cada pas té la seva solució</h2>
+  <pre>git checkout step-02-solution -- agents/src</pre>
+  <p class="lead">Els tags de <code>step-01-solution</code> a <code>step-04-solution</code> porten el codi del pas resolt. El pas 5 funciona encara que no hagis escrit res</p>
+</section>
+
+<section class="slide" data-title="Portar-ho a la teva plataforma">
+  <p class="eyebrow">Pas 6</p>
+  <h2>Portar-ho a la teva plataforma</h2>
+  <div class="columns">
+    <div class="card"><h3>Què canvies</h3><p>La teva aplicació des de dues refs, els teus tercers, els teus recorreguts, les pàgines que el gate protegeix i les condicions dels teus usuaris</p></div>
+    <div class="card"><h3>Què conserves</h3><p>Les regles decideixen i l’LLM explica, comparar amb la versió base, mesurar d’una en una, els noms de funció al build i el handoff</p></div>
+  </div>
+</section>
+
+<section class="slide dark spread" data-title="Gràcies">
+  <p class="eyebrow">Gràcies</p>
+  <h2 style="font-size:84px">Preguntes</h2>
+  <div class="grid three">
+    <div class="card"><h3>La web</h3><p><a href="https://agent-first-perf-audits.vercel.app/ca/">agent-first-perf-audits.vercel.app</a></p></div>
+    <div class="card"><h3>El repo</h3><p><a href="https://github.com/nucliweb/agent-first-perf-audits/blob/main/README.ca.md">github.com/nucliweb/agent-first-perf-audits</a></p></div>
+    <div class="card"><h3>La botiga</h3><p><a href="https://perf-coffee.vercel.app/">perf-coffee.vercel.app</a></p></div>
+  </div>
+</section>
+
+</main>
+<nav class="controls" aria-label="Slides">
+  <a href="../index.html" lang="es">ES</a>
+  <a href="../en/index.html" lang="en">EN</a>
+  <button type="button" data-prev aria-label="Anterior">←</button>
+  <span data-counter></span>
+  <button type="button" data-next aria-label="Següent">→</button>
+</nav>
+<script src="../slides.js"></script>
+</body>
+</html>

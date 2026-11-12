@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent Performance Audits</title>
+<meta name="description" content="Las slides del taller Multi-Agent Performance Audits de PerfReviews.">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="slides.css">
+</head>
+<body data-deck="Multi-Agent Performance Audits">
+<div class="progress" aria-hidden="true"></div>
+<main class="deck" aria-live="polite">
+
+<section class="slide dark spread" data-title="Portada">
+  <p class="eyebrow">PerfReviews · Taller</p>
+  <div style="display:flex;flex-direction:column;gap:32px">
+    <h1>Multi-Agent Performance Audits</h1>
+    <p class="lead">Automatizando Core Web Vitals en tu plataforma interna con MCP</p>
+  </div>
+  <p class="lead" style="font-size:28px">Las reglas deciden, el LLM explica</p>
+</section>
+
+<section class="slide" data-title="Qué vamos a hacer">
+  <p class="eyebrow">Hoy</p>
+  <h2>Qué vamos a hacer</h2>
+  <div class="grid two">
+    <div class="card"><h3>1. Alinearnos</h3><p>Qué es Web Performance y qué miden las Core Web Vitals</p></div>
+    <div class="card"><h3>2. El problema</h3><p>Por qué el CI clásico no ve las regresiones de rendimiento</p></div>
+    <div class="card"><h3>3. Construir</h3><p>Subagentes con MCP, un Judge y un gate de rendimiento para pull requests</p></div>
+    <div class="card"><h3>4. Llevárnoslo</h3><p>Qué cambiar y qué conservar en tu plataforma</p></div>
+  </div>
+</section>
+
+<section class="slide" data-title="Web Performance">
+  <p class="eyebrow">Web Performance</p>
+  <h2>Lo que la persona usuaria percibe, medido</h2>
+  <div class="grid three">
+    <div class="card"><h3>Carga</h3><p>¿Cuándo veo lo que vine a ver?</p></div>
+    <div class="card"><h3>Estabilidad</h3><p>¿Se mueve la página mientras la uso?</p></div>
+    <div class="card"><h3>Respuesta</h3><p>¿Reacciona en cuanto toco algo?</p></div>
+  </div>
+  <p class="lead">Cada pregunta tiene una métrica, y cada métrica se puede descomponer para saber dónde se va el tiempo</p>
+</section>
+
+<section class="slide" data-title="Core Web Vitals">
+  <p class="eyebrow">Core Web Vitals</p>
+  <h2>Tres métricas, tres umbrales de “good”</h2>
+  <div class="grid three">
+    <div class="card"><h3>LCP</h3><p class="big">≤ 2,5 s</p><p>Largest Contentful Paint: cuándo se pinta el elemento más grande</p></div>
+    <div class="card"><h3>CLS</h3><p class="big">≤ 0,1</p><p>Cumulative Layout Shift: cuánto se desplaza el contenido</p></div>
+    <div class="card"><h3>INP</h3><p class="big">≤ 200 ms</p><p>Interaction to Next Paint: cuánto tarda en responder a una interacción</p></div>
+  </div>
+  <p class="small">Los umbrales que devuelve WebPerf Snippets en cada medida, los de Google para el percentil 75</p>
+</section>
+
+<section class="slide" data-title="LCP en cuatro fases">
+  <p class="eyebrow">LCP</p>
+  <h2>El LCP se descompone en cuatro fases</h2>
+  <div class="phases" role="img" aria-label="Las cuatro fases del LCP, una detrás de otra">
+    <div class="p1">TTFB</div>
+    <div class="p2">Retraso de carga</div>
+    <div class="p3">Tiempo de carga</div>
+    <div class="p4">Retraso de render</div>
+  </div>
+  <ul class="list">
+    <li><b>TTFB:</b> hasta que llega el primer byte del HTML</li>
+    <li><b>Retraso de carga:</b> hasta que el navegador empieza a pedir el recurso del LCP</li>
+    <li><b>Tiempo de carga:</b> lo que tarda en descargarse</li>
+    <li><b>Retraso de render:</b> desde que llega hasta que se pinta</li>
+  </ul>
+</section>
+
+<section class="slide" data-title="CLS">
+  <p class="eyebrow">CLS</p>
+  <h2>No todos los desplazamientos cuentan</h2>
+  <div class="columns">
+    <div class="card"><h3>Cuentan</h3><p>Los que la persona no ha provocado: un banner que entra sin espacio reservado, una fuente que cambia de tamaño al cargar</p></div>
+    <div class="card"><h3>No cuentan</h3><p>Los que llegan justo después de una interacción, como un panel que se abre al hacer click</p></div>
+  </div>
+  <p class="lead">Para arreglarlo no basta con el número: hay que saber qué nodos se mueven</p>
+</section>
+
+<section class="slide" data-title="INP y LoAF">
+  <p class="eyebrow">INP y LoAF</p>
+  <h2>Una interacción tiene tres fases</h2>
+  <div class="grid three">
+    <div class="card"><h3>Retraso de entrada</h3><p>El hilo principal está ocupado y el evento espera</p></div>
+    <div class="card"><h3>Procesamiento</h3><p>Corren los handlers del evento</p></div>
+    <div class="card"><h3>Retraso de presentación</h3><p>Hasta que el navegador pinta el siguiente frame</p></div>
+  </div>
+  <p class="lead"><b style="color:var(--ink)">Long Animation Frames (LoAF):</b> nombran el script que bloquea y quién lo invoca. Un trace del click nombra la función</p>
+</section>
+
+<section class="slide" data-title="Laboratorio y campo">
+  <p class="eyebrow">Cómo medimos</p>
+  <h2>Laboratorio y campo</h2>
+  <div class="columns">
+    <div class="card"><h3>Campo</h3><p>Personas usuarias reales, sus dispositivos y sus redes. Dice qué pasa, pero llega tarde para una pull request</p></div>
+    <div class="card"><h3>Laboratorio</h3><p>Condiciones fijas y repetibles: lo que necesita un gate antes de hacer merge</p></div>
+  </div>
+  <p class="lead">En el taller: CPU 4x y Fast 4G, varias ejecuciones y la mediana, y cada rama comparada con su versión base en la misma máquina</p>
+</section>
+
+<section class="slide accent spread" data-title="El problema">
+  <p class="eyebrow">El problema</p>
+  <p class="statement">Los tests de la app pasan en las cuatro ramas. El CI clásico no ve ninguna regresión.</p>
+  <p class="lead">Y las tres regresiones quedan dentro de “good”: solo se ven comparando con la versión base</p>
+</section>
+
+<section class="slide" data-title="Las cuatro ramas">
+  <p class="eyebrow">Perf Coffee</p>
+  <h2>Cuatro pull requests contra la tienda</h2>
+  <table>
+    <tr><th style="width:28%">Rama</th><th style="width:52%">Cambio</th><th style="width:20%">Empeora</th></tr>
+    <tr><td><code>pr/lcp-hero-lazy</code></td><td>El hero pierde el preload y el fetchpriority, y pasa a loading=“lazy”</td><td>LCP</td></tr>
+    <tr><td><code>pr/cls-promo-banner</code></td><td>Un banner de un tercero sin espacio reservado y un swap de fuente</td><td>CLS</td></tr>
+    <tr><td><code>pr/loaf-cart-handler</code></td><td>Un script síncrono de A/B testing y recomendaciones en el handler del carrito</td><td>INP y LCP</td></tr>
+    <tr><td><code>pr/noop-refactor</code></td><td>Extrae el hero a un componente</td><td>Nada</td></tr>
+  </table>
+</section>
+
+<section class="slide" data-title="Las reglas deciden">
+  <p class="eyebrow">Agent-First Design</p>
+  <h2>Las reglas deciden, el LLM explica</h2>
+  <div class="grid three">
+    <div class="card"><h3>Veredicto</h3><p>La CLI de WebPerf Snippets: Mann-Whitney U, umbrales y exit code</p></div>
+    <div class="card"><h3>Atribución</h3><p>trace-engine-cli: la función, la URL y la línea</p></div>
+    <div class="card"><h3>Explicación</h3><p>Un modelo local con salida JSON validada por un schema. Si contradice a las reglas, ganan las reglas</p></div>
+  </div>
+  <p class="lead">Sin regresión, el LLM ni siquiera se consulta</p>
+</section>
+
+<section class="slide" data-title="El laboratorio">
+  <p class="eyebrow">Arquitectura</p>
+  <h2>Todo en tu portátil, sin salida a internet</h2>
+  <div class="flow">
+    <div class="box"><b>shop-baseline</b>La tienda de main</div>
+    <div class="box"><b>shop-candidate</b>La tienda de la rama</div>
+    <span class="arrow" aria-hidden="true">→</span>
+    <div class="box"><b>agents · ci</b>Chromium, Chrome DevTools MCP, WebPerf Snippets y trace-engine-cli</div>
+    <span class="arrow" aria-hidden="true">→</span>
+    <div class="box"><b>ollama</b>llama3.2:3b, o un handoff con el perfil lite</div>
+  </div>
+  <p class="lead"><code>thirdparty</code> sirve los scripts de terceros: analytics, chat, un banner de promo y A/B testing</p>
+</section>
+
+<section class="slide" data-title="Los subagentes">
+  <p class="eyebrow">Los subagentes</p>
+  <h2>Cada uno mide una cosa, ninguno decide</h2>
+  <table>
+    <tr><th style="width:22%">Subagente</th><th>Qué hace</th></tr>
+    <tr><td>Navigator</td><td>Recorre la tienda paso a paso y comprueba que cada recorrido termina</td></tr>
+    <tr><td>LCP</td><td>El LCP de la home, sus cuatro fases y cómo carga la imagen</td></tr>
+    <tr><td>CLS</td><td>Los desplazamientos de cada recorrido y los nodos que se mueven</td></tr>
+    <tr><td>LoAF/INP</td><td>El INP, los long animation frames y la función que bloquea</td></tr>
+    <tr><td>Judge</td><td>El gate, la explicación y los hallazgos de los demás</td></tr>
+  </table>
+</section>
+
+<section class="slide dark" data-title="Antes de empezar">
+  <p class="eyebrow">Antes de empezar</p>
+  <h2>Tu rama, desde el inicio del taller</h2>
+  <pre><span class="comment"># con las imágenes descargadas y el preflight en verde</span>
+git fetch origin workshop --tags
+git switch -c taller workshop-start
+docker compose up -d</pre>
+  <p class="lead">Con 8 GB, antepón <code>COMPOSE_PROFILES=lite</code> a cada comando de docker compose. Cada paso tiene su guía en la web del taller</p>
+</section>
+
+<section class="slide" data-title="Paso 1">
+  <p class="eyebrow">Paso 1</p>
+  <h2>La primera llamada a un MCP</h2>
+  <div class="columns">
+    <div><h3>Escribes</h3><ul class="list"><li><code>recordTrace</code> en <code>agents/src/mcp/trace.ts</code></li><li>El trace de la carga de la home, en un fichero</li></ul></div>
+    <div><h3>Con Chrome DevTools MCP</h3><ul class="list"><li><code>emulate</code></li><li><code>navigate_page</code></li><li><code>performance_start_trace</code></li></ul></div>
+  </div>
+  <pre>docker compose run --rm agents npm run check -- step-01</pre>
+</section>
+
+<section class="slide" data-title="Paso 2">
+  <p class="eyebrow">Paso 2</p>
+  <h2>El subagente de LCP</h2>
+  <div class="columns">
+    <div><h3>Escribes</h3><ul class="list"><li><code>askWebPerf</code> y <code>lcpReportOf</code> en <code>lcp.ts</code></li><li>El LCP de cada tienda, sus fases y cómo carga la imagen</li></ul></div>
+    <div><h3>Con WebPerf Snippets MCP</h3><ul class="list"><li><code>run_workflow</code> core-web-vitals</li><li><code>run_snippet</code> LCP-Subparts</li></ul></div>
+  </div>
+  <pre>docker compose run --rm agents npm run check -- step-02</pre>
+</section>
+
+<section class="slide" data-title="Paso 3">
+  <p class="eyebrow">Paso 3</p>
+  <h2>Navigator, CLS y LoAF/INP</h2>
+  <div class="columns">
+    <div><h3>Escribes</h3><ul class="list"><li>El recorrido del Navigator</li><li>La medida de CLS y de LoAF/INP sobre sus recorridos</li></ul></div>
+    <div><h3>Con WebPerf Snippets MCP</h3><ul class="list"><li><code>open_page</code>, <code>interact</code> y <code>read_results</code></li><li><code>run_snippet</code> Layout-Shift-Loading-and-Interaction</li><li><code>run_workflow</code> interaction</li></ul></div>
+  </div>
+  <pre>docker compose run --rm agents npm run check -- step-03</pre>
+</section>
+
+<section class="slide" data-title="Paso 4">
+  <p class="eyebrow">Paso 4</p>
+  <h2>El Judge</h2>
+  <div class="columns">
+    <div><h3>Escribes</h3><ul class="list"><li><code>lcpFacts</code>, <code>clsFacts</code> e <code>inpFacts</code> en <code>findings.ts</code></li><li>Los hechos que respaldan la explicación</li></ul></div>
+    <div><h3>Sin MCP</h3><ul class="list"><li>Reglas sobre los JSON de los subagentes</li><li>El LLM no ve estos hechos: su prompt es el del benchmark</li></ul></div>
+  </div>
+  <pre>docker compose run --rm agents npm run check -- step-04</pre>
+</section>
+
+<section class="slide dark" data-title="Paso 5">
+  <p class="eyebrow">Paso 5</p>
+  <h2>El gate en el CI de cada pull request</h2>
+  <pre class="wide">for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler pr-noop-refactor; do
+  CANDIDATE=$branch docker compose run --rm -e OUT=/out/ci/$branch ci
+  echo "$branch: exit $?"
+done</pre>
+  <p class="lead">Tres fallos y un pass. Lee el <code>report.md</code> de cada rama: el veredicto, la explicación y lo que la respalda</p>
+</section>
+
+<section class="slide" data-title="Si te descuelgas">
+  <p class="eyebrow">Si te descuelgas</p>
+  <h2>Cada paso tiene su solución</h2>
+  <pre>git checkout step-02-solution -- agents/src</pre>
+  <p class="lead">Los tags <code>step-01-solution</code> a <code>step-04-solution</code> traen el código del paso resuelto. El paso 5 funciona aunque no hayas escrito nada</p>
+</section>
+
+<section class="slide" data-title="Llevarlo a tu plataforma">
+  <p class="eyebrow">Paso 6</p>
+  <h2>Llevarlo a tu plataforma</h2>
+  <div class="columns">
+    <div class="card"><h3>Qué cambias</h3><p>Tu aplicación desde dos refs, tus terceros, tus recorridos, las páginas que el gate protege y las condiciones de tus usuarios</p></div>
+    <div class="card"><h3>Qué conservas</h3><p>Las reglas deciden y el LLM explica, comparar con la versión base, medir de una en una, los nombres de función en el build y el handoff</p></div>
+  </div>
+</section>
+
+<section class="slide dark spread" data-title="Gracias">
+  <p class="eyebrow">Gracias</p>
+  <h2 style="font-size:84px">Preguntas</h2>
+  <div class="grid three">
+    <div class="card"><h3>La web</h3><p><a href="https://agent-first-perf-audits.vercel.app/">agent-first-perf-audits.vercel.app</a></p></div>
+    <div class="card"><h3>El repo</h3><p><a href="https://github.com/nucliweb/agent-first-perf-audits">github.com/nucliweb/agent-first-perf-audits</a></p></div>
+    <div class="card"><h3>La tienda</h3><p><a href="https://perf-coffee.vercel.app/">perf-coffee.vercel.app</a></p></div>
+  </div>
+</section>
+
+</main>
+<nav class="controls" aria-label="Slides">
+  <a href="ca/index.html" lang="ca">CA</a>
+  <a href="en/index.html" lang="en">EN</a>
+  <button type="button" data-prev aria-label="Anterior">←</button>
+  <span data-counter></span>
+  <button type="button" data-next aria-label="Siguiente">→</button>
+</nav>
+<script src="slides.js"></script>
+</body>
+</html>
