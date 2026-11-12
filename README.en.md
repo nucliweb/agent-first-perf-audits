@@ -167,12 +167,14 @@ The branch and its tags are created from `main` with `node scripts/workshop.mjs`
 
 ## The regression branches
 
-| Branch | Change | What regresses |
-|---|---|---|
-| `pr/lcp-hero-lazy` | The hero image loses the preload and the `fetchpriority`, and switches to `loading="lazy"` | LCP |
-| `pr/cls-promo-banner` | The third-party banner without reserved space and a font swap without preload | CLS |
-| `pr/loaf-cart-handler` | A synchronous A/B testing script and recommendations computed in the add to cart handler | INP and LCP |
-| `pr/noop-refactor` | Extracts the hero into a component | Nothing: the false positive control |
+| Branch | Change | What regresses | Preview |
+|---|---|---|---|
+| `pr/lcp-hero-lazy` | The hero image loses the preload and the `fetchpriority`, and switches to `loading="lazy"` | LCP | [preview](https://perf-coffee-git-pr-lcp-hero-lazy-nucliweb-projects.vercel.app/) |
+| `pr/cls-promo-banner` | The third-party banner without reserved space and a font swap without preload | CLS | [preview](https://perf-coffee-git-pr-cls-promo-banner-nucliweb-projects.vercel.app/) |
+| `pr/loaf-cart-handler` | A synchronous A/B testing script and recommendations computed in the add to cart handler | INP and LCP | [preview](https://perf-coffee-git-pr-loaf-cart-handler-nucliweb-projects.vercel.app/) |
+| `pr/noop-refactor` | Extracts the hero into a component | Nothing: the false positive control | [preview](https://perf-coffee-git-pr-noop-refactor-nucliweb-projects.vercel.app/) |
+
+The shop of `main` is at [perf-coffee.vercel.app](https://perf-coffee.vercel.app/) and each branch has its preview on Vercel. How to see each regression in the browser, with its figures, in [The branches in the browser](docs/src/content/docs/en/previews.md).
 
 The three regressions stay within "good" in absolute value. The gate detects them because it compares with the baseline, not with the Google thresholds. The app tests pass on all four branches: classic CI does not see any of them.
 

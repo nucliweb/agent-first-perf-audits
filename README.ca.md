@@ -167,12 +167,14 @@ La branca i els seus tags surten de `main` amb `node scripts/workshop.mjs`, que 
 
 ## Les branques de regressió
 
-| Branca | Canvi | Què empitjora |
-|---|---|---|
-| `pr/lcp-hero-lazy` | La imatge del hero perd el preload i el `fetchpriority`, i passa a `loading="lazy"` | LCP |
-| `pr/cls-promo-banner` | El bàner d'un tercer sense espai reservat i un swap de font sense preload | CLS |
-| `pr/loaf-cart-handler` | Un script síncron d'A/B testing i recomanacions calculades al handler d'afegir a la cistella | INP i LCP |
-| `pr/noop-refactor` | Extreu el hero a un component | Res: el control de falsos positius |
+| Branca | Canvi | Què empitjora | Preview |
+|---|---|---|---|
+| `pr/lcp-hero-lazy` | La imatge del hero perd el preload i el `fetchpriority`, i passa a `loading="lazy"` | LCP | [preview](https://perf-coffee-git-pr-lcp-hero-lazy-nucliweb-projects.vercel.app/) |
+| `pr/cls-promo-banner` | El bàner d'un tercer sense espai reservat i un swap de font sense preload | CLS | [preview](https://perf-coffee-git-pr-cls-promo-banner-nucliweb-projects.vercel.app/) |
+| `pr/loaf-cart-handler` | Un script síncron d'A/B testing i recomanacions calculades al handler d'afegir a la cistella | INP i LCP | [preview](https://perf-coffee-git-pr-loaf-cart-handler-nucliweb-projects.vercel.app/) |
+| `pr/noop-refactor` | Extreu el hero a un component | Res: el control de falsos positius | [preview](https://perf-coffee-git-pr-noop-refactor-nucliweb-projects.vercel.app/) |
+
+La botiga de `main` és a [perf-coffee.vercel.app](https://perf-coffee.vercel.app/) i cada branca té la seva preview a Vercel. Com veure cada regressió al navegador, amb les seves xifres, a [Les branques al navegador](docs/src/content/docs/ca/previews.md).
 
 Les tres regressions queden dins de "good" en valor absolut. El gate les detecta perquè compara amb la versió base, no amb els llindars de Google. Els tests de l'app passen a les quatre branques: el CI clàssic no en veu cap.
 

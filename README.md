@@ -167,12 +167,14 @@ La rama y sus tags salen de `main` con `node scripts/workshop.mjs`, que comprueb
 
 ## Las ramas de regresión
 
-| Rama | Cambio | Qué empeora |
-|---|---|---|
-| `pr/lcp-hero-lazy` | La imagen del hero pierde el preload y el `fetchpriority`, y pasa a `loading="lazy"` | LCP |
-| `pr/cls-promo-banner` | El banner de un tercero sin espacio reservado y un swap de fuente sin preload | CLS |
-| `pr/loaf-cart-handler` | Un script síncrono de A/B testing y recomendaciones calculadas en el handler de añadir al carrito | INP y LCP |
-| `pr/noop-refactor` | Extrae el hero a un componente | Nada: el control de falsos positivos |
+| Rama | Cambio | Qué empeora | Preview |
+|---|---|---|---|
+| `pr/lcp-hero-lazy` | La imagen del hero pierde el preload y el `fetchpriority`, y pasa a `loading="lazy"` | LCP | [preview](https://perf-coffee-git-pr-lcp-hero-lazy-nucliweb-projects.vercel.app/) |
+| `pr/cls-promo-banner` | El banner de un tercero sin espacio reservado y un swap de fuente sin preload | CLS | [preview](https://perf-coffee-git-pr-cls-promo-banner-nucliweb-projects.vercel.app/) |
+| `pr/loaf-cart-handler` | Un script síncrono de A/B testing y recomendaciones calculadas en el handler de añadir al carrito | INP y LCP | [preview](https://perf-coffee-git-pr-loaf-cart-handler-nucliweb-projects.vercel.app/) |
+| `pr/noop-refactor` | Extrae el hero a un componente | Nada: el control de falsos positivos | [preview](https://perf-coffee-git-pr-noop-refactor-nucliweb-projects.vercel.app/) |
+
+La tienda de `main` está en [perf-coffee.vercel.app](https://perf-coffee.vercel.app/) y cada rama tiene su preview en Vercel. Cómo ver cada regresión en el navegador, con sus cifras, en [Las ramas en el navegador](docs/src/content/docs/es/previews.md).
 
 Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las detecta porque compara con la versión base, no con los umbrales de Google. Los tests de la app pasan en las cuatro ramas: el CI clásico no ve ninguna.
 
