@@ -83,6 +83,8 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+# The shop for a static host (apps/shop/static-pages.mjs)
+dist-static
 .output
 
 # Gatsby files
@@ -146,6 +148,9 @@ vite.config.ts.timestamp-*
 
 # Astro generated types
 .astro/
+
+# Vercel CLI
+.vercel
 
 # Turbo Repo
 .turbo

@@ -1,0 +1,47 @@
+---
+title: Multi-Agent Performance Audits
+description: Un gate de rendiment per a pull requests amb agents, MCP i un LLM local, que funciona al teu portàtil amb Docker Compose.
+template: splash
+hero:
+  tagline: Agents que mesuren una botiga abans i després d'un canvi, decideixen si ha empitjorat i expliquen per què. Les regles decideixen, l'LLM explica.
+  actions:
+    - text: Comença el taller
+      link: /ca/workshop/step-01/
+      icon: right-arrow
+    - text: La botiga d'exemple
+      link: https://perf-coffee.vercel.app/
+      icon: external
+      variant: minimal
+    - text: El repositori
+      link: https://github.com/nucliweb/agent-first-perf-audits
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+## Què construïm
+
+<CardGrid>
+  <Card title="Subagents amb MCP" icon="rocket">
+    Navigator, LCP, CLS i LoAF/INP recorren la botiga amb Chrome DevTools MCP i WebPerf Snippets MCP, i retornen JSON.
+  </Card>
+  <Card title="Un Judge que es pot defensar" icon="approve-check">
+    La CLI de WebPerf Snippets dona el veredicte amb estadística; trace-engine-cli anomena la funció; un model local només n'explica la causa.
+  </Card>
+  <Card title="Un gate al CI" icon="setting">
+    El servei `ci` compara cada branca amb `main` i surt amb 0 o 1, amb un informe i un handoff per a un altre agent.
+  </Card>
+  <Card title="Tot al teu portàtil" icon="laptop">
+    Docker Compose, sense sortida a internet ni claus d'API. Amb poca memòria, el perfil `lite` deixa l'explicació a un agent que triïs.
+  </Card>
+</CardGrid>
+
+## Per on començar
+
+<CardGrid>
+  <LinkCard title="Requisits i posada en marxa" description="Descarrega les imatges a casa i passa el preflight." href="https://github.com/nucliweb/agent-first-perf-audits/blob/main/README.ca.md" />
+  <LinkCard title="El taller pas a pas" description="Del primer trace al gate contra les quatre branques." href="/ca/workshop/step-01/" />
+  <LinkCard title="Per què aquest stack" description="Cada peça, què vam descartar i la dada que ho va decidir." href="/ca/stack/" />
+  <LinkCard title="Learnings" description="Les decisions de disseny amb el seu context i les seves dades." href="/ca/learnings/" />
+</CardGrid>

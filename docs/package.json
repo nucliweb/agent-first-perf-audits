@@ -1,0 +1,18 @@
+{
+  "name": "docs",
+  "private": true,
+  "type": "module",
+  "description": "The website of the workshop, built with Astro Starlight from the Markdown in src/content/docs",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.42.10",
+    "astro": "7.4.8"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}

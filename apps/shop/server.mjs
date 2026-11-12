@@ -34,11 +34,13 @@ function preloadTag(pathname) {
   return `<link rel="preload" as="image" href="${escapeAttr(href)}" imagesrcset="${escapeAttr(srcset)}" imagesizes="${escapeAttr(sizes)}" fetchpriority="high" />`;
 }
 
+// The index.html of a route: the origin of the third-party mocks and the preload of its LCP image.
+// static-pages.mjs writes the same pages ahead of time for a static host.
+export const renderIndex = (html, pathname, thirdPartyOrigin) =>
+  html.replaceAll("__THIRDPARTY_ORIGIN__", thirdPartyOrigin).replace("<!-- lcp-preload -->", preloadTag(pathname));
+
 export function createShopServer({ root, thirdPartyOrigin }) {
-  const indexHtml = (pathname) =>
-    readFile(join(root, "index.html"), "utf8").then((html) =>
-      html.replaceAll("__THIRDPARTY_ORIGIN__", thirdPartyOrigin).replace("<!-- lcp-preload -->", preloadTag(pathname)),
-    );
+  const indexHtml = (pathname) => readFile(join(root, "index.html"), "utf8").then((html) => renderIndex(html, pathname, thirdPartyOrigin));
 
   return createServer(async (req, res) => {
     let pathname;

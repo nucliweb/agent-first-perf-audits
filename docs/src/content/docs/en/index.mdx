@@ -1,0 +1,47 @@
+---
+title: Multi-Agent Performance Audits
+description: A performance gate for pull requests with agents, MCP and a local LLM, running on your laptop with Docker Compose.
+template: splash
+hero:
+  tagline: Agents that measure a shop before and after a change, decide whether it got worse and explain why. The rules decide, the LLM explains.
+  actions:
+    - text: Start the workshop
+      link: /en/workshop/step-01/
+      icon: right-arrow
+    - text: The demo shop
+      link: https://perf-coffee.vercel.app/
+      icon: external
+      variant: minimal
+    - text: The repository
+      link: https://github.com/nucliweb/agent-first-perf-audits
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+## What we build
+
+<CardGrid>
+  <Card title="Subagents with MCP" icon="rocket">
+    Navigator, LCP, CLS and LoAF/INP go through the shop with Chrome DevTools MCP and WebPerf Snippets MCP, and return JSON.
+  </Card>
+  <Card title="A Judge you can defend" icon="approve-check">
+    The WebPerf Snippets CLI gives the verdict with statistics; trace-engine-cli names the function; a local model only explains the cause.
+  </Card>
+  <Card title="A gate in CI" icon="setting">
+    The `ci` service compares each branch with `main` and exits with 0 or 1, with a report and a handoff for another agent.
+  </Card>
+  <Card title="All on your laptop" icon="laptop">
+    Docker Compose, with no internet access and no API keys. With little memory, the `lite` profile leaves the explanation to an agent of your choice.
+  </Card>
+</CardGrid>
+
+## Where to start
+
+<CardGrid>
+  <LinkCard title="Requirements and setup" description="Pull the images at home and run the preflight." href="https://github.com/nucliweb/agent-first-perf-audits/blob/main/README.en.md" />
+  <LinkCard title="The workshop step by step" description="From the first trace to the gate against the four branches." href="/en/workshop/step-01/" />
+  <LinkCard title="Why this stack" description="Each piece, what we ruled out and the data that decided it." href="/en/stack/" />
+  <LinkCard title="Learnings" description="The design decisions with their context and their data." href="/en/learnings/" />
+</CardGrid>

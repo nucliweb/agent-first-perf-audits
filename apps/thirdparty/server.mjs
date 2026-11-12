@@ -18,41 +18,42 @@ function parseParam(params, name) {
   return value;
 }
 
-export function createThirdPartyServer() {
-  return createServer(async (req, res) => {
-    const url = new URL(req.url, "http://localhost");
-    const name = url.pathname.slice(1);
+// The handler of the mocks, for the server below and for a serverless function
+export async function handleThirdParty(req, res) {
+  const url = new URL(req.url, "http://localhost");
+  const name = url.pathname.slice(1);
 
-    if (req.method === "POST" && name === "collect") {
-      req.resume();
-      res.writeHead(204, { "access-control-allow-origin": "*" }).end();
-      return;
-    }
+  if (req.method === "POST" && name === "collect") {
+    req.resume();
+    res.writeHead(204, { "access-control-allow-origin": "*" }).end();
+    return;
+  }
 
-    if (req.method !== "GET" || !SCRIPT_NAMES.includes(name)) {
-      res.writeHead(404, { "content-type": "text/plain" }).end("Not found\n");
-      return;
-    }
+  if (req.method !== "GET" || !SCRIPT_NAMES.includes(name)) {
+    res.writeHead(404, { "content-type": "text/plain" }).end("Not found\n");
+    return;
+  }
 
-    let delay;
-    let cpu;
-    try {
-      delay = parseParam(url.searchParams, "delay");
-      cpu = parseParam(url.searchParams, "cpu");
-    } catch (err) {
-      res.writeHead(400, { "content-type": "text/plain" }).end(`${err.message}\n`);
-      return;
-    }
+  let delay;
+  let cpu;
+  try {
+    delay = parseParam(url.searchParams, "delay");
+    cpu = parseParam(url.searchParams, "cpu");
+  } catch (err) {
+    res.writeHead(400, { "content-type": "text/plain" }).end(`${err.message}\n`);
+    return;
+  }
 
-    if (delay) await new Promise((ok) => setTimeout(ok, delay));
-    res.writeHead(200, {
-      "content-type": "text/javascript; charset=utf-8",
-      "cache-control": "no-store",
-      "timing-allow-origin": "*",
-    });
-    res.end(scriptSource(name, { cpu }));
+  if (delay) await new Promise((ok) => setTimeout(ok, delay));
+  res.writeHead(200, {
+    "content-type": "text/javascript; charset=utf-8",
+    "cache-control": "no-store",
+    "timing-allow-origin": "*",
   });
+  res.end(scriptSource(name, { cpu }));
 }
+
+export const createThirdPartyServer = () => createServer(handleThirdParty);
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT ?? 4000);
