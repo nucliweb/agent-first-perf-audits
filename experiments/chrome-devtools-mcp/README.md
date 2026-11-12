@@ -35,6 +35,7 @@ docker run --rm --network none -v "$PWD":/exp -w /exp agent-first-perf-audits/ag
 | Por defecto, no se puede guardar fuera del directorio temporal | `filePath` en `out/` devuelve un error y el fichero no existe |
 | `--workspace` añade una carpeta y solo esa | Se puede guardar en `out/workspace/` pero no en `out/` |
 | `--workspace` no quita el directorio temporal | Con `--workspace`, el directorio temporal del servidor sigue permitido |
+| El cliente stdio no pasa `PLAYWRIGHT_BROWSERS_PATH` al servidor | Con la variable en el cliente, Node arrancado con el entorno que el cliente pasa al servidor busca el Chromium de Playwright en la ruta por defecto, no en la de la variable |
 
 El directorio temporal del servidor se calcula arrancando Node con el mismo entorno que el cliente stdio pasa al servidor (`getDefaultEnvironment()` del SDK).
 

@@ -1,4 +1,5 @@
-// Documents two defaults of Chrome DevTools MCP that the agents of the workshop change.
+// Documents the defaults of Chrome DevTools MCP, and of the stdio client that starts it, that the
+// agents of the workshop change.
 // If a new version changes one of them, its test fails and the Learnings page needs an update.
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
@@ -70,6 +71,27 @@ const SERVER_TMPDIR = execFileSync(process.execPath, ["-p", "require('node:os').
 }).trim();
 
 const tracePathIn = async (dir) => join(await mkdtemp(join(dir, "devtools-mcp-")), "trace.json");
+
+// Where Playwright looks for Chromium in a Node process started with the given environment
+const chromiumPathWith = (env) =>
+  execFileSync(process.execPath, ["-p", "require('playwright').chromium.executablePath()"], { cwd: HERE, env, encoding: "utf8" }).trim();
+
+// The same happens to WebPerf Snippets MCP, which launches the Chromium of Playwright: a browser
+// installed in a custom path is not found by a server started over stdio
+test("the stdio client does not pass PLAYWRIGHT_BROWSERS_PATH, so the server looks for Chromium in the default path", () => {
+  const custom = join(tmpdir(), "custom-ms-playwright");
+  const previous = process.env.PLAYWRIGHT_BROWSERS_PATH;
+  process.env.PLAYWRIGHT_BROWSERS_PATH = custom;
+  try {
+    const serverEnv = getDefaultEnvironment();
+    assert.equal(serverEnv.PLAYWRIGHT_BROWSERS_PATH, undefined);
+    assert.ok(chromiumPathWith(process.env).startsWith(custom));
+    assert.ok(!chromiumPathWith(serverEnv).startsWith(custom));
+  } finally {
+    if (previous === undefined) delete process.env.PLAYWRIGHT_BROWSERS_PATH;
+    else process.env.PLAYWRIGHT_BROWSERS_PATH = previous;
+  }
+});
 
 test("by default, page tools require a pageId", async () => {
   await withServer([], async (call) => {

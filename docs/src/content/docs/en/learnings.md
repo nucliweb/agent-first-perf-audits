@@ -95,6 +95,7 @@ In the workshop, the subagents use it inside a container without network access.
 - **Every page tool requires `pageId`.** It lets several agents share a browser without stepping on each other. Without it, `navigate_page` returns a validation error.
 - **Files can only be written to the server's temporary directory.** This is the restriction that applies when the client does not declare roots, a capability that the 2026-07-28 version of the protocol marks as deprecated. A trace saved to another folder returns `Access denied`.
 - **That temporary directory may not be the client's.** The stdio client of the MCP SDK starts the server with only `HOME`, `LOGNAME`, `PATH`, `SHELL`, `TERM` and `USER`. On macOS, `TMPDIR` points to `/var/folders/...`; the server does not receive it and uses `/tmp`. A path that the orchestrator creates with `os.tmpdir()` is left outside. On Linux both use `/tmp` and you do not notice.
+- **It does not receive `PLAYWRIGHT_BROWSERS_PATH` either.** The same happens to WebPerf Snippets MCP, which launches the Chromium of Playwright: if you install the browser in a custom path, the server looks for it in the default path and does not find it.
 - **Chromium does not start in the container.** Without extra privileges it has no usable sandbox and aborts with `No usable sandbox!`.
 
 ### Decision
@@ -111,9 +112,11 @@ We start the server with these flags:
 
 We discarded `--allow-unrestricted-paths`: it opens the whole file system and the server itself marks it as deprecated in favor of `--workspace=/`.
 
+The Chromium of Playwright is installed in the default path, `~/.cache/ms-playwright`, the only one where both servers find it.
+
 ### Check it
 
-The experiment is in [`experiments/chrome-devtools-mcp`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/chrome-devtools-mcp). Each test starts a server with different flags and checks one of these behaviors:
+The experiment is in [`experiments/chrome-devtools-mcp`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/chrome-devtools-mcp). Each test starts a server with different flags and checks one of these behaviors; another one starts Node with the environment that the stdio client passes to the server and checks where Playwright looks for the browser:
 
 ```bash
 cd experiments/chrome-devtools-mcp
@@ -121,13 +124,48 @@ npm install
 npm test
 ```
 
-On macOS all seven tests run. On Linux the `TMPDIR` test is skipped, because the client and the server share the temporary directory.
+On macOS all eight tests run. On Linux the `TMPDIR` test is skipped, because the client and the server share the temporary directory.
 
 ### How to apply it to your platform
 
 1. An MCP designed for the editor comes with defaults designed for the editor. Review its flags before putting it in a pipeline.
 2. Do not assume the server sees your environment. With stdio, pass it what it needs as flags or as explicit variables.
 3. Write a test for each default you change. If a new version changes it, you find out before your pipeline does.
+
+## A single Chromium for both MCPs
+
+### Context
+
+The `agents` container has two MCP servers that open a browser: Chrome DevTools MCP, which records the traces of the LCP subagent, and WebPerf Snippets MCP, which measures for the gate and for the other subagents. By default each one looks for its own: Chrome DevTools MCP, the Google Chrome installed on the system; WebPerf Snippets, the Chromium of Playwright.
+
+The image is published for amd64 and arm64, and arm64 is the one that runs on a Mac with Apple Silicon. When we designed it, Google did not publish Chrome for Linux ARM64, so the arm64 image could not have the browser that Chrome DevTools MCP expects.
+
+### Decision
+
+A single browser in the image: the full Chromium of Playwright, without the headless shell.
+
+- **Chrome DevTools MCP starts it by its path**, with `--executablePath` and the path given by Playwright's `chromium.executablePath()`.
+- **WebPerf Snippets launches it when it is installed** instead of the headless shell, and records in the conditions of the measurement which binary it used.
+- **Both measure with the same binary**, on amd64 and on arm64, and its version is set by the Playwright version. A Chrome DevTools MCP trace and a WebPerf Snippets measurement come from the same browser.
+
+Today Google does publish stable Chrome for Linux ARM64. Even so, the decision stands: with two browsers, each server would measure with a different one, and the image would be larger.
+
+### Check it
+
+Google's apt repository lists its packages by architecture, and Chrome for Testing lists its platforms:
+
+```bash
+curl -s https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-arm64/Packages | grep -A1 "^Package: google-chrome-stable"
+curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json | grep -o '"platform":"linux-arm64"' | head -1
+```
+
+The installation is in [`docker/agents/Dockerfile`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/docker/agents/Dockerfile) and the server flags, in [`agents/src/mcp/client.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/src/mcp/client.ts).
+
+### How to apply it to your platform
+
+1. If several tools open a browser, decide which one it is and pass it to all of them. What each one brings by default does not have to match.
+2. Check on both architectures that the browser exists before choosing it: what you have on your machine is not what a Mac with Apple Silicon has inside a container.
+3. Review the decision when its reason changes, but change it only if the new reason holds up too.
 
 ## The LLM explains, the rules decide
 
@@ -194,3 +232,41 @@ Latency depends heavily on the machine load. Warm, in the `quotes` stage and wit
 3. If nothing has regressed, there is nothing to explain. Do not ask.
 4. Measure accuracy with a strict criterion and with saved answers. A generous criterion hides what the model makes up.
 5. Measure cold, unloading the model before each call. With the prompt cache, temperature 0 and a fixed seed are not enough to reproduce an answer.
+
+## Fix the tool before patching the workshop
+
+### Context
+
+The CLS and LoAF/INP subagents and the gate measure with WebPerf Snippets, through MCP and through the CLI. While building them we found three gaps in the tool:
+
+- **The MCP did not apply throttling or measure interactions in one call.** The CLI already had `--cpu`, `--network` and `--interact-script`, but the MCP tools did not. Measuring a click with several runs and against a baseline meant opening a page, interacting and computing the median by hand.
+- **The median run of an interaction was picked by navigation time.** A measurement of interactions has no LCP, FCP or TTFB, so the INP of the answer was the one of the run with the median navigation, not the median INP.
+- **Scroll-Performance counted the listeners of Playwright.** When it clicks, Playwright adds `touchstart`, `touchend` and `touchcancel` listeners to `window`, and the snippet counted them as non-passive listeners of the page.
+
+Each gap had an easy patch in the workshop code: a loop of `open_page` and `interact` with its own median, recomputing the median run or filtering out the Playwright listeners in the subagent.
+
+### Decision
+
+We fixed them in the tool, in three WebPerf Snippets pull requests released in 1.14.0:
+
+| PR | Change |
+|---|---|
+| [#404](https://github.com/nucliweb/webperf-snippets/pull/404) | `cpu` and `network` in the tools that measure a page load, and `interactions` with `runs` and `baseline` in `run_snippet` and `run_workflow` |
+| [#405](https://github.com/nucliweb/webperf-snippets/pull/405) | Without LCP, FCP or TTFB, the median run is picked by INP |
+| [#406](https://github.com/nucliweb/webperf-snippets/pull/406) | Scroll-Performance leaves out the listeners that Playwright adds |
+
+- **The workshop stays small.** Each subagent is one call to a tool with its arguments, and that is what attendees write in step 3.
+- **The fix has its test where the bug is.** Each PR adds a test that fails without the change and passes with it. If a future version breaks it, the tool's test fails, not the workshop.
+- **Anyone who uses the tool benefits**, not only this workshop. A patch in the workshop would have left the tool unchanged for everyone else.
+- **The version is pinned** in the images, with the version table of the plan as the reference.
+
+### Check it
+
+Each pull request describes the bug, the change and the tests that check it, in the [WebPerf Snippets](https://github.com/nucliweb/webperf-snippets) repository. In the workshop, the tools are called with these arguments in `agents/src/subagents/cls.ts` and `loaf.ts`, and the step 3 guide explains them.
+
+### How to apply it to your platform
+
+1. Before writing a patch in your code, ask yourself whether anyone who uses the tool would need it. If so, it belongs in the tool.
+2. Ship the fix with a test that fails without it, in the tool's repository.
+3. Pin the version that includes it, and do not change it without running your tests again.
+4. If you cannot change the tool, keep the patch isolated and with a link to the issue, so you can remove it when the fix arrives.

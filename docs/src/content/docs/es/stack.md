@@ -21,7 +21,7 @@ El stack del taller no salió de un diagrama: cada pieza es la respuesta a algo 
 |---|---|---|---|
 | El gate mide con CPU 4x, red fast-4g y 5 ejecuciones | Medir sin throttling de red | Con la red local instantánea, la prioridad de descarga de la imagen LCP apenas pesa, y la regresión de LCP no se distingue del ruido | `experiments/regressions` |
 | El INP se mide con `--workflow interaction` y un journey | El workflow por defecto | El workflow por defecto no devuelve el INP | [`agents/journeys/add-to-cart.json`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/journeys/add-to-cart.json) |
-| Un solo Chromium, el completo de Playwright, para WebPerf Snippets y Chrome DevTools MCP | El headless shell para la CLI y Chromium para DevTools | Las dos herramientas miden con el mismo binario y el mismo modo headless, y la imagen solo lleva un navegador. WebPerf Snippets lanza el Chromium completo cuando está instalado y registra en sus condiciones cuál usó | `docker compose run --rm agents` |
+| Un solo Chromium, el completo de Playwright, para WebPerf Snippets y Chrome DevTools MCP | El headless shell para la CLI y Chromium para DevTools | Las dos herramientas miden con el mismo binario y el mismo modo headless, y la imagen solo lleva un navegador. WebPerf Snippets lanza el Chromium completo cuando está instalado y registra en sus condiciones cuál usó | [Un solo Chromium para los dos MCP](../learnings/#un-solo-chromium-para-los-dos-mcp), `docker compose run --rm agents` |
 
 ## Atribuir
 

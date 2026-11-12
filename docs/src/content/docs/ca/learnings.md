@@ -95,6 +95,7 @@ Al taller el fan servir els subagents dins d'un contenidor sense xarxa. Cada sub
 - **Cada tool de pàgina exigeix `pageId`.** Serveix perquè diversos agents comparteixin un navegador sense trepitjar-se. Sense ell, `navigate_page` retorna un error de validació.
 - **Els fitxers només es poden escriure al directori temporal del servidor.** És la restricció que s'aplica quan el client no declara roots, una capacitat que la versió 2026-07-28 del protocol marca com a obsoleta. Un trace desat en una altra carpeta retorna `Access denied`.
 - **Aquest directori temporal pot no ser el del client.** El client stdio de l'SDK de MCP arrenca el servidor només amb `HOME`, `LOGNAME`, `PATH`, `SHELL`, `TERM` i `USER`. A macOS, `TMPDIR` apunta a `/var/folders/...`; el servidor no el rep i fa servir `/tmp`. Una ruta que l'orquestrador crea amb `os.tmpdir()` en queda fora. A Linux tots dos fan servir `/tmp` i no es nota.
+- **Tampoc no rep `PLAYWRIGHT_BROWSERS_PATH`.** Li passa igual a WebPerf Snippets MCP, que llança el Chromium de Playwright: si instal·les el navegador en una ruta pròpia, el servidor el busca a la ruta per defecte i no el troba.
 - **Chromium no arrenca al contenidor.** Sense privilegis extra no té un sandbox utilitzable i avorta amb `No usable sandbox!`.
 
 ### Decisió
@@ -111,9 +112,11 @@ Arrenquem el servidor amb aquests flags:
 
 Vam descartar `--allow-unrestricted-paths`: obre tot el sistema de fitxers i el mateix servidor el marca com a obsolet en favor de `--workspace=/`.
 
+El Chromium de Playwright s'instal·la a la ruta per defecte, `~/.cache/ms-playwright`, l'única on el troben tots dos servidors.
+
 ### Comprova-ho
 
-L'experiment és a [`experiments/chrome-devtools-mcp`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/chrome-devtools-mcp). Cada test arrenca un servidor amb uns flags diferents i comprova un d'aquests comportaments:
+L'experiment és a [`experiments/chrome-devtools-mcp`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/chrome-devtools-mcp). Cada test arrenca un servidor amb uns flags diferents i comprova un d'aquests comportaments; un altre arrenca Node amb l'entorn que el client stdio passa al servidor i comprova on busca Playwright el navegador:
 
 ```bash
 cd experiments/chrome-devtools-mcp
@@ -121,13 +124,48 @@ npm install
 npm test
 ```
 
-A macOS s'executen els set tests. A Linux se salta el del `TMPDIR`, perquè el client i el servidor comparteixen el directori temporal.
+A macOS s'executen els vuit tests. A Linux se salta el del `TMPDIR`, perquè el client i el servidor comparteixen el directori temporal.
 
 ### Com aplicar-ho a la teva plataforma
 
 1. Un MCP pensat per a l'editor porta valors per defecte pensats per a l'editor. Revisa'n els flags abans de posar-lo en un pipeline.
 2. No donis per fet que el servidor veu el teu entorn. Amb stdio, passa-li el que necessiti com a flags o com a variables explícites.
 3. Escriu un test per cada valor per defecte que canviïs. Si una versió nova el canvia, te n'assabentes abans que el teu pipeline.
+
+## Un sol Chromium per als dos MCP
+
+### Context
+
+Al contenidor `agents` hi ha dos servidors MCP que obren un navegador: Chrome DevTools MCP, que grava els traces del subagent d'LCP, i WebPerf Snippets MCP, que mesura per al gate i per a la resta de subagents. Per defecte cadascun busca el seu: Chrome DevTools MCP, el Google Chrome instal·lat al sistema; WebPerf Snippets, el Chromium de Playwright.
+
+La imatge es publica per a amd64 i arm64, i és la d'arm64 la que corre en un Mac amb Apple Silicon. Quan la vam dissenyar, Google no publicava Chrome per a Linux ARM64, així que la imatge d'arm64 no podia tenir el navegador que Chrome DevTools MCP espera.
+
+### Decisió
+
+Un sol navegador a la imatge: el Chromium complet de Playwright, sense el headless shell.
+
+- **Chrome DevTools MCP l'arrenca per la seva ruta**, amb `--executablePath` i la ruta que dona `chromium.executablePath()` de Playwright.
+- **WebPerf Snippets el llança quan està instal·lat** en lloc del headless shell, i anota a les condicions de la mesura quin binari ha fet servir.
+- **Tots dos mesuren amb el mateix binari**, a amd64 i a arm64, i la versió la fixa la de Playwright. Un trace de Chrome DevTools MCP i una mesura de WebPerf Snippets surten del mateix navegador.
+
+Avui Google sí que publica Chrome estable per a Linux ARM64. Tot i així, la decisió es manté: amb dos navegadors, cada servidor mesuraria amb un de diferent, i la imatge pesaria més.
+
+### Comprova-ho
+
+El repositori apt de Google llista els seus paquets per arquitectura, i Chrome for Testing, les seves plataformes:
+
+```bash
+curl -s https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-arm64/Packages | grep -A1 "^Package: google-chrome-stable"
+curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json | grep -o '"platform":"linux-arm64"' | head -1
+```
+
+La instal·lació és a [`docker/agents/Dockerfile`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/docker/agents/Dockerfile) i els flags del servidor, a [`agents/src/mcp/client.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/src/mcp/client.ts).
+
+### Com aplicar-ho a la teva plataforma
+
+1. Si diverses eines obren un navegador, decideix quin és i passa'l a totes. El que cadascuna porta per defecte no té per què coincidir.
+2. Comprova a les dues arquitectures que el navegador existeix abans de triar-lo: el que tens al teu equip no és el que té un Mac amb Apple Silicon dins d'un contenidor.
+3. Revisa la decisió quan canviï el motiu, però canvia-la només si el nou motiu també s'aguanta.
 
 ## L'LLM explica, les regles decideixen
 
@@ -194,3 +232,41 @@ La latència depèn molt de la càrrega de la màquina. En calent, a l'etapa `qu
 3. Si res no ha empitjorat, no hi ha res a explicar. No preguntis.
 4. Mesura l'encert amb un criteri estricte i amb les respostes desades. Un criteri generós amaga el que el model s'inventa.
 5. Mesura en fred, descarregant el model abans de cada crida. Amb la memòria cau del prompt, la temperatura 0 i la llavor fixa no n'hi ha prou per repetir una resposta.
+
+## Arreglar l'eina abans que apedaçar el taller
+
+### Context
+
+Els subagents de CLS i de LoAF/INP i el gate mesuren amb WebPerf Snippets, per MCP i per CLI. En construir-los vam trobar tres forats a l'eina:
+
+- **L'MCP no aplicava throttling ni mesurava interaccions en una crida.** La CLI ja tenia `--cpu`, `--network` i `--interact-script`, però les tools de l'MCP no. Mesurar un clic amb diverses execucions i contra un baseline obligava a obrir una pàgina, interactuar i calcular la mediana a mà.
+- **L'execució mediana d'una interacció es triava pel temps de navegació.** Una mesura d'interaccions no té LCP, FCP ni TTFB, així que l'INP de la resposta era el de l'execució amb la navegació mediana, no l'INP medià.
+- **Scroll-Performance comptava els listeners de Playwright.** En fer clic, Playwright afegeix listeners de `touchstart`, `touchend` i `touchcancel` a `window`, i el snippet els comptava com a listeners no passius de la pàgina.
+
+Cada forat tenia un pedaç fàcil al codi del taller: un bucle d'`open_page` i `interact` amb la seva pròpia mediana, recalcular l'execució mediana o filtrar els listeners de Playwright al subagent.
+
+### Decisió
+
+Ho vam arreglar a l'eina, en tres pull requests de WebPerf Snippets que van sortir a la 1.14.0:
+
+| PR | Canvi |
+|---|---|
+| [#404](https://github.com/nucliweb/webperf-snippets/pull/404) | `cpu` i `network` a les tools que mesuren una càrrega, i `interactions` amb `runs` i `baseline` a `run_snippet` i `run_workflow` |
+| [#405](https://github.com/nucliweb/webperf-snippets/pull/405) | Sense LCP, FCP ni TTFB, l'execució mediana es tria per INP |
+| [#406](https://github.com/nucliweb/webperf-snippets/pull/406) | Scroll-Performance deixa fora els listeners que afegeix Playwright |
+
+- **El taller queda petit.** Cada subagent és una crida a una tool amb els seus arguments, i això és el que escriu qui hi assisteix al pas 3.
+- **L'arranjament té el seu test on és l'error.** Cada PR afegeix un test que falla sense el canvi i passa amb ell. Si una versió futura el trenca, falla el test de l'eina, no el taller.
+- **N'aprofita qualsevol que faci servir l'eina**, no només aquest taller. Un pedaç al taller hauria deixat l'eina igual per a tots els altres.
+- **La versió queda fixada** a les imatges, amb la taula de versions del pla com a referència.
+
+### Comprova-ho
+
+Cada pull request descriu l'error, el canvi i els tests que ho comproven, al repositori de [WebPerf Snippets](https://github.com/nucliweb/webperf-snippets). Al taller, les tools es criden amb aquests arguments a `agents/src/subagents/cls.ts` i `loaf.ts`, i la guia del pas 3 els explica.
+
+### Com aplicar-ho a la teva plataforma
+
+1. Abans d'escriure un pedaç al teu codi, pregunta't si el necessitaria qualsevol que faci servir l'eina. Si és així, el seu lloc és l'eina.
+2. Porta l'arranjament amb un test que falli sense ell, al repositori de l'eina.
+3. Fixa la versió que l'inclou, i no la canviïs sense tornar a passar els teus tests.
+4. Si no pots canviar l'eina, deixa el pedaç aïllat i amb un enllaç a l'issue, per treure'l quan arribi l'arranjament.

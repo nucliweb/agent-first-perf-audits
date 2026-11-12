@@ -21,7 +21,7 @@ The workshop stack did not come from a diagram: each piece is the answer to some
 |---|---|---|---|
 | The gate measures with 4x CPU, fast-4g network and 5 runs | Measuring without network throttling | With an instant local network, the fetch priority of the LCP image barely matters, and the LCP regression cannot be told apart from the noise | `experiments/regressions` |
 | INP is measured with `--workflow interaction` and a journey | The default workflow | The default workflow does not return INP | [`agents/journeys/add-to-cart.json`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/journeys/add-to-cart.json) |
-| A single Chromium, the full Playwright one, for WebPerf Snippets and Chrome DevTools MCP | The headless shell for the CLI and Chromium for DevTools | Both tools measure with the same binary and the same headless mode, and the image only carries one browser. WebPerf Snippets launches the full Chromium when it is installed and records which one it used in its conditions | `docker compose run --rm agents` |
+| A single Chromium, the full Playwright one, for WebPerf Snippets and Chrome DevTools MCP | The headless shell for the CLI and Chromium for DevTools | Both tools measure with the same binary and the same headless mode, and the image only carries one browser. WebPerf Snippets launches the full Chromium when it is installed and records which one it used in its conditions | [A single Chromium for both MCPs](../learnings/#a-single-chromium-for-both-mcps), `docker compose run --rm agents` |
 
 ## Attribute
 
