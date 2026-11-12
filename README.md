@@ -161,7 +161,7 @@ docker compose run --rm agents npm run check -- step-02
 | 4 | Los hallazgos del Judge en `agents/src/judge/findings.ts` | `agents/judge/report.json` de `pr/lcp-hero-lazy`, con `node src/orchestrator.ts lcp judge` |
 | 5 | Nada: `ci` contra las cuatro ramas, cada una en `out/ci/<rama>/` | 3 fallos y 1 pass |
 
-Si te descuelgas, el tag `step-0N-solution` tiene el código del paso N resuelto, por ejemplo `git checkout step-02-solution -- agents/src`.
+Cada paso tiene su guía, con qué escribir, las herramientas MCP, pistas y cómo comprobarlo: empieza por el [paso 1](docs/src/content/docs/es/workshop/step-01.md). Si te descuelgas, el tag `step-0N-solution` tiene el código del paso N resuelto, por ejemplo `git checkout step-02-solution -- agents/src`.
 
 La rama y sus tags salen de `main` con `node scripts/workshop.mjs`, que comprueba que cada estado compila y que, en la imagen `agents`, los tests de cada paso fallan antes de su solución y pasan después.
 
@@ -197,6 +197,7 @@ Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las dete
 
 ## Documentación
 
+- [El taller paso a paso](docs/src/content/docs/es/workshop/step-01.md): una guía por paso, del primer trace al gate contra las cuatro ramas.
 - [Por qué este stack](docs/src/content/docs/es/stack.md): cada pieza, qué descartamos y el dato que lo decidió.
 - [Learnings](docs/src/content/docs/es/learnings.md): las decisiones de diseño con su contexto y sus datos.
 
