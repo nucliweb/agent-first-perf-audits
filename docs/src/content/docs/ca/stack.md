@@ -1,0 +1,68 @@
+---
+title: Per què aquest stack
+description: Cada peça del taller, què vam descartar i la dada que ho va decidir.
+sidebar:
+  order: 80
+---
+
+L'stack del taller no va sortir d'un diagrama: cada peça és la resposta a alguna cosa que vam provar i no va funcionar com esperàvem. Aquesta pàgina n'és el mapa. Cada fila diu què vam triar, què vam descartar, per què i com comprovar-ho a la teva màquina. Les històries llargues són a [Learnings](../learnings/).
+
+## Les regles decideixen, l'LLM explica
+
+| Decisió | Descartat | Per què | Comprova-ho |
+|---|---|---|---|
+| El veredicte del gate és l'exit code de la CLI de WebPerf Snippets: Mann-Whitney U, llindar i `--fail-on-regression` | Que l'LLM decideixi si una branca passa | El gate detecta les tres regressions i deixa passar el refactor, sempre amb el mateix resultat. Els models petits s'inventen regressions que no existeixen | [`experiments/regressions`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/regressions) i [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models) |
+| La regla també decideix quines mètriques cal explicar, i el Judge demana una explicació per mètrica | Que l'LLM triï la mètrica | És on més fallaven els models, i una branca pot empitjorar dues mètriques per dues causes: `pr/loaf-cart-handler` empitjora l'LCP per un script síncron i l'INP per un handler pesat | [`agents/test/judge/rules.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/rules.test.ts) |
+| Les mètriques s'ordenen per quantes vegades superen el seu llindar | Ordenar-les per percentatge | El CLS de la versió base és 0, així que el seu percentatge no existeix; el llindar és la mateixa vara de mesurar amb què decideix el gate | `agents/test/judge/rules.test.ts` |
+
+## Mesurar
+
+| Decisió | Descartat | Per què | Comprova-ho |
+|---|---|---|---|
+| El gate mesura amb CPU 4x, xarxa fast-4g i 5 execucions | Mesurar sense throttling de xarxa | Amb la xarxa local instantània, la prioritat de descàrrega de la imatge LCP gairebé no pesa, i la regressió de l'LCP no es distingeix del soroll | `experiments/regressions` |
+| L'INP es mesura amb `--workflow interaction` i un journey | El workflow per defecte | El workflow per defecte no retorna l'INP | [`agents/journeys/add-to-cart.json`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/journeys/add-to-cart.json) |
+| Un sol Chromium, el complet de Playwright, per a WebPerf Snippets i Chrome DevTools MCP | El headless shell per a la CLI i Chromium per a DevTools | Les dues eines mesuren amb el mateix binari i el mateix mode headless, i la imatge només porta un navegador. WebPerf Snippets llança el Chromium complet quan està instal·lat i registra a les seves condicions quin ha fet servir | `docker compose run --rm agents` |
+
+## Atribuir
+
+| Decisió | Descartat | Per què | Comprova-ho |
+|---|---|---|---|
+| trace-engine-cli, cridada com a CLI | Embolcallar-la en un servidor MCP, o quedar-se només amb els insights de Chrome DevTools MCP | Sobre el mateix trace, Chrome DevTools MCP dona més del triple de text i no anomena la funció que causa l'INP | [No tot ha de ser un MCP](../learnings/#no-tot-ha-de-ser-un-mcp), [`experiments/trace-engine-cli`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/trace-engine-cli) |
+| El build de la botiga conserva els noms de funció (`keepNames` de Rolldown) | La minificació per defecte, o source maps | Minificat, el profiler anomena la funció amb una lletra i el Judge no la pot relacionar amb el diff. trace-engine-cli no llegeix source maps | [`apps/shop/build.test.mjs`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/apps/shop/build.test.mjs) |
+| A `add-to-cart`, un trace de la càrrega per als layout shifts i un altre del click per a les tasques | Un sol trace, del click | La CLI mesura el CLS d'`add-to-cart` durant tot el recorregut, càrrega inclosa, i el bàner de `pr/cls-promo-banner` mou la fitxa mentre carrega: el seu CLS queda gairebé igual que el de la home (0,055 davant de 0,053 en una execució de `ci`), així que el soroll decideix quin escenari explica el Judge. Sense la càrrega al trace, el Judge no trobava sospitosos; amb la càrrega al mateix trace que el click, les tasques de la càrrega taparien el handler de l'INP | [`agents/test/judge/gate.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/gate.test.ts) |
+| Chrome DevTools MCP amb `--no-page-id-routing`, `--workspace` i, al contenidor, `--no-sandbox` | Els seus valors per defecte | Estan pensats per a un agent a l'editor, no per a subagents en un contenidor | [Chrome DevTools MCP fora de l'editor](../learnings/#chrome-devtools-mcp-fora-de-leditor) |
+
+## L'app i les branques
+
+| Decisió | Descartat | Per què | Comprova-ho |
+|---|---|---|---|
+| La botiga és una SPA de React, i el seu servidor fa preload de la imatge LCP de cada ruta | Una SPA sense preload | En una SPA, la imatge LCP no es descobreix fins que s'executa el JavaScript. Sense preload a la versió base, treure `fetchpriority` i afegir `loading="lazy"` no canvia prou l'LCP perquè el gate ho vegi | `experiments/regressions` |
+| Cada branca de regressió actualitza els tests de l'app que el seu canvi trenca | Deixar que el CI clàssic detecti la regressió | És el que faria l'autor de la PR, i mostra el que defensa el taller: el CI clàssic passa a les quatre branques i només el gate de rendiment detecta les tres regressions | `npm test` a `apps/shop` de cada branca |
+
+## El laboratori
+
+| Decisió | Descartat | Per què | Comprova-ho |
+|---|---|---|---|
+| Una imatge de la botiga per ref git, construïda amb el mateix Dockerfile | Construir a Compose des de la URL del repo, o una sola imatge amb totes les variants | La versió base i la candidata es construeixen igual, cada assistent només descarrega imatges i qui vulgui pot construir la seva pròpia branca | [`scripts/build-shop.sh`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/scripts/build-shop.sh) |
+| Tots els serveis en una xarxa interna, sense sortida a internet | La xarxa per defecte de Docker | El gate no depèn de la xarxa de l'esdeveniment, i res de la mesura no surt de la màquina | [`agents/test/compose.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/compose.test.ts) |
+| `agents` només arrenca amb `docker compose run` | Que `docker compose up` l'arrenqui | Un Chromium de més en segon pla es reparteix la CPU amb la mesura | [`compose.yaml`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/compose.yaml) |
+| El model va dins de la imatge d'`ollama` | Descarregar-lo amb `ollama pull` en arrencar, a un volum | La xarxa del laboratori no té sortida a internet, i la Wi-Fi de l'esdeveniment no aguanta 2 GB per persona: el model arriba amb `docker compose pull` a casa | [`agents/test/ollama.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/ollama.test.ts) |
+| La imatge d'`ollama` copia el binari i les llibreries de CPU de l'oficial a un Ubuntu net | Fer servir `ollama/ollama` tal qual com a base | L'oficial porta uns 3,6 GB de llibreries CUDA que a Docker sobre CPU no es fan servir. Sense elles, la imatge amb el model a dins ocupa 2,04 GB, menys que l'oficial sense model (2,85 GB) | `docker image inspect --format '{{.Size}}'` sobre totes dues |
+| El build comprova el digest del model | Refiar-se de l'etiqueta `llama3.2:3b` | Una etiqueta d'Ollama pot apuntar a un altre model demà, i les xifres del benchmark són d'aquest | [`docker/ollama/Dockerfile`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/docker/ollama/Dockerfile) |
+| `ollama` és al perfil `llm`, que activa el `.env` del repo; amb `COMPOSE_PROFILES=lite` no es descarrega ni s'arrenca | Un `ollama` sempre actiu, o un segon fitxer de Compose | Compose no té un perfil per defecte del qual excloure un servei. Així, qui va amb 8 GB no descarrega el model, i cada ordre continua sent la mateixa | `COMPOSE_PROFILES=lite docker compose config --services` |
+| Les imatges es construeixen en natiu en un runner per arquitectura i després s'uneixen en un tag multiarch | Construir les dues arquitectures en un runner amb emulació (QEMU) | La imatge d'`ollama` arrenca Ollama per descarregar el model durant el build, i la d'`agents` instal·la Chromium i les seves dependències: sota emulació seria molt més lent. Construir en natiu permet, a més, comprovar cada imatge a la seva arquitectura abans de publicar-la | [`scripts/publish-images.sh`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/scripts/publish-images.sh) |
+| `ci` fa servir la imatge d'`agents` amb una altra ordre | Una imatge pròpia per al gate | La imatge d'`agents` ja té Chromium, la CLI de WebPerf Snippets i trace-engine-cli; una altra imatge repetiria uns 400 MB que cada assistent hauria de descarregar | [`compose.yaml`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/compose.yaml) |
+| `ci` llegeix el diff del repo, muntat en només lectura | Generar el diff al host abans d'executar `ci`, o desar-lo a la imatge de la botiga | Les imatges de la botiga s'anomenen per la branca (`pr-lcp-hero-lazy`), així que `ci` troba la branca al repo i la compara amb `main` en el moment d'executar-se, sense un pas més per a qui fa el taller | [`agents/test/judge/diff.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/diff.test.ts) |
+
+## El model
+
+| Decisió | Descartat | Per què | Comprova-ho |
+|---|---|---|---|
+| `llama3.2:3b` a Ollama, en CPU | `qwen3:1.7b`, `qwen2.5-coder:1.5b` i `gemma3:1b` | Cap altre no encerta més la causa en cap etapa (amb els fixtures actuals, `qwen3:1.7b` empata a `suspects`), i entra en un portàtil de 16 GB: Ollama li assigna 3,3 GB | [L'LLM explica, les regles decideixen](../learnings/#lllm-explica-les-regles-decideixen), `experiments/models` |
+| El JSON del model es demana amb l'schema com a sortida estructurada (`format` d'Ollama) | Descriure el JSON només al prompt | Només amb el prompt, algun model embolcalla sempre el JSON en un bloc de codi i la resposta no es pot processar; amb l'schema, tots quatre retornen JSON vàlid | `experiments/models` |
+| Les regles relacionen cada sospitós dels traces amb la línia del diff que l'afegeix, i l'LLM només redacta la causa | Donar al model els sospitosos i deixar que raoni | Amb els sospitosos, `llama3.2:3b` es queda en 9 de 15 respostes correctes a la primera mesura, i en 3 de 5 amb els fixtures actuals; amb la causa relacionada per les regles, arriba a 14 de 15 i a 5 de 5 | `experiments/models`, [`agents/test/judge/match.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/match.test.ts) |
+| El Judge escapa les cometes dobles del diff que posa al prompt | Demanar al prompt el codi amb cometes simples, o deixar-lo tal qual | El model copia `loading="lazy"` a la seva resposta i la cometa tanca la cadena del JSON restringit per l'schema: la frase es queda en `loading=`. Escapades, en fred anomena la causa en 15 de 15 respostes, davant de 12 de 15, amb els fixtures del 10 de novembre. Amb els actuals no es talla, però sense escapar la frase barreja `loading` amb `fetchPriority`. Escapar no depèn que el model obeeixi una instrucció més del prompt | [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models), [`agents/test/judge/prompt.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/prompt.test.ts) |
+| L'informe marca amb "…" un text del model que arriba al límit de l'schema | Apujar el límit de 200 caràcters de cada evidència, o demanar evidències més curtes al prompt | La gramàtica de l'schema talla el text al límit sense avisar. Al benchmark, cap de les 108 evidències de la primera mesura no arriba a 200 caràcters, i de les 22 actuals, una fa just 200 i és una frase completa, així que només es marca el text al límit que no acaba una frase; canviar l'schema o el prompt canviaria totes les respostes i obligaria a repetir les passades | [`agents/test/ci/report.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/ci/report.test.ts), `experiments/models` |
+| Sense regressió, el Judge respon sense preguntar a l'LLM | Preguntar-li també a les branques que passen | Amb la regla dient que res no havia empitjorat, els models s'inventaven una regressió | `experiments/models` |
+| Si la resposta de l'LLM contradiu el veredicte o la mètrica de les regles, guanyen les regles i l'informe mostra la discrepància | Confiar en el veredicte del model, o descartar tota la resposta | El veredicte del gate no depèn d'un model, i la discrepància queda a la vista de qui revisa la PR | [`agents/test/judge/judge.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/judge.test.ts) |
+| `ci` escriu sempre el handoff, en Markdown i en JSON, amb la mateixa entrada que rep l'LLM local | Escriure'l només amb el perfil `lite`, o en un únic format | Amb `lite` és la manera d'obtenir l'explicació. Amb `llm` permet comparar l'explicació local amb la d'un altre agent sobre la mateixa entrada. El JSON serveix per a un script i dona sempre la mateixa petició; el Markdown s'enganxa en un xat, i el seu resultat depèn del model que el llegeixi | [`agents/test/judge/handoff.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/handoff.test.ts) |

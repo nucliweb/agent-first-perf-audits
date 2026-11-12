@@ -1,0 +1,68 @@
+---
+title: Why this stack
+description: Each piece of the workshop, what we discarded and the data that decided it.
+sidebar:
+  order: 80
+---
+
+The workshop stack did not come from a diagram: each piece is the answer to something we tried that did not work as we expected. This page is the map. Each row says what we chose, what we discarded, why and how to check it on your machine. The long stories are in [Learnings](../learnings/).
+
+## The rules decide, the LLM explains
+
+| Decision | Discarded | Why | Check it |
+|---|---|---|---|
+| The gate verdict is the exit code of the WebPerf Snippets CLI: Mann-Whitney U, threshold and `--fail-on-regression` | Letting the LLM decide whether a branch passes | The gate detects the three regressions and lets the refactor pass, always with the same result. Small models make up regressions that do not exist | [`experiments/regressions`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/regressions) and [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models) |
+| The rule also decides which metrics to explain, and the Judge asks for one explanation per metric | Letting the LLM choose the metric | It is what the models got wrong most often, and a branch can regress two metrics for two causes: `pr/loaf-cart-handler` regresses the LCP because of a synchronous script and the INP because of a heavy handler | [`agents/test/judge/rules.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/rules.test.ts) |
+| Metrics are sorted by how many times they exceed their threshold | Sorting them by percentage | The CLS of the baseline is 0, so its percentage does not exist; the threshold is the same yardstick the gate uses to decide | `agents/test/judge/rules.test.ts` |
+
+## Measure
+
+| Decision | Discarded | Why | Check it |
+|---|---|---|---|
+| The gate measures with 4x CPU, fast-4g network and 5 runs | Measuring without network throttling | With an instant local network, the fetch priority of the LCP image barely matters, and the LCP regression cannot be told apart from the noise | `experiments/regressions` |
+| INP is measured with `--workflow interaction` and a journey | The default workflow | The default workflow does not return INP | [`agents/journeys/add-to-cart.json`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/journeys/add-to-cart.json) |
+| A single Chromium, the full Playwright one, for WebPerf Snippets and Chrome DevTools MCP | The headless shell for the CLI and Chromium for DevTools | Both tools measure with the same binary and the same headless mode, and the image only carries one browser. WebPerf Snippets launches the full Chromium when it is installed and records which one it used in its conditions | `docker compose run --rm agents` |
+
+## Attribute
+
+| Decision | Discarded | Why | Check it |
+|---|---|---|---|
+| trace-engine-cli, called as a CLI | Wrapping it in an MCP server, or relying only on the Chrome DevTools MCP insights | On the same trace, Chrome DevTools MCP gives more than three times as much text and does not name the function that causes the INP | [Not everything has to be an MCP](../learnings/#not-everything-has-to-be-an-mcp), [`experiments/trace-engine-cli`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/trace-engine-cli) |
+| The shop build keeps function names (Rolldown `keepNames`) | The default minification, or source maps | Minified, the profiler names the function with a single letter and the Judge cannot relate it to the diff. trace-engine-cli does not read source maps | [`apps/shop/build.test.mjs`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/apps/shop/build.test.mjs) |
+| In `add-to-cart`, one trace of the load for the layout shifts and another of the click for the tasks | A single trace, of the click | The CLI measures the CLS of `add-to-cart` over the whole journey, load included, and the `pr/cls-promo-banner` banner moves the product page while it loads: its CLS ends up almost the same as the home's (0.055 versus 0.053 in one `ci` run), so noise decides which scenario the Judge explains. Without the load in the trace, the Judge found no suspects; with the load in the same trace as the click, the load tasks would hide the INP handler | [`agents/test/judge/gate.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/gate.test.ts) |
+| Chrome DevTools MCP with `--no-page-id-routing`, `--workspace` and, in the container, `--no-sandbox` | Its defaults | They are designed for an agent in the editor, not for subagents in a container | [Chrome DevTools MCP outside the editor](../learnings/#chrome-devtools-mcp-outside-the-editor) |
+
+## The app and the branches
+
+| Decision | Discarded | Why | Check it |
+|---|---|---|---|
+| The shop is a React SPA, and its server preloads the LCP image of each route | An SPA without preload | In an SPA, the LCP image is not discovered until the JavaScript runs. Without preload in the baseline, removing `fetchpriority` and adding `loading="lazy"` does not change the LCP enough for the gate to see it | `experiments/regressions` |
+| Each regression branch updates the app tests that its change breaks | Letting classic CI detect the regression | It is what the PR author would do, and it shows what the workshop argues for: classic CI passes on all four branches and only the performance gate detects the three regressions | `npm test` in `apps/shop` of each branch |
+
+## The lab
+
+| Decision | Discarded | Why | Check it |
+|---|---|---|---|
+| One shop image per git ref, built with the same Dockerfile | Building in Compose from the repo URL, or a single image with all the variants | The baseline and the candidate are built the same way, each attendee only downloads images and anyone who wants to can build their own branch | [`scripts/build-shop.sh`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/scripts/build-shop.sh) |
+| All services on an internal network, with no internet access | The default Docker network | The gate does not depend on the event network, and nothing from the measurement leaves the machine | [`agents/test/compose.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/compose.test.ts) |
+| `agents` only starts with `docker compose run` | Letting `docker compose up` start it | An extra Chromium in the background shares the CPU with the measurement | [`compose.yaml`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/compose.yaml) |
+| The model ships inside the `ollama` image | Downloading it with `ollama pull` at startup, to a volume | The lab network has no internet access, and the event Wi-Fi cannot handle 2 GB per person: the model arrives with `docker compose pull` at home | [`agents/test/ollama.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/ollama.test.ts) |
+| The `ollama` image copies the binary and the CPU libraries from the official one to a clean Ubuntu | Using `ollama/ollama` as is as the base | The official one carries about 3.6 GB of CUDA libraries that are not used in Docker on CPU. Without them, the image with the model inside takes 2.04 GB, less than the official one without a model (2.85 GB) | `docker image inspect --format '{{.Size}}'` on both |
+| The build checks the model digest | Trusting the `llama3.2:3b` tag | An Ollama tag can point to another model tomorrow, and the benchmark figures are for this one | [`docker/ollama/Dockerfile`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/docker/ollama/Dockerfile) |
+| `ollama` is in the `llm` profile, which the repo `.env` enables; with `COMPOSE_PROFILES=lite` it is neither downloaded nor started | An `ollama` that is always on, or a second Compose file | Compose has no default profile to exclude a service from. This way, whoever comes with 8 GB does not download the model, and every command stays the same | `COMPOSE_PROFILES=lite docker compose config --services` |
+| The images are built natively on one runner per architecture and then joined into a multiarch tag | Building both architectures on one runner with emulation (QEMU) | The `ollama` image starts Ollama to download the model during the build, and the `agents` image installs Chromium and its dependencies: under emulation it would be much slower. Building natively also allows checking each image on its architecture before publishing it | [`scripts/publish-images.sh`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/scripts/publish-images.sh) |
+| `ci` uses the `agents` image with a different command | A dedicated image for the gate | The `agents` image already has Chromium, the WebPerf Snippets CLI and trace-engine-cli; another image would repeat about 400 MB that each attendee would have to download | [`compose.yaml`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/compose.yaml) |
+| `ci` reads the diff from the repo, mounted read-only | Generating the diff on the host before running `ci`, or storing it in the shop image | The shop images are named after the branch (`pr-lcp-hero-lazy`), so `ci` finds the branch in the repo and compares it with `main` at run time, with no extra step for whoever does the workshop | [`agents/test/judge/diff.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/diff.test.ts) |
+
+## The model
+
+| Decision | Discarded | Why | Check it |
+|---|---|---|---|
+| `llama3.2:3b` in Ollama, on CPU | `qwen3:1.7b`, `qwen2.5-coder:1.5b` and `gemma3:1b` | No other model names the cause more often in any stage (with the current fixtures, `qwen3:1.7b` ties in `suspects`), and it fits on a 16 GB laptop: Ollama allocates 3.3 GB to it | [The LLM explains, the rules decide](../learnings/#the-llm-explains-the-rules-decide), `experiments/models` |
+| The model JSON is requested with the schema as structured output (Ollama `format`) | Describing the JSON only in the prompt | With the prompt alone, some model always wraps the JSON in a code block and the answer cannot be parsed; with the schema, all four return valid JSON | `experiments/models` |
+| The rules relate each suspect from the traces to the diff line that adds it, and the LLM only writes up the cause | Giving the model the suspects and letting it reason | With the suspects, `llama3.2:3b` stays at 9 of 15 correct answers in the first measurement, and at 3 of 5 with the current fixtures; with the cause related by the rules, it reaches 14 of 15 and 5 of 5 | `experiments/models`, [`agents/test/judge/match.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/match.test.ts) |
+| The Judge escapes the double quotes of the diff it puts in the prompt | Asking in the prompt for code with single quotes, or leaving it as is | The model copies `loading="lazy"` into its answer and the quote closes the string of the JSON constrained by the schema: the sentence stops at `loading=`. Escaped, cold, it names the cause in 15 of 15 answers, versus 12 of 15, with the fixtures from November 10. With the current ones it is not cut off, but without escaping the sentence mixes up `loading` with `fetchPriority`. Escaping does not depend on the model following one more instruction in the prompt | [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models), [`agents/test/judge/prompt.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/prompt.test.ts) |
+| The report marks with "…" any model text that reaches the schema limit | Raising the 200-character limit of each piece of evidence, or asking for shorter evidence in the prompt | The schema grammar cuts the text at the limit without warning. In the benchmark, none of the 108 pieces of evidence from the first measurement reaches 200 characters, and of the 22 current ones, one is exactly 200 long and is a complete sentence, so only text at the limit that does not end a sentence is marked; changing the schema or the prompt would change every answer and force rerunning the passes | [`agents/test/ci/report.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/ci/report.test.ts), `experiments/models` |
+| With no regression, the Judge answers without asking the LLM | Asking it on the branches that pass too | With the rule saying that nothing regressed, the models made up a regression | `experiments/models` |
+| If the LLM answer contradicts the verdict or the metric of the rules, the rules win and the report shows the discrepancy | Trusting the model verdict, or discarding the whole answer | The gate verdict does not depend on a model, and the discrepancy stays visible to whoever reviews the PR | [`agents/test/judge/judge.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/judge.test.ts) |
+| `ci` always writes the handoff, in Markdown and in JSON, with the same input the local LLM receives | Writing it only with the `lite` profile, or in a single format | With `lite` it is the way to get the explanation. With `llm` it allows comparing the local explanation with that of another agent on the same input. The JSON is for a script and always gives the same request; the Markdown is pasted into a chat, and its result depends on the model that reads it | [`agents/test/judge/handoff.test.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/test/judge/handoff.test.ts) |
