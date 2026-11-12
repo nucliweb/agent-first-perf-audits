@@ -198,6 +198,7 @@ The three regressions stay within "good" in absolute value. The gate detects the
 ## Documentation
 
 - [The workshop step by step](docs/src/content/docs/en/workshop/step-01.md): one guide per step, from the first trace to the gate against the four branches.
+- [The branches in the browser](docs/src/content/docs/en/previews.md): the shop of `main` and the four branches deployed on Vercel, to see each regression without Docker.
 - [Why this stack](docs/src/content/docs/en/stack.md): each piece, what we discarded and the data that decided it.
 - [Learnings](docs/src/content/docs/en/learnings.md): the design decisions with their context and their data.
 
@@ -209,6 +210,7 @@ Each figure in the documentation comes from an experiment in [`experiments/`](ex
 | [`models`](experiments/models) | The benchmark of the Judge models |
 | [`trace-engine-cli`](experiments/trace-engine-cli) | Why trace-engine-cli is called as a CLI and not as an MCP |
 | [`chrome-devtools-mcp`](experiments/chrome-devtools-mcp) | Chrome DevTools MCP outside the editor |
+| [`previews`](experiments/previews) | The branches in the browser: the shop on Vercel, with and without network throttling |
 
 ## License
 

@@ -1,0 +1,16 @@
+{
+  "name": "experiment-previews",
+  "private": true,
+  "type": "module",
+  "description": "Reproduce las cifras de la página \"Las ramas en el navegador\": la tienda de main y las previews de las cuatro ramas en Vercel, con y sin throttling de red",
+  "scripts": {
+    "measure": "node measure.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

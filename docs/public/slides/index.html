@@ -120,6 +120,21 @@
   </table>
 </section>
 
+<section class="slide" data-title="En el navegador">
+  <p class="eyebrow">En Vercel</p>
+  <h2>Las cuatro ramas, en tu navegador</h2>
+  <table class="compact">
+    <tr><th style="width:40%">Rama</th><th style="width:18%">LCP</th><th style="width:16%">CLS</th><th style="width:26%">Click en “Add to cart”</th></tr>
+    <tr><td><a href="https://perf-coffee.vercel.app/"><code>main</code></a></td><td>1000 ms</td><td>0</td><td>64 ms</td></tr>
+    <tr><td><a href="https://perf-coffee-git-pr-lcp-hero-lazy-nucliweb-projects.vercel.app/"><code>pr/lcp-hero-lazy</code></a></td><td>1488 ms</td><td>0</td><td>56 ms</td></tr>
+    <tr><td><a href="https://perf-coffee-git-pr-cls-promo-banner-nucliweb-projects.vercel.app/"><code>pr/cls-promo-banner</code></a></td><td>1100 ms</td><td>0,0524</td><td>64 ms</td></tr>
+    <tr><td><a href="https://perf-coffee-git-pr-loaf-cart-handler-nucliweb-projects.vercel.app/"><code>pr/loaf-cart-handler</code></a></td><td>1296 ms</td><td>0</td><td>216 ms</td></tr>
+    <tr><td><a href="https://perf-coffee-git-pr-noop-refactor-nucliweb-projects.vercel.app/"><code>pr/noop-refactor</code></a></td><td>1024 ms</td><td>0</td><td>64 ms</td></tr>
+  </table>
+  <p class="lead">Con CPU 4x y Fast 4G en DevTools. Con red rápida, el LCP apenas cambia</p>
+  <p class="small">Mediana de 5 ejecuciones · <a href="/previews/">agent-first-perf-audits.vercel.app/previews</a></p>
+</section>
+
 <section class="slide" data-title="Las reglas deciden">
   <p class="eyebrow">Agent-First Design</p>
   <h2>Las reglas deciden, el LLM explica</h2>

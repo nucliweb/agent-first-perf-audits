@@ -141,6 +141,7 @@ table { border-collapse: collapse; width: 100%; font-size: 26px; }
 th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-size: 20px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-soft); }
 tr.warm td { background: var(--warm-tint); }
+table.compact td, table.compact th { padding-top: 10px; padding-bottom: 10px; }
 
 /* The four phases of the LCP as one bar */
 .phases { display: flex; height: 96px; border-radius: 12px; overflow: hidden; }

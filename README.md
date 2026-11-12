@@ -198,6 +198,7 @@ Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las dete
 ## Documentación
 
 - [El taller paso a paso](docs/src/content/docs/es/workshop/step-01.md): una guía por paso, del primer trace al gate contra las cuatro ramas.
+- [Las ramas en el navegador](docs/src/content/docs/es/previews.md): la tienda de `main` y las cuatro ramas desplegadas en Vercel, para ver cada regresión sin Docker.
 - [Por qué este stack](docs/src/content/docs/es/stack.md): cada pieza, qué descartamos y el dato que lo decidió.
 - [Learnings](docs/src/content/docs/es/learnings.md): las decisiones de diseño con su contexto y sus datos.
 
@@ -209,6 +210,7 @@ Cada cifra de la documentación sale de un experimento de [`experiments/`](exper
 | [`models`](experiments/models) | El benchmark de los modelos del Judge |
 | [`trace-engine-cli`](experiments/trace-engine-cli) | Por qué trace-engine-cli se llama como CLI y no como MCP |
 | [`chrome-devtools-mcp`](experiments/chrome-devtools-mcp) | Chrome DevTools MCP fuera del editor |
+| [`previews`](experiments/previews) | Las ramas en el navegador: la tienda en Vercel, con y sin throttling de red |
 
 ## Licencia
 

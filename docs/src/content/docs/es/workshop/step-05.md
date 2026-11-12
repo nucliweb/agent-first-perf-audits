@@ -24,6 +24,8 @@ Nada. `ci` es el Judge del paso 4 sin los subagentes: el gate de la CLI, los tra
 
 Los tests de la app pasan en las cuatro: el CI clásico no ve ninguna regresión. Las tres quedan dentro de "good" en valor absoluto; el gate las detecta porque compara con `main`, no con los umbrales de Google.
 
+Las cuatro ramas también están desplegadas en Vercel, para verlas en el navegador sin Docker: [Las ramas en el navegador](../../previews/).
+
 ## Compruébalo
 
 Cada rama en su carpeta de `out/ci/`, para que los informes no se pisen:

@@ -26,7 +26,7 @@ export default defineConfig({
         {
           label: "Referencia",
           translations: { ca: "Referència", en: "Reference" },
-          items: ["stack", "learnings"],
+          items: ["previews", "stack", "learnings"],
         },
       ],
     }),

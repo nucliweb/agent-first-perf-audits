@@ -198,6 +198,7 @@ Les tres regressions queden dins de "good" en valor absolut. El gate les detecta
 ## Documentació
 
 - [El taller pas a pas](docs/src/content/docs/ca/workshop/step-01.md): una guia per pas, del primer trace al gate contra les quatre branques.
+- [Les branques al navegador](docs/src/content/docs/ca/previews.md): la botiga de `main` i les quatre branques desplegades a Vercel, per veure cada regressió sense Docker.
 - [Per què aquest stack](docs/src/content/docs/ca/stack.md): cada peça, què vam descartar i la dada que ho va decidir.
 - [Learnings](docs/src/content/docs/ca/learnings.md): les decisions de disseny amb el seu context i les seves dades.
 
@@ -209,6 +210,7 @@ Cada xifra de la documentació surt d'un experiment d'[`experiments/`](experimen
 | [`models`](experiments/models) | El benchmark dels models del Judge |
 | [`trace-engine-cli`](experiments/trace-engine-cli) | Per què trace-engine-cli es crida com a CLI i no com a MCP |
 | [`chrome-devtools-mcp`](experiments/chrome-devtools-mcp) | Chrome DevTools MCP fora de l'editor |
+| [`previews`](experiments/previews) | Les branques al navegador: la botiga a Vercel, amb i sense throttling de xarxa |
 
 ## Llicència
 
