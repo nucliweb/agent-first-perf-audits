@@ -50,6 +50,8 @@ node bench.mjs --rescore results/rules.json   # vuelve a puntuar respuestas guar
 
 Cada pasada escribe en `out/results.json`; las de `results/` son copias con el nombre de su etapa.
 
+Ojo con `npm run fixtures` y `node fixtures.mjs --gate-only`: los dos reescriben `fixtures/` con el último `results.json` de `experiments/regressions`, que puede ser de otra medición. Las respuestas de `results/` y las cifras de Learnings salen de los fixtures actuales, así que después de regenerarlos hay que volver a pasar el benchmark antes de citar una cifra.
+
 `STAGE` dice cuánto hacen las reglas antes del LLM. Cada etapa añade algo a la anterior:
 
 | `STAGE` | Qué hacen las reglas |

@@ -105,12 +105,11 @@ Arrancamos el servidor con estos flags:
 | Flag | Para qué |
 |---|---|
 | `--no-page-id-routing` | Cada subagente tiene su navegador, así que las tools funcionan sin `pageId` |
-| `--workspace=<carpeta>` | Permite guardar los traces en la carpeta de salida. Se suma al directorio temporal del servidor, no lo sustituye |
 | `--chromeArg=--no-sandbox` | Solo en el contenedor, que ya aísla el proceso |
 | `--headless`, `--isolated` y `--executablePath` | Sin ventana, con un perfil temporal y con el Chromium de Playwright, el mismo que usa WebPerf Snippets |
 | `--usageStatistics=false` y `--performanceCrux=false` | El gate corre sin red |
 
-Descartamos `--allow-unrestricted-paths`: abre todo el sistema de ficheros y el propio servidor lo marca como deprecado en favor de `--workspace=/`.
+Los traces no necesitan otro flag. El subagente graba cada uno en el directorio temporal, que en el contenedor es `/tmp` para el cliente y para el servidor, y lo copia a la carpeta de salida. `--workspace=<carpeta>` permitiría guardarlo allí directamente, sumando esa carpeta al directorio temporal del servidor, y ahorraría la copia. Descartamos `--allow-unrestricted-paths`: abre todo el sistema de ficheros y el propio servidor lo marca como deprecado en favor de `--workspace=/`.
 
 El Chromium de Playwright se instala en la ruta por defecto, `~/.cache/ms-playwright`, la única en la que lo encuentran los dos servidores.
 
