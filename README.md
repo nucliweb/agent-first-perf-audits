@@ -141,8 +141,11 @@ scripts/build-shop.sh main pr/lcp-hero-lazy           # una imagen de la tienda 
 En el taller se escribe el núcleo de cada subagente: las funciones que llaman a los servidores MCP y convierten sus respuestas en JSON. La rama `workshop` empieza (tag `workshop-start`) con esas funciones como un `throw` que dice el paso, la tarea y sus tests, entre dos marcas `// workshop:`. Todo lo demás ya funciona: el laboratorio, el orquestador, el gate, las reglas y la explicación del Judge.
 
 ```bash
-git switch workshop
+git fetch origin workshop --tags
+git switch -c taller workshop-start                   # tu rama, desde el inicio del taller
 ```
+
+La punta de la rama `workshop` es la solución completa: se empieza desde el tag `workshop-start`.
 
 `compose.yaml` monta `agents/src`, `agents/test` y `agents/journeys` en el contenedor, así que lo que corre es lo que escribes; la imagen solo pone Node, Chromium y las dependencias. Cada paso tiene su comprobación: pasa sus tests y mira los ficheros que deja en `out/`, y si falta alguno dice qué ejecutar.
 

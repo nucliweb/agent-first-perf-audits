@@ -99,7 +99,8 @@ function main() {
       const tag = solved ? `step-${String(solved).padStart(2, "0")}-solution` : "workshop-start";
       git(worktree, "tag", "--force", tag);
       tags.push(tag);
-      console.error(`[workshop] ${tag}: typecheck, and the tests of steps 1 to ${solved} pass and the rest fail`);
+      const tests = solved ? `the tests of steps 1 to ${solved} pass and the rest fail` : "the tests of every step fail";
+      console.error(`[workshop] ${tag}: typecheck, and ${tests}`);
     }
   } finally {
     unlinkSync(modules);
