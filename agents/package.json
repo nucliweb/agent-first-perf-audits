@@ -5,7 +5,8 @@
   "description": "Orchestrator and subagents of the workshop",
   "scripts": {
     "test": "node --test \"test/**/*.test.ts\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "node src/check.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "2.4.0",

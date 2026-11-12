@@ -68,6 +68,11 @@ services:
       # What the orchestrator and ci write: the JSON of the subagents, the reports and the traces
       - ./out:/out
       - .:/repo:ro
+      # The code of the agents comes from the working tree, so what runs is what the attendees
+      # write; the image brings Node, Chromium and the dependencies
+      - ./agents/src:/app/src:ro
+      - ./agents/test:/app/test:ro
+      - ./agents/journeys:/app/journeys:ro
     depends_on:
       shop-baseline:
         condition: service_healthy

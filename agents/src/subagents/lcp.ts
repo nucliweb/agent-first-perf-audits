@@ -5,10 +5,9 @@
 //   - WebPerf Snippets MCP, run_snippet LCP-Subparts: the breakdown, from the median run.
 //   - Chrome DevTools MCP: a trace of the load of the page, with the same throttling.
 // It measures, it does not decide: the gate compares the sides and the Judge explains.
-import { chmod, copyFile, mkdir, mkdtemp } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { callTool, connect } from "../mcp/client.ts";
+import { recordTrace } from "../mcp/trace.ts";
 import { CONDITIONS, type Subagent } from "./subagent.ts";
 
 // The same throttling in the presets of Chrome DevTools, and the viewport of the traces of the Judge
@@ -51,6 +50,7 @@ const ok = (result: SnippetResult | undefined, name: string): SnippetResult => {
 
 // The report of one page, from the answers of run_workflow and of run_snippet LCP-Subparts
 export function lcpReportOf(workflow: any, subparts: any): LcpReport {
+  // workshop: step 2, shape the answers of WebPerf Snippets into the LCP report (test/subagents/lcp.test.ts)
   const lcp = ok(workflow.results.find((r: SnippetResult) => r.script === "LCP"), "LCP");
   const breakdown = ok(subparts.result, "LCP-Subparts");
   const audit = workflow.results.find((r: SnippetResult) => r.script === "Image-Element-Audit" && r.status === "ok");
@@ -81,24 +81,23 @@ export function lcpReportOf(workflow: any, subparts: any): LcpReport {
         }
       : null,
   };
+  // workshop: end
 }
 
-// Chrome DevTools MCP writes files only under the temporary folder of its client, so the trace goes
-// there first and is copied to file
-async function recordTrace(url: string, file: string) {
-  const devtools = await connect("devtools");
+// The answers of WebPerf Snippets MCP for the LCP of url: the core-web-vitals workflow, with the
+// audit of the LCP image, and the LCP-Subparts snippet, under the conditions of the gate
+export async function askWebPerf(url: string): Promise<{ workflow: unknown; subparts: unknown }> {
+  // workshop: step 2, call run_workflow and run_snippet of WebPerf Snippets MCP (test/subagents/lcp.test.ts)
+  const webperf = await connect("webperf");
   try {
-    const temporary = join(await mkdtemp(join(tmpdir(), "lcp-")), "trace.json");
-    await callTool(devtools, "emulate", EMULATION);
-    await callTool(devtools, "navigate_page", { type: "url", url });
-    await callTool(devtools, "performance_start_trace", { reload: true, autoStop: true, filePath: temporary });
-    await mkdir(join(file, ".."), { recursive: true });
-    await copyFile(temporary, file);
-    // The server writes it for its own user only
-    await chmod(file, 0o644);
+    const options = { url, ...CONDITIONS, detail: "full" };
+    const workflow = await callTool(webperf, "run_workflow", { ...options, workflow: "core-web-vitals" });
+    const subparts = await callTool(webperf, "run_snippet", { ...options, snippet: "LCP-Subparts" });
+    return { workflow: workflow.structuredContent, subparts: subparts.structuredContent };
   } finally {
-    await devtools.close();
+    await webperf.close();
   }
+  // workshop: end
 }
 
 export const lcp: Subagent<LcpReport> = {
@@ -106,19 +105,11 @@ export const lcp: Subagent<LcpReport> = {
   async run({ side, origin, out }) {
     // The home: the LCP of the workshop
     const url = `${origin}/`;
-    const webperf = await connect("webperf");
-    let report: LcpReport;
-    try {
-      const options = { url, ...CONDITIONS, detail: "full" };
-      const workflow = await callTool(webperf, "run_workflow", { ...options, workflow: "core-web-vitals" });
-      const subparts = await callTool(webperf, "run_snippet", { ...options, snippet: "LCP-Subparts" });
-      report = lcpReportOf(workflow.structuredContent, subparts.structuredContent);
-    } finally {
-      await webperf.close();
-    }
+    const { workflow, subparts } = await askWebPerf(url);
+    const report = lcpReportOf(workflow, subparts);
     // Relative to out, so it reads the same inside and outside the container
     const trace = `traces/lcp-${side}.json`;
-    await recordTrace(url, join(out, trace));
+    await recordTrace(url, join(out, trace), EMULATION);
     return { ...report, trace };
   },
   summary(report) {

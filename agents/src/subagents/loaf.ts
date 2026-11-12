@@ -48,6 +48,7 @@ export interface LoafReport {
 
 // One journey, from the answer of run_workflow interaction, without the trace
 export function loafJourneyOf(name: string, answer: any): LoafJourney {
+  // workshop: step 3, shape the answer of the interaction workflow into the LoAF and INP of a journey (test/subagents/loaf.test.ts)
   const step = (id: string) => {
     const result = answer.results.find((r: { id: string }) => r.id === id);
     if (result?.status !== "ok" && !(id === "INP" && result?.status === "skipped")) {
@@ -82,11 +83,13 @@ export function loafJourneyOf(name: string, answer: any): LoafJourney {
     longTasks: { totalBlockingTimeMs: tasks.totalBlockingTimeMs, worstTaskMs: tasks.worstTaskMs },
     trace: null,
   };
+  // workshop: end
 }
 
 type JourneyRun = NavigatorReport["journeys"][number];
 
-async function measure(webperf: Client, origin: string, journey: JourneyRun) {
+async function measure(webperf: Client, origin: string, journey: JourneyRun): Promise<LoafJourney> {
+  // workshop: step 3, run the interaction workflow with the steps of the journey (test/subagents/loaf.test.ts)
   const answer = await callTool(webperf, "run_workflow", {
     url: `${origin}${journey.path}`,
     workflow: "interaction",
@@ -95,6 +98,7 @@ async function measure(webperf: Client, origin: string, journey: JourneyRun) {
     detail: "full",
   });
   return loafJourneyOf(journey.name, answer.structuredContent);
+  // workshop: end
 }
 
 // The trace of the first click of the journey, relative to out

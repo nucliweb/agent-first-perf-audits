@@ -33,6 +33,7 @@ function grownPhase(baseline: Record<string, number>, candidate: Record<string, 
 }
 
 function lcpFacts(found: Found, scenario: string): string[] {
+  // workshop: step 4, the facts of the LCP subagent for a regressed LCP (test/judge/findings.test.ts)
   const lcp = bothSides<LcpReport>(found, "lcp");
   if (!lcp || scenario !== "home") return [];
   const { baseline: b, candidate: c } = lcp;
@@ -52,9 +53,11 @@ function lcpFacts(found: Found, scenario: string): string[] {
     if (added.length) facts.push(`New warnings of the LCP image: ${added.join(", ")}`);
   }
   return facts;
+  // workshop: end
 }
 
 function clsFacts(found: Found, scenario: string): string[] {
+  // workshop: step 4, the facts of the CLS subagent for a regressed CLS (test/judge/findings.test.ts)
   const cls = bothSides<ClsReport>(found, "cls");
   const b = cls?.baseline.journeys.find((j) => j.name === scenario);
   const c = cls?.candidate.journeys.find((j) => j.name === scenario);
@@ -64,6 +67,7 @@ function clsFacts(found: Found, scenario: string): string[] {
   const moved = c.elements.map((e) => e.selector).filter((selector) => !before.has(selector)).slice(0, 3);
   if (moved.length) facts.push(`Nodes that move in the branch and not in the baseline: ${moved.join(", ")}`);
   return facts;
+  // workshop: end
 }
 
 // A script of the long frames, the same on both sides: the origin of the shop and the hash of its
@@ -72,6 +76,7 @@ const scriptKey = ({ invoker, source }: { invoker: string; source: string }) =>
   /^https?:\/\//.test(invoker) ? codeKey(invoker) : `${invoker}|${source.replace(/-[\w-]{8}(\.js)$/, "$1")}`;
 
 function inpFacts(found: Found, scenario: string): string[] {
+  // workshop: step 4, the facts of the LoAF/INP subagent for a regressed INP (test/judge/findings.test.ts)
   const loaf = bothSides<LoafReport>(found, "loaf");
   const b = loaf?.baseline.journeys.find((j) => j.name === scenario);
   const c = loaf?.candidate.journeys.find((j) => j.name === scenario);
@@ -95,6 +100,7 @@ function inpFacts(found: Found, scenario: string): string[] {
     }
   }
   return facts;
+  // workshop: end
 }
 
 const BY_METRIC: Record<string, { subagent: string; facts: (found: Found, scenario: string) => string[] }> = {

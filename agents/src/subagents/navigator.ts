@@ -48,6 +48,7 @@ const described = (step: Step) =>
   "selector" in step ? `${step.action} ${step.selector}` : step.action === "wait" ? `wait ${step.ms} ms` : `scroll ${step.y ?? 300}`;
 
 async function runJourney(webperf: Client, origin: string, journey: Journey): Promise<JourneyRun> {
+  // workshop: step 3, run the steps of a journey with open_page, interact and read_results (test/subagents/navigator.test.ts)
   // open_page needs a tracking snippet; INP records nothing until a click and costs nothing
   const opened = await callTool(webperf, "open_page", { url: `${origin}${journey.path}`, track: ["INP"], ...THROTTLING });
   const { sessionId, url } = opened.structuredContent as { sessionId: string; url: string };
@@ -68,6 +69,7 @@ async function runJourney(webperf: Client, origin: string, journey: Journey): Pr
   } finally {
     await callTool(webperf, "close_page", { sessionId }).catch(() => {});
   }
+  // workshop: end
 }
 
 // Runs the journeys one after the other on the shop at origin

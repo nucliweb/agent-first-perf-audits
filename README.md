@@ -109,7 +109,7 @@ El subagente de LCP mide la home con el throttling del gate (CPU 4x y fast-4g) y
 
 El subagente de CLS mide cada recorrido del Navigator, desde la carga de su página hasta el último paso, con los pasos que el Navigator ha comprobado, el throttling del gate y la mediana de 3 ejecuciones. Con el snippet `Layout-Shift-Loading-and-Interaction` de WebPerf Snippets MCP obtiene el CLS, cuántos desplazamientos cuentan y cuántos no (los que siguen a una interacción) y los selectores de los nodos que se mueven, del que más al que menos. En `pr/cls-promo-banner`, el CLS pasa de 0 a 0,053 en la home y a 0,0547 en los otros tres recorridos, y el primer nodo es siempre `main.main`: el banner empuja la página hacia abajo.
 
-El subagente de LoAF/INP mide lo que bloquea el hilo principal en cada recorrido del Navigator, con el workflow `interaction` de WebPerf Snippets MCP, los pasos del Navigator, el throttling del gate y la mediana de 3 ejecuciones: el INP del click con sus tres fases (retraso de entrada, procesamiento y presentación), los long animation frames con los scripts que los provocan y su invoker, y las tareas largas. En los recorridos con un click graba además un trace del click con el mismo código que el Judge, y trace-engine-cli lo resume: los snippets nombran el script y el trace nombra la función. En `pr/loaf-cart-handler`, el INP de añadir al carrito pasa de 32 a 192 ms, casi todo procesamiento (169 ms), el script es el handler del click (`DIV#root.onclick`) y el trace nombra `recommendFor`.
+El subagente de LoAF/INP mide lo que bloquea el hilo principal en cada recorrido del Navigator, con el workflow `interaction` de WebPerf Snippets MCP, los pasos del Navigator, el throttling del gate y la mediana de 3 ejecuciones: el INP del click con sus tres fases (retraso de entrada, procesamiento y presentación), los long animation frames con los scripts que los provocan y su invoker, y las tareas largas. En los recorridos con un click graba además un trace del click con el mismo código que el Judge, y trace-engine-cli lo resume: los snippets nombran el script y el trace nombra la función. En `pr/loaf-cart-handler`, el INP de añadir al carrito pasa de 32 a 192 ms en una ejecución y de 16 a 96 ms en otra, casi todo procesamiento, el script es el handler del click (`DIV#root.onclick`) y el trace nombra `recommendFor`.
 
 El Judge va al final y hace lo mismo que `ci`: el gate de la CLI, los traces, las reglas y la explicación del LLM local (o el handoff con `lite`), en `out/agents/judge/`. Además, para cada métrica que empeora, su informe añade los hallazgos del subagente que la mide, escogidos por reglas: las fases del LCP y los cambios de la imagen LCP, los nodos que se mueven en el CLS, y las fases del INP, los scripts que solo ejecuta la rama y la función del trace. El LLM no los ve: recibe el mismo prompt que en `ci`, el que se ha comprobado en el benchmark de modelos.
 
@@ -135,6 +135,32 @@ Si prefieres no descargarlas, o quieres comparar una rama tuya:
 docker compose build thirdparty agents ollama         # sin ollama con el perfil lite
 scripts/build-shop.sh main pr/lcp-hero-lazy           # una imagen de la tienda por ref git
 ```
+
+## El taller paso a paso
+
+En el taller se escribe el núcleo de cada subagente: las funciones que llaman a los servidores MCP y convierten sus respuestas en JSON. La rama `workshop` empieza (tag `workshop-start`) con esas funciones como un `throw` que dice el paso, la tarea y sus tests, entre dos marcas `// workshop:`. Todo lo demás ya funciona: el laboratorio, el orquestador, el gate, las reglas y la explicación del Judge.
+
+```bash
+git switch workshop
+```
+
+`compose.yaml` monta `agents/src`, `agents/test` y `agents/journeys` en el contenedor, así que lo que corre es lo que escribes; la imagen solo pone Node, Chromium y las dependencias. Cada paso tiene su comprobación: pasa sus tests y mira los ficheros que deja en `out/`, y si falta alguno dice qué ejecutar.
+
+```bash
+docker compose run --rm agents npm run check -- step-02
+```
+
+| Paso | Qué escribes | Lo que deja en `out/` |
+|---|---|---|
+| 1 | `recordTrace` en `agents/src/mcp/trace.ts`: la primera llamada a Chrome DevTools MCP | `first-trace.json`, con `node src/first-trace.ts` |
+| 2 | `askWebPerf` y `lcpReportOf` en `agents/src/subagents/lcp.ts` | `agents/lcp-*.json`, con `node src/orchestrator.ts lcp` |
+| 3 | El recorrido del Navigator y la medida de CLS y LoAF/INP | `agents/navigator-*.json`, `cls-*.json` y `loaf-*.json`, con `node src/orchestrator.ts cls loaf` |
+| 4 | Los hallazgos del Judge en `agents/src/judge/findings.ts` | `agents/judge/report.json` de `pr/lcp-hero-lazy`, con `node src/orchestrator.ts lcp judge` |
+| 5 | Nada: `ci` contra las cuatro ramas, cada una en `out/ci/<rama>/` | 3 fallos y 1 pass |
+
+Si te descuelgas, el tag `step-0N-solution` tiene el código del paso N resuelto, por ejemplo `git checkout step-02-solution -- agents/src`.
+
+La rama y sus tags salen de `main` con `node scripts/workshop.mjs`, que comprueba que cada estado compila y que, en la imagen `agents`, los tests de cada paso fallan antes de su solución y pasan después.
 
 ## Las ramas de regresión
 
@@ -162,7 +188,7 @@ Las tres regresiones quedan dentro de "good" en valor absoluto. El gate las dete
 │   └── schemas/          # el schema de la explicación del LLM
 ├── docker/               # un Dockerfile por imagen
 ├── experiments/          # los experimentos que respaldan cada cifra de la documentación
-├── scripts/              # preflight.sh y .ps1, build-shop.sh y publish-images.sh
+├── scripts/              # preflight, workshop.mjs, build-shop.sh y publish-images.sh
 └── docs/                 # la documentación del taller (Astro Starlight)
 ```
 

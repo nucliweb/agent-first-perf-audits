@@ -27,6 +27,7 @@ export interface ClsReport {
 
 // The CLS of one journey, from the answer of run_snippet
 export function clsJourneyOf(name: string, answer: any): ClsJourney {
+  // workshop: step 3, shape the answer of the layout shift snippet into the CLS of a journey (test/subagents/cls.test.ts)
   const result = answer.result;
   if (result?.status !== "ok") throw new Error(`${name}: ${SNIPPET}: ${result?.error ?? result?.message ?? result?.status}`);
   const runs = answer.runs.summary.CLS;
@@ -45,9 +46,11 @@ export function clsJourneyOf(name: string, answer: any): ClsJourney {
       totalImpact,
     })),
   };
+  // workshop: end
 }
 
-async function measure(webperf: Client, origin: string, journey: NavigatorReport["journeys"][number]) {
+async function measure(webperf: Client, origin: string, journey: NavigatorReport["journeys"][number]): Promise<ClsJourney> {
+  // workshop: step 3, run the layout shift snippet with the steps of the journey (test/subagents/cls.test.ts)
   const answer = await callTool(webperf, "run_snippet", {
     url: `${origin}${journey.path}`,
     snippet: SNIPPET,
@@ -56,6 +59,7 @@ async function measure(webperf: Client, origin: string, journey: NavigatorReport
     detail: "full",
   });
   return clsJourneyOf(journey.name, answer.structuredContent);
+  // workshop: end
 }
 
 export const cls: Subagent<ClsReport> = {
