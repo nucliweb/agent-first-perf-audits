@@ -210,6 +210,11 @@ With the current fixtures the sentence is no longer cut off without escaping, bu
 - **The Judge escapes the double quotes of the code it puts in the prompt.** The handoff carries the same input.
 - **Model tests are run cold.** Warm, the same input can give different wording, and a failure can show up in one repetition and not in another. Cold, the workshop `ollama` image gives the same answers as the benchmark container.
 
+With several causes at once, the model names one. `pr/lcp-hero-lazy` removes the preload of the hero, removes `fetchPriority="high"` and adds `loading="lazy"`, and the sentence of `llama3.2:3b` in the `quotes` stage only names `loading="lazy"`. No new function shows up in the trace, so there is no suspect to relate to the diff, and giving it the cause already written in the prompt was not enough either in our tests: the model still settled on one change.
+
+- **The `ci` report adds the facts of the rules**: the LCP element of the trace and the lines of the diff that change how it loads, including the ones that name its image ([`lcp-loading.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/src/judge/lcp-loading.ts)). The LLM does not see them, so its input and the figures of this section do not change.
+- **A more capable model gets the same input in `handoff.md`.** The workshop model is small so it fits on a laptop; the handoff says so, for anyone who wants to try the same input with Claude, Gemini or another one.
+
 ### Check it
 
 The experiment is in [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models). The answers are saved, the current ones in `results/` and those of the first measurement in `history/2026-11-10/` with their fixtures, so the test checks these figures without needing Ollama:

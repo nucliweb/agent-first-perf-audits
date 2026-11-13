@@ -37,10 +37,11 @@ for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler pr-noop-
 done
 ```
 
-`docker compose run` starts the shop of each branch before measuring it. Each branch takes a few minutes, because the gate measures each scenario five times on each side; while the next one runs, read the `report.md` of the previous one. Look at three things:
+`docker compose run` starts the shop of each branch before measuring it. Each branch takes a few minutes, because the gate measures each scenario five times on each side; while the next one runs, read the `report.md` of the previous one. Look at four things:
 
 - `pr/loaf-cart-handler` regresses two metrics for two different causes, and the Judge asks for one explanation for each.
 - `pr/noop-refactor` passes and the LLM is never asked: with no regression, the rules answer on their own, and there is no chance to make one up.
+- On `pr/lcp-hero-lazy`, the LLM explanation names `loading="lazy"`, and the facts of the rules, at the end of the report, add what it leaves out: the `fetchPriority` and the preload that the hero loses.
 - With the `lite` profile, each folder has a `handoff.md` instead of the explanation. Sending it to an external service is a decision each team makes for its own code.
 
 ```bash

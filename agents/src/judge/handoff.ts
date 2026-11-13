@@ -8,10 +8,14 @@ import type { Explanation, JudgeInput } from "./types.ts";
 export const PRIVACY =
   "The requests carry the diff of the branch and the trace summaries of the pages. Sending them to an external service is a decision of each team for its own code.";
 
+export const MODELS =
+  "The local model of the workshop is small, so it runs on the CPU of a laptop next to Chromium, and with several changes in the diff it can name only one. A larger model, such as Claude Sonnet or Opus or Gemini, gets the same input here and can relate every change of the diff to the regression.";
+
 export interface Handoff {
   branch: string;
   verdict: "pass" | "fail";
   privacy: string;
+  models: string;
   instructions: string;
   system: string;
   requests: { metric: string; scenario: string; prompt: string }[];
@@ -29,6 +33,7 @@ export function handoffOf(input: JudgeInput): Handoff {
     branch: input.branch,
     verdict: input.gate.verdict,
     privacy: PRIVACY,
+    models: MODELS,
     instructions: INSTRUCTIONS,
     system: SYSTEM,
     requests,
@@ -49,6 +54,8 @@ export function handoffMarkdown(handoff: Handoff): string {
     `# Handoff of the Judge: ${handoff.branch}`,
     "",
     `> ${handoff.privacy}`,
+    "",
+    `> ${handoff.models}`,
     "",
     `The rules of the gate decided the verdict: **${handoff.verdict}**.`,
     "",

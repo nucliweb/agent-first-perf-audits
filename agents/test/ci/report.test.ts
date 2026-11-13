@@ -130,3 +130,34 @@ test("without findings, as in ci, there is no section for them", () => {
   assert.doesNotMatch(reportMarkdown(base), /Findings of the subagents/);
   assert.doesNotMatch(reportHtml(base), /Findings of the subagents/);
 });
+
+// ci and the orchestrator add the facts of the rules: the lines of the diff they relate to each
+// regressed metric, which the LLM does not see
+const ruleFacts = [
+  {
+    metric: "LCP",
+    scenario: "home",
+    facts: ["The LCP element is IMG class='hero__image' (/images/hero-800.webp) in the baseline and in the branch", 'apps/shop/src/pages.tsx, in Home, adds: loading="lazy"'],
+  },
+];
+
+test("adds the facts of the rules after the explanation and before the findings of the subagents", () => {
+  const md = reportMarkdown({ ...base, ruleFacts, findings });
+  assert.ok(md.indexOf("## Explanation") < md.indexOf("## Facts of the rules"), md);
+  assert.ok(md.indexOf("## Facts of the rules") < md.indexOf("## Findings of the subagents"), md);
+  const section = md.slice(md.indexOf("## Facts of the rules"), md.indexOf("## Findings of the subagents"));
+  assert.match(section, /Lines of the diff that the rules relate to each regressed metric; the LLM does not see them\./);
+  assert.match(section, /### LCP in home\n\n- The LCP element is IMG class='hero__image' \(\/images\/hero-800\.webp\) in the baseline and in the branch\n- apps\/shop\/src\/pages\.tsx, in Home, adds: loading="lazy"/);
+  const html = reportHtml({ ...base, ruleFacts });
+  assert.match(html, /<h2>Facts of the rules<\/h2>/);
+  assert.ok(html.includes("<li>apps/shop/src/pages.tsx, in Home, adds: loading=&quot;lazy&quot;</li>"));
+});
+
+test("the lite profile shows the facts of the rules too", () => {
+  assert.match(reportMarkdown({ ...base, profile: "lite", explanations: null, ruleFacts }), /## Facts of the rules/);
+});
+
+test("without facts of the rules there is no section for them", () => {
+  assert.doesNotMatch(reportMarkdown({ ...base, ruleFacts: [] }), /Facts of the rules/);
+  assert.doesNotMatch(reportHtml(base), /Facts of the rules/);
+});

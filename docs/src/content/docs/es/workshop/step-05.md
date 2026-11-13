@@ -37,10 +37,11 @@ for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler pr-noop-
 done
 ```
 
-`docker compose run` arranca la tienda de cada rama antes de medirla. Cada rama tarda unos minutos, porque el gate mide cinco veces cada escenario en cada lado; mientras corre la siguiente, lee el `report.md` de la anterior. Fíjate en tres cosas:
+`docker compose run` arranca la tienda de cada rama antes de medirla. Cada rama tarda unos minutos, porque el gate mide cinco veces cada escenario en cada lado; mientras corre la siguiente, lee el `report.md` de la anterior. Fíjate en cuatro cosas:
 
 - `pr/loaf-cart-handler` empeora dos métricas por dos causas distintas, y el Judge pide una explicación por cada una.
 - `pr/noop-refactor` pasa y el LLM no llega a ser consultado: sin regresión, las reglas responden solas, y no hay ocasión de inventarse una.
+- En `pr/lcp-hero-lazy`, la explicación del LLM nombra `loading="lazy"`, y los hechos de las reglas, al final del informe, añaden lo que no dice: el `fetchPriority` y el preload que pierde el hero.
 - Con el perfil `lite`, cada carpeta tiene un `handoff.md` en lugar de la explicación. Enviarlo a un servicio externo es una decisión de cada equipo para su propio código.
 
 ```bash

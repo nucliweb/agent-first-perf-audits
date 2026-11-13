@@ -1,5 +1,6 @@
 // The report of the ci service, in Markdown and in HTML. The verdict comes first and comes from the
-// rules; the explanation of the LLM follows, with any discrepancy with the rules in sight. When the
+// rules; the explanation of the LLM follows, with any discrepancy with the rules in sight, and then
+// the facts of the rules: the lines of the diff they relate to each regressed metric. When the
 // orchestrator runs the Judge, the findings of the subagents close the report.
 import type { Finding } from "../judge/findings.ts";
 import { SCHEMA } from "../judge/prompt.ts";
@@ -15,8 +16,16 @@ export interface Report {
   gate: Gate;
   // null in the lite profile: the explanation comes from the handoff
   explanations: MetricExplanation[] | null;
+  // The lines of the diff that the rules relate to each regressed metric (lcp-loading.ts)
+  ruleFacts?: RuleFacts[];
   // Only from the orchestrator: what the subagents measured for each regressed metric
   findings?: Finding[];
+}
+
+export interface RuleFacts {
+  metric: string;
+  scenario: string;
+  facts: string[];
 }
 
 // The schema bounds each text and the grammar of the model stops it there: a text at the limit that
@@ -46,6 +55,15 @@ const heading = (e: MetricExplanation) => (e.metric === "none" ? "No regression"
 const FINDINGS = "Facts that the rules pick from what the subagents measured; the LLM does not see them.";
 const findingHeading = (f: Finding) => `${f.metric} in ${f.scenario}, from the ${f.subagent} subagent`;
 
+const RULE_FACTS = "Lines of the diff that the rules relate to each regressed metric; the LLM does not see them.";
+
+function ruleFactsMarkdown(ruleFacts: RuleFacts[] | undefined): string[] {
+  if (!ruleFacts?.length) return [];
+  const lines = ["## Facts of the rules", "", RULE_FACTS, ""];
+  for (const f of ruleFacts) lines.push(`### ${f.metric} in ${f.scenario}`, "", ...f.facts.map((fact) => `- ${fact}`), "");
+  return lines;
+}
+
 function findingsMarkdown(findings: Finding[] | undefined): string[] {
   if (!findings) return [];
   const lines = ["## Findings of the subagents", "", FINDINGS, ""];
@@ -70,7 +88,7 @@ export function reportMarkdown(report: Report): string {
   ];
   if (!report.explanations) {
     lines.push(LITE, "");
-    return [...lines, ...findingsMarkdown(report.findings)].join("\n");
+    return [...lines, ...ruleFactsMarkdown(report.ruleFacts), ...findingsMarkdown(report.findings)].join("\n");
   }
   for (const e of report.explanations) {
     lines.push(`### ${heading(e)}`, "");
@@ -81,7 +99,7 @@ export function reportMarkdown(report: Report): string {
     lines.push(cause(e.answer.suspected_cause), "", ...e.answer.evidence.map((f) => `- ${fact(f)}`), "", `Confidence: ${e.answer.confidence}. Source: ${e.source === "llm" ? "the LLM" : "the rules"}.`, "");
     for (const d of e.discrepancies) lines.push(`> ${discrepancyText(d)}`, "");
   }
-  return [...lines, ...findingsMarkdown(report.findings)].join("\n");
+  return [...lines, ...ruleFactsMarkdown(report.ruleFacts), ...findingsMarkdown(report.findings)].join("\n");
 }
 
 const escape = (text: string) => text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -106,6 +124,13 @@ export function reportHtml(report: Report): string {
           return `<section><h3>${escape(heading(e))}</h3>\n${body}</section>`;
         })
         .join("\n");
+  const ruleFacts = !report.ruleFacts?.length
+    ? ""
+    : [
+        `<h2>Facts of the rules</h2>`,
+        `<p class="meta">${escape(RULE_FACTS)}</p>`,
+        ...report.ruleFacts.map((f) => `<section><h3>${escape(`${f.metric} in ${f.scenario}`)}</h3>\n<ul>${f.facts.map((fact) => `<li>${escape(fact)}</li>`).join("")}</ul></section>`),
+      ].join("\n");
   const findings = !report.findings
     ? ""
     : [
@@ -141,6 +166,7 @@ ${rows}
 </table>
 <h2>Explanation</h2>
 ${explanations}
+${ruleFacts}
 ${findings}
 </body>
 </html>

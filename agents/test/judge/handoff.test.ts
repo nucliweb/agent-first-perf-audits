@@ -71,3 +71,11 @@ test("the Markdown has the system prompt, each request and the schema, in that o
 test("is the same file for the same input", () => {
   assert.equal(handoffMarkdown(handoffOf(REGRESSED)), handoffMarkdown(handoffOf(REGRESSED)));
 });
+
+// The local model is small so it runs on a laptop; the handoff is how a larger one gets the same input
+test("says that the local model is small and that a larger one gets the same input", () => {
+  const handoff = handoffOf(REGRESSED);
+  assert.match(handoff.models, /small/);
+  assert.match(handoff.models, /same input/);
+  assert.ok(handoffMarkdown(handoff).includes(`> ${handoff.models}`));
+});

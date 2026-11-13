@@ -131,6 +131,14 @@ test("current fixtures: without escaping, the hero sentence mixes loading with f
   assert.match(causeOf(quotes), /`loading="lazy"` attribute to the `img`/);
 });
 
+// The branch of the hero changes three things: the preload, fetchPriority and loading. The facts
+// of the rules in the report of ci name all three (agents/src/judge/lcp-loading.ts)
+test("current fixtures, quotes: of the three changes of the hero branch, the sentence of llama3.2:3b names only loading=\"lazy\"", async () => {
+  const [quotes] = heroRows(await loadCurrent("quotes"));
+  assert.match(causeOf(quotes), /loading="lazy"/);
+  assert.doesNotMatch(causeOf(quotes), /preload|fetch-?priority/i);
+});
+
 test("current fixtures, rules and quotes: one of the 22 evidences fits the limit of 200 characters exactly, as a complete sentence", async () => {
   const facts = [];
   for (const stage of ["rules", "quotes"]) {

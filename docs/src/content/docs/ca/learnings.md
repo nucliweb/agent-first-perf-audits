@@ -210,6 +210,11 @@ Amb els fixtures actuals la frase ja no es talla sense escapar, però tampoc no 
 - **El Judge escapa les cometes dobles del codi que posa al prompt.** El handoff porta la mateixa entrada.
 - **Les proves d'un model es fan en fred.** En calent, la mateixa entrada pot donar una altra redacció, i una fallada pot sortir en una repetició i no en una altra. En fred, la imatge `ollama` del taller dona les mateixes respostes que el contenidor del benchmark.
 
+Amb diverses causes alhora, el model n'anomena una. `pr/lcp-hero-lazy` treu el preload del hero, treu `fetchPriority="high"` i afegeix `loading="lazy"`, i la frase de `llama3.2:3b` a l'etapa `quotes` només anomena `loading="lazy"`. Al trace no hi apareix cap funció nova, així que no hi ha cap sospitós per relacionar amb el diff, i donar-li la causa ja escrita al prompt tampoc no va bastar a les proves: el model es va continuar quedant amb un canvi.
+
+- **L'informe de `ci` afegeix els fets de les regles**: l'element LCP del trace i les línies del diff que canvien com carrega, també les que anomenen la seva imatge ([`lcp-loading.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/src/judge/lcp-loading.ts)). L'LLM no els veu, així que la seva entrada i les xifres d'aquesta secció no canvien.
+- **Un model més potent rep la mateixa entrada a `handoff.md`.** El model del taller és petit perquè càpiga en un portàtil; el handoff ho diu, per a qui vulgui provar la mateixa entrada amb Claude, Gemini o un altre.
+
 ### Comprova-ho
 
 L'experiment és a [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/models/README.ca.md). Les respostes estan desades, les actuals a `results/` i les de la primera mesura a `history/2026-11-10/` amb els seus fixtures, així que el test comprova aquestes xifres sense necessitar Ollama:

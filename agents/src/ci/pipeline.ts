@@ -5,7 +5,8 @@
 //   2. The attribution: one trace per scenario and side, summarized by trace-engine-cli.
 //   3. The explanation: the Judge with the local LLM (llm profile). With the lite profile there is
 //      no local LLM, and the handoff files carry the same input for an external agent.
-//   4. From the orchestrator, the findings of the subagents for each regressed metric.
+//   4. The facts of the rules: the lines of the diff they relate to each regressed metric.
+//   5. From the orchestrator, the findings of the subagents for each regressed metric.
 // It writes gate/, traces/, report.json, report.md, report.html, handoff.json and handoff.md to out.
 // One Chromium at a time: the measurements and the traces run one after the other.
 import { mkdir, writeFile } from "node:fs/promises";
@@ -15,6 +16,7 @@ import { diffOf, refOfTag, refsOf } from "../judge/diff.ts";
 import { findingsFor, type Found } from "../judge/findings.ts";
 import { CONDITIONS, gateOf, measureWithCli, SCENARIOS, type ScenarioResult } from "../judge/gate.ts";
 import { handoffMarkdown, handoffOf } from "../judge/handoff.ts";
+import { lcpLoadingFacts } from "../judge/lcp-loading.ts";
 import { regressedMetrics } from "../judge/rules.ts";
 import { record, summarize } from "../judge/traces.ts";
 import type { JudgeInput, TraceSummaries } from "../judge/types.ts";
@@ -129,7 +131,11 @@ export async function runGate(run: GateRun, found?: Found): Promise<Report> {
     verdict: gate.verdict,
     gate,
     explanations,
-    // 4. The findings of the subagents, for the metrics the rules explain
+    // 4. The facts of the rules, which the LLM does not see
+    ruleFacts: regressedMetrics(gate.scenarios)
+      .map(({ metric, scenario }) => ({ metric, scenario, facts: lcpLoadingFacts(input, { metric, scenario }) }))
+      .filter((f) => f.facts.length),
+    // 5. The findings of the subagents, for the metrics the rules explain
     ...(found ? { findings: findingsFor(regressedMetrics(gate.scenarios), found) } : {}),
   };
   await writeFile(join(out, "report.json"), JSON.stringify(report, null, 2) + "\n");
