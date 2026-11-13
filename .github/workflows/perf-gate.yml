@@ -21,6 +21,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # The .env of the repo sets the llm profile for the attendees; here ci runs with the lite profile,
+  # without Ollama, and Claude explains
+  COMPOSE_PROFILES: run
   MODEL: claude-sonnet-5-5
   AGENTS_IMAGE: ghcr.io/nucliweb/agent-first-perf-audits/agents:main
 
