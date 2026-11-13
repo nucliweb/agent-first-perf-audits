@@ -140,7 +140,7 @@ scripts/build-shop.sh main pr/lcp-hero-lazy           # una imagen de la tienda 
 
 ## El taller paso a paso
 
-En el taller se escribe el núcleo de cada subagente: las funciones que llaman a los servidores MCP y convierten sus respuestas en JSON. La rama `workshop` empieza (tag `workshop-start`) con esas funciones como un `throw` que dice el paso, la tarea y sus tests, entre dos marcas `// workshop:`. Todo lo demás ya funciona: el laboratorio, el orquestador, el gate, las reglas y la explicación del Judge.
+El taller no pide programar: cada paso es una lista de comandos con lo que tiene que salir. El núcleo de cada subagente, las funciones que llaman a los servidores MCP y convierten sus respuestas en JSON, empieza como un `throw` que dice el paso, la tarea y sus tests, entre dos marcas `// workshop:` (tag `workshop-start`). En cada paso lanzas sus tests y los ves fallar, aplicas su solución con `git checkout step-0N-solution -- agents/src`, los ves pasar y mides la regresión del paso. Quien quiera puede escribir esas funciones en lugar de aplicar la solución. Todo lo demás ya funciona: el laboratorio, el orquestador, el gate, las reglas y la explicación del Judge.
 
 ```bash
 git fetch origin workshop --tags
@@ -149,13 +149,13 @@ git switch -c taller workshop-start                   # tu rama, desde el inicio
 
 La punta de la rama `workshop` es la solución completa: se empieza desde el tag `workshop-start`.
 
-`compose.yaml` monta `agents/src`, `agents/test` y `agents/journeys` en el contenedor, así que lo que corre es lo que escribes; la imagen solo pone Node, Chromium y las dependencias. Cada paso tiene su comprobación: pasa sus tests y mira los ficheros que deja en `out/`, y si falta alguno dice qué ejecutar.
+`compose.yaml` monta `agents/src`, `agents/test` y `agents/journeys` en el contenedor, así que lo que corre es lo que hay en tu copia del repo, sin reconstruir nada; la imagen solo pone Node, Chromium y las dependencias. Cada paso tiene su comprobación: pasa sus tests y mira los ficheros que deja en `out/`, y si falta alguno dice qué ejecutar.
 
 ```bash
 docker compose run --rm agents npm run check -- step-02
 ```
 
-| Paso | Qué escribes | Lo que deja en `out/` |
+| Paso | El código del paso | Lo que deja en `out/` |
 |---|---|---|
 | 1 | `recordTrace` en `agents/src/mcp/trace.ts`: la primera llamada a Chrome DevTools MCP | `first-trace.json`, con `node src/first-trace.ts` |
 | 2 | `askWebPerf` y `lcpReportOf` en `agents/src/subagents/lcp.ts` | `agents/lcp-*.json`, con `node src/orchestrator.ts lcp` |
@@ -163,7 +163,7 @@ docker compose run --rm agents npm run check -- step-02
 | 4 | Los hallazgos del Judge en `agents/src/judge/findings.ts` | `agents/judge/report.json` de `pr/lcp-hero-lazy`, con `node src/orchestrator.ts lcp judge` |
 | 5 | Nada: `ci` contra las cuatro ramas, cada una en `out/ci/<rama>/` | 3 fallos y 1 pass |
 
-Cada paso tiene su guía, con qué escribir, las herramientas MCP, pistas y cómo comprobarlo: empieza por el [paso 1](docs/src/content/docs/es/workshop/step-01.md). Si te descuelgas, el tag `step-0N-solution` tiene el código del paso N resuelto, por ejemplo `git checkout step-02-solution -- agents/src`.
+Cada paso tiene su guía, con los comandos uno a uno, lo que tiene que salir de cada uno, qué hace el código aplicado y, para quien quiera escribirlo, pistas: empieza por el [paso 1](docs/src/content/docs/es/workshop/step-01.md). Los tags son acumulativos: `step-02-solution` trae también el código del paso 1, así que puedes empezar cualquier paso aunque no hayas hecho el anterior.
 
 La rama y sus tags salen de `main` con `node scripts/workshop.mjs`, que comprueba que cada estado compila y que, en la imagen `agents`, los tests de cada paso fallan antes de su solución y pasan después.
 

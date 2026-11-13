@@ -140,7 +140,7 @@ scripts/build-shop.sh main pr/lcp-hero-lazy           # una imatge de la botiga 
 
 ## El taller pas a pas
 
-Al taller s'escriu el nucli de cada subagent: les funcions que criden els servidors MCP i converteixen les seves respostes en JSON. La branca `workshop` comença (tag `workshop-start`) amb aquestes funcions com un `throw` que indica el pas, la tasca i els seus tests, entre dues marques `// workshop:`. Tota la resta ja funciona: el laboratori, l'orquestrador, el gate, les regles i l'explicació del Judge.
+El taller no demana programar: cada pas és una llista d'ordres amb el que n'ha de sortir. El nucli de cada subagent, les funcions que criden els servidors MCP i converteixen les seves respostes en JSON, comença com un `throw` que indica el pas, la tasca i els seus tests, entre dues marques `// workshop:` (tag `workshop-start`). A cada pas llances els seus tests i els veus fallar, n'apliques la solució amb `git checkout step-0N-solution -- agents/src`, els veus passar i mesures la regressió del pas. Qui vulgui pot escriure aquestes funcions en lloc d'aplicar la solució. Tota la resta ja funciona: el laboratori, l'orquestrador, el gate, les regles i l'explicació del Judge.
 
 ```bash
 git fetch origin workshop --tags
@@ -149,13 +149,13 @@ git switch -c taller workshop-start                   # la teva branca, des de l
 
 La punta de la branca `workshop` és la solució completa: es comença des del tag `workshop-start`.
 
-`compose.yaml` munta `agents/src`, `agents/test` i `agents/journeys` al contenidor, així que el que s'executa és el que escrius; la imatge només hi posa Node, Chromium i les dependències. Cada pas té la seva comprovació: passa els seus tests i mira els fitxers que deixa a `out/`, i si en falta algun diu què cal executar.
+`compose.yaml` munta `agents/src`, `agents/test` i `agents/journeys` al contenidor, així que el que s'executa és el que hi ha a la teva còpia del repo, sense reconstruir res; la imatge només hi posa Node, Chromium i les dependències. Cada pas té la seva comprovació: passa els seus tests i mira els fitxers que deixa a `out/`, i si en falta algun diu què cal executar.
 
 ```bash
 docker compose run --rm agents npm run check -- step-02
 ```
 
-| Pas | Què escrius | El que deixa a `out/` |
+| Pas | El codi del pas | El que deixa a `out/` |
 |---|---|---|
 | 1 | `recordTrace` a `agents/src/mcp/trace.ts`: la primera crida a Chrome DevTools MCP | `first-trace.json`, amb `node src/first-trace.ts` |
 | 2 | `askWebPerf` i `lcpReportOf` a `agents/src/subagents/lcp.ts` | `agents/lcp-*.json`, amb `node src/orchestrator.ts lcp` |
@@ -163,7 +163,7 @@ docker compose run --rm agents npm run check -- step-02
 | 4 | Les troballes del Judge a `agents/src/judge/findings.ts` | `agents/judge/report.json` de `pr/lcp-hero-lazy`, amb `node src/orchestrator.ts lcp judge` |
 | 5 | Res: `ci` contra les quatre branques, cadascuna a `out/ci/<rama>/` | 3 fallades i 1 pass |
 
-Cada pas té la seva guia, amb què cal escriure, les eines MCP, pistes i com comprovar-ho: comença pel [pas 1](docs/src/content/docs/ca/workshop/step-01.md). Si et quedes enrere, el tag `step-0N-solution` té el codi del pas N resolt, per exemple `git checkout step-02-solution -- agents/src`.
+Cada pas té la seva guia, amb les ordres una a una, el que n'ha de sortir, què fa el codi aplicat i, per a qui el vulgui escriure, pistes: comença pel [pas 1](docs/src/content/docs/ca/workshop/step-01.md). Els tags són acumulatius: `step-02-solution` porta també el codi del pas 1, així que pots començar qualsevol pas encara que no hagis fet l'anterior.
 
 La branca i els seus tags surten de `main` amb `node scripts/workshop.mjs`, que comprova que cada estat compila i que, a la imatge `agents`, els tests de cada pas fallen abans de la seva solució i passen després.
 

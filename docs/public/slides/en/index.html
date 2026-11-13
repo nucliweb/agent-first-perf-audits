@@ -38,7 +38,7 @@
   <div class="grid two">
     <div class="card"><h3>1. Get aligned</h3><p>What Web Performance is and what the Core Web Vitals measure</p></div>
     <div class="card"><h3>2. The problem</h3><p>Why classic CI does not see performance regressions</p></div>
-    <div class="card"><h3>3. Build</h3><p>Subagents with MCP, a Judge and a performance gate for pull requests</p></div>
+    <div class="card"><h3>3. Walk through it</h3><p>Subagents with MCP, a Judge and a performance gate for pull requests, step by step and without coding</p></div>
     <div class="card"><h3>4. Take it home</h3><p>What to change and what to keep on your platform</p></div>
   </div>
 </section>
@@ -214,44 +214,60 @@ docker compose up -d</pre>
   <p class="lead">With 8 GB, put <code>COMPOSE_PROFILES=lite</code> before every docker compose command. Each step has its guide on the workshop site</p>
 </section>
 
+<section class="slide" data-title="Each step">
+  <p class="eyebrow">Each step</p>
+  <h2>Red, solution, green and measure</h2>
+  <ul class="list">
+    <li>The tests of the step fail: its code is still a <code>throw</code></li>
+    <li>You apply the solution with <code>git checkout step-0N-solution -- agents/src</code></li>
+    <li>The tests pass and you measure the regression of the step</li>
+    <li>The tags are cumulative: you can start any step</li>
+  </ul>
+  <p class="lead">Writing the code yourself is optional: the guide of each step has the hints</p>
+</section>
+
 <section class="slide" data-title="Step 1">
   <p class="eyebrow">Step 1</p>
   <h2>The first call to an MCP</h2>
   <div class="columns">
-    <div><h3>You write</h3><ul class="list"><li><code>recordTrace</code> in <code>agents/src/mcp/trace.ts</code></li><li>The trace of the home page load, to a file</li></ul></div>
+    <div><h3>The code of the step</h3><ul class="list"><li><code>recordTrace</code> in <code>agents/src/mcp/trace.ts</code></li><li>The trace of the home page load, to a file</li></ul></div>
     <div><h3>With Chrome DevTools MCP</h3><ul class="list"><li><code>emulate</code></li><li><code>navigate_page</code></li><li><code>performance_start_trace</code></li></ul></div>
   </div>
-  <pre>docker compose run --rm agents npm run check -- step-01</pre>
+  <pre>git checkout step-01-solution -- agents/src
+docker compose run --rm agents npm run check -- step-01</pre>
 </section>
 
 <section class="slide" data-title="Step 2">
   <p class="eyebrow">Step 2</p>
   <h2>The LCP subagent</h2>
   <div class="columns">
-    <div><h3>You write</h3><ul class="list"><li><code>askWebPerf</code> and <code>lcpReportOf</code> in <code>lcp.ts</code></li><li>The LCP of each shop, its phases and how the image loads</li></ul></div>
+    <div><h3>The code of the step</h3><ul class="list"><li><code>askWebPerf</code> and <code>lcpReportOf</code> in <code>lcp.ts</code></li><li>The LCP of each shop, its phases and how the image loads</li></ul></div>
     <div><h3>With WebPerf Snippets MCP</h3><ul class="list"><li><code>run_workflow</code> core-web-vitals</li><li><code>run_snippet</code> LCP-Subparts</li></ul></div>
   </div>
-  <pre>docker compose run --rm agents npm run check -- step-02</pre>
+  <pre>git checkout step-02-solution -- agents/src
+docker compose run --rm agents npm run check -- step-02</pre>
 </section>
 
 <section class="slide" data-title="Step 3">
   <p class="eyebrow">Step 3</p>
   <h2>Navigator, CLS and LoAF/INP</h2>
   <div class="columns">
-    <div><h3>You write</h3><ul class="list"><li>The journey of the Navigator</li><li>The CLS and LoAF/INP measurements on its journeys</li></ul></div>
+    <div><h3>The code of the step</h3><ul class="list"><li>The journey of the Navigator</li><li>The CLS and LoAF/INP measurements on its journeys</li></ul></div>
     <div><h3>With WebPerf Snippets MCP</h3><ul class="list"><li><code>open_page</code>, <code>interact</code> and <code>read_results</code></li><li><code>run_snippet</code> Layout-Shift-Loading-and-Interaction</li><li><code>run_workflow</code> interaction</li></ul></div>
   </div>
-  <pre>docker compose run --rm agents npm run check -- step-03</pre>
+  <pre>git checkout step-03-solution -- agents/src
+docker compose run --rm agents npm run check -- step-03</pre>
 </section>
 
 <section class="slide" data-title="Step 4">
   <p class="eyebrow">Step 4</p>
   <h2>El Judge</h2>
   <div class="columns">
-    <div><h3>You write</h3><ul class="list"><li><code>lcpFacts</code>, <code>clsFacts</code> and <code>inpFacts</code> in <code>findings.ts</code></li><li>The facts that back the explanation</li></ul></div>
+    <div><h3>The code of the step</h3><ul class="list"><li><code>lcpFacts</code>, <code>clsFacts</code> and <code>inpFacts</code> in <code>findings.ts</code></li><li>The facts that back the explanation</li></ul></div>
     <div><h3>No MCP</h3><ul class="list"><li>Rules over the JSON of the subagents</li><li>The LLM does not see these facts: its prompt is the benchmarked one</li></ul></div>
   </div>
-  <pre>docker compose run --rm agents npm run check -- step-04</pre>
+  <pre>git checkout step-04-solution -- agents/src
+docker compose run --rm agents npm run check -- step-04</pre>
 </section>
 
 <section class="slide dark" data-title="Step 5">
@@ -262,13 +278,6 @@ docker compose up -d</pre>
   echo "$branch: exit $?"
 done</pre>
   <p class="lead">Three failures and one pass. Read the <code>report.md</code> of each branch: the verdict, the explanation and what backs it</p>
-</section>
-
-<section class="slide" data-title="If you fall behind">
-  <p class="eyebrow">If you fall behind</p>
-  <h2>Every step has its solution</h2>
-  <pre>git checkout step-02-solution -- agents/src</pre>
-  <p class="lead">The tags <code>step-01-solution</code> to <code>step-04-solution</code> hold the solved code of each step. Step 5 works even if you wrote nothing</p>
 </section>
 
 <section class="slide" data-title="Take it to your platform">

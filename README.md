@@ -140,7 +140,7 @@ scripts/build-shop.sh main pr/lcp-hero-lazy           # one shop image per git r
 
 ## The workshop step by step
 
-In the workshop you write the core of each subagent: the functions that call the MCP servers and turn their responses into JSON. The `workshop` branch starts (tag `workshop-start`) with those functions as a `throw` that names the step, the task and its tests, between two `// workshop:` markers. Everything else already works: the lab, the orchestrator, the gate, the rules and the Judge explanation.
+The workshop does not require coding: each step is a list of commands with what each one has to print. The core of each subagent, the functions that call the MCP servers and turn their responses into JSON, starts as a `throw` that names the step, the task and its tests, between two `// workshop:` markers (tag `workshop-start`). In each step you run its tests and see them fail, apply its solution with `git checkout step-0N-solution -- agents/src`, see them pass and measure the regression of the step. Whoever wants to can write those functions instead of applying the solution. Everything else already works: the lab, the orchestrator, the gate, the rules and the Judge explanation.
 
 ```bash
 git fetch origin workshop --tags
@@ -149,13 +149,13 @@ git switch -c taller workshop-start                   # your branch, from the st
 
 The tip of the `workshop` branch is the complete solution: you start from the `workshop-start` tag.
 
-`compose.yaml` mounts `agents/src`, `agents/test` and `agents/journeys` in the container, so what runs is what you write; the image only provides Node, Chromium and the dependencies. Each step has its check: it runs its tests and looks at the files it leaves in `out/`, and if any is missing it says what to run.
+`compose.yaml` mounts `agents/src`, `agents/test` and `agents/journeys` in the container, so what runs is what is in your copy of the repo, with nothing to rebuild; the image only provides Node, Chromium and the dependencies. Each step has its check: it runs its tests and looks at the files it leaves in `out/`, and if any is missing it says what to run.
 
 ```bash
 docker compose run --rm agents npm run check -- step-02
 ```
 
-| Step | What you write | What it leaves in `out/` |
+| Step | The code of the step | What it leaves in `out/` |
 |---|---|---|
 | 1 | `recordTrace` in `agents/src/mcp/trace.ts`: the first call to Chrome DevTools MCP | `first-trace.json`, with `node src/first-trace.ts` |
 | 2 | `askWebPerf` and `lcpReportOf` in `agents/src/subagents/lcp.ts` | `agents/lcp-*.json`, with `node src/orchestrator.ts lcp` |
@@ -163,7 +163,7 @@ docker compose run --rm agents npm run check -- step-02
 | 4 | The Judge findings in `agents/src/judge/findings.ts` | `agents/judge/report.json` of `pr/lcp-hero-lazy`, with `node src/orchestrator.ts lcp judge` |
 | 5 | Nothing: `ci` against the four branches, each one in `out/ci/<branch>/` | 3 failures and 1 pass |
 
-Each step has its guide, with what to write, the MCP tools, hints and how to check it: start with [step 1](docs/src/content/docs/en/workshop/step-01.md). If you fall behind, the `step-0N-solution` tag has the solved code of step N, for example `git checkout step-02-solution -- agents/src`.
+Each step has its guide, with the commands one by one, what each one has to print, what the applied code does and, for whoever wants to write it, hints: start with [step 1](docs/src/content/docs/en/workshop/step-01.md). The tags are cumulative: `step-02-solution` also brings the code of step 1, so you can start any step even if you did not do the previous one.
 
 The branch and its tags are created from `main` with `node scripts/workshop.mjs`, which checks that each state compiles and that, in the `agents` image, the tests of each step fail before its solution and pass after it.
 
