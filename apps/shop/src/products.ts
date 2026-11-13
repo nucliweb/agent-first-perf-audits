@@ -115,7 +115,6 @@ export const PRODUCT_PAGE_SIZES = "(min-width: 960px) 50vw, 100vw";
 // The LCP image of a route. server.mjs preloads it from the HTML, so the browser fetches it
 // while the JavaScript of the app downloads, instead of after the app renders the page.
 export function lcpImageFor(pathname: string) {
-  if (pathname === "/") return { href: "/images/hero-1200.webp", srcset: heroSrcSet(), sizes: HERO_SIZES };
   const slug = pathname.match(/^\/product\/([\w-]+)$/)?.[1];
   if (slug && productBySlug(slug)) {
     return { href: productSrc(slug, 800), srcset: productSrcSet(slug), sizes: PRODUCT_PAGE_SIZES };

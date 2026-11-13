@@ -43,14 +43,6 @@ test("answers the routes of the app with index.html", async () => {
 
 const preloadOf = (html) => html.match(/<link rel="preload" as="image"[^>]*>/)?.[0];
 
-test("preloads the hero image on the home page", async () => {
-  const preload = preloadOf(await (await fetch(`${origin}/`)).text());
-  assert.ok(preload, "no image preload");
-  assert.match(preload, /imagesrcset="\/images\/hero-800\.webp 800w, [^"]*hero-1600\.webp 1600w"/);
-  assert.match(preload, /imagesizes="100vw"/);
-  assert.match(preload, /fetchpriority="high"/);
-});
-
 test("preloads the product image on a product page", async () => {
   const preload = preloadOf(await (await fetch(`${origin}/product/chemex`)).text());
   assert.ok(preload, "no image preload");
@@ -58,7 +50,7 @@ test("preloads the product image on a product page", async () => {
 });
 
 test("preloads no image on pages without a known LCP image", async () => {
-  for (const path of ["/shop", "/cart", "/product/unknown"]) {
+  for (const path of ["/", "/shop", "/cart", "/product/unknown"]) {
     assert.equal(preloadOf(await (await fetch(`${origin}${path}`)).text()), undefined, path);
   }
 });

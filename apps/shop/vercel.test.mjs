@@ -24,10 +24,10 @@ const build = async () => {
   return page;
 };
 
-test("the home gets the preload of the hero and the third parties under /thirdparty", async () => {
+test("the home gets the third parties under /thirdparty, and no preload", async () => {
   const page = await build();
   const home = await page("index.html");
-  assert.match(home, /<link rel="preload" as="image" href="\/images\/hero-1200\.webp"/);
+  assert.doesNotMatch(home, /rel="preload"/);
   assert.match(home, /src="\/thirdparty\/analytics\.js\?delay=100&cpu=30"/);
   assert.doesNotMatch(home, /__THIRDPARTY_ORIGIN__|lcp-preload/);
 });
