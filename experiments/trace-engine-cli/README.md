@@ -1,67 +1,69 @@
-# Experimento: trace-engine-cli
+# Experiment: trace-engine-cli
 
-Reproduce los datos de la sección "No todo tiene que ser un MCP" de la página Learnings.
+English · [Castellano](README.es.md) · [Català](README.ca.md)
 
-## Qué hace
+Reproduces the data of the "Not everything has to be an MCP" section of the Learnings page.
 
-1. Sirve [`fixture/index.html`](fixture/index.html) en local. La página tiene dos regresiones:
-   - un banner que llega 600 ms después de la carga sin espacio reservado (CLS),
-   - un handler de click, `addToCart`, que bloquea el hilo principal 180 ms (INP).
-2. Graba un trace de Chromium con Playwright y CPU throttling 4x: carga, espera de 1,5 s, click y espera de 800 ms.
-3. Ejecuta los cuatro comandos de [trace-engine-cli](https://github.com/ChromeDevTools/trace-engine-cli) que usa el Judge del taller y mide el tamaño de cada resumen.
-4. Graba otro trace del mismo recorrido con [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) y compara lo que un agente recibe de cada herramienta para ese mismo fichero: el resumen de `performance_stop_trace` y cada insight de `performance_analyze_insight`, frente a los cuatro resúmenes de trace-engine-cli.
+## What it does
 
-## Requisitos
+1. Serves [`fixture/index.html`](fixture/index.html) locally. The page has two regressions:
+   - a banner that arrives 600 ms after the load without reserved space (CLS),
+   - a click handler, `addToCart`, that blocks the main thread for 180 ms (INP).
+2. Records a Chromium trace with Playwright and 4x CPU throttling: load, 1.5 s wait, click and 800 ms wait.
+3. Runs the four [trace-engine-cli](https://github.com/ChromeDevTools/trace-engine-cli) commands that the workshop Judge uses and measures the size of each summary.
+4. Records another trace of the same journey with [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) and compares what an agent receives from each tool for that same file: the summary of `performance_stop_trace` and each insight of `performance_analyze_insight`, against the four trace-engine-cli summaries.
 
-- Node 22 o superior.
-- El Chromium de Playwright 1.63.0. Dentro del contenedor del taller ya está instalado. Fuera de él: `npx playwright install chromium`.
+## Requirements
 
-## Uso
+- Node 22 or later.
+- The Chromium of Playwright 1.63.0. It is already installed inside the workshop container. Outside it: `npx playwright install chromium`.
+
+## Usage
 
 ```bash
 npm install
-npm test            # graba un trace y verifica las conclusiones
-npm run record      # graba out/trace.json
-npm run summarize   # muestra los resúmenes y la tabla de tamaños
-npm run compare     # compara Chrome DevTools MCP y trace-engine-cli sobre el mismo trace
+npm test            # records a trace and verifies the conclusions
+npm run record      # records out/trace.json
+npm run summarize   # shows the summaries and the size table
+npm run compare     # compares Chrome DevTools MCP and trace-engine-cli on the same trace
 ```
 
-Los tests se ejecutan uno detrás de otro (`--test-concurrency=1`): dos Chromium a la vez se reparten la CPU y contaminan las medidas.
+The tests run one after the other (`--test-concurrency=1`): two Chromium instances at once share the CPU and contaminate the measurements.
 
-`summarize` acepta otro trace como argumento, por ejemplo uno exportado desde el panel Performance de DevTools:
+`summarize` takes another trace as an argument, for example one exported from the Performance panel of DevTools:
 
 ```bash
 npm run summarize -- ~/Downloads/Trace-20261109.json.gz
 ```
 
-## Qué comprueba el test
+## What the test checks
 
-Los milisegundos cambian de una máquina a otra, así que [`summary.test.mjs`](summary.test.mjs) usa umbrales:
+The milliseconds change from one machine to another, so [`summary.test.mjs`](summary.test.mjs) uses thresholds:
 
-| Afirmación | Umbral |
+| Claim | Threshold |
 |---|---|
-| Cada resumen es compacto | Menos de 2 KB |
-| Los cuatro resúmenes reducen el trace | Más de un 99 % |
-| `overview` detecta el CLS | CLS de al menos 0,1 |
-| `interactions` atribuye el INP al handler | INP de más de 150 ms, con el processing mayor que el input delay y que el presentation delay |
-| `tasks` nombra la función | `addToCart` con al menos 150 ms de self time, su URL y su línea |
-| `shifts` no da selectores | El nodo culpable aparece como `Node #<id>` |
+| Each summary is compact | Less than 2 KB |
+| The four summaries shrink the trace | More than 99 % |
+| `overview` detects the CLS | CLS of at least 0.1 |
+| `interactions` attributes the INP to the handler | INP above 150 ms, with processing larger than the input delay and than the presentation delay |
+| `tasks` names the function | `addToCart` with at least 150 ms of self time, its URL and its line |
+| `shifts` gives no selectors | The culprit node shows up as `Node #<id>` |
 
-La última aserción documenta una limitación: los selectores vienen de WebPerf Snippets. Si una versión futura de trace-engine-cli los añade, el test fallará y habrá que actualizar la página Learnings.
+The last assertion documents a limitation: the selectors come from WebPerf Snippets. If a future version of trace-engine-cli adds them, the test fails and the Learnings page needs an update.
 
-## Qué comprueba la comparación
+## What the comparison checks
 
-[`compare.test.mjs`](compare.test.mjs) también usa umbrales:
+[`compare.test.mjs`](compare.test.mjs) also uses thresholds:
 
-| Afirmación | Umbral |
+| Claim | Threshold |
 |---|---|
-| Chrome DevTools MCP da más texto al agente | Más del triple de bytes que trace-engine-cli |
-| Las dos detectan el CLS | CLS de al menos 0,1 en las dos |
-| Las dos desglosan el INP | INP de más de 150 ms, con el processing mayor que el input delay y que el presentation delay |
-| Solo trace-engine-cli nombra la función | `addToCart` aparece en `tasks` y en ninguna salida de Chrome DevTools MCP |
+| Chrome DevTools MCP gives the agent more text | More than three times the bytes of trace-engine-cli |
+| Both detect the CLS | CLS of at least 0.1 in both |
+| Both break down the INP | INP above 150 ms, with processing larger than the input delay and than the presentation delay |
+| Only trace-engine-cli names the function | `addToCart` appears in `tasks` and in no output of Chrome DevTools MCP |
 
-La última aserción documenta otra limitación, esta vez de Chrome DevTools MCP. Si una versión futura atribuye el INP a la función, el test fallará y habrá que revisar la decisión de usar trace-engine-cli.
+The last assertion documents another limitation, this time of Chrome DevTools MCP. If a future version attributes the INP to the function, the test fails and the decision to use trace-engine-cli needs a review.
 
-## Versiones
+## Versions
 
-`trace-engine-cli` 0.2.0, `chrome-devtools-mcp` 1.12.0, `@modelcontextprotocol/client` 2.4.0 y `playwright` 1.63.0, fijadas en [`package.json`](package.json).
+`trace-engine-cli` 0.2.0, `chrome-devtools-mcp` 1.12.0, `@modelcontextprotocol/client` 2.4.0 and `playwright` 1.63.0, pinned in [`package.json`](package.json).

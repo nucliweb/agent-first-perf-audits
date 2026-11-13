@@ -1,127 +1,129 @@
-# Experimento: el modelo del Judge
+# Experiment: the Judge model
 
-Reproduce los datos del benchmark de modelos: qué modelo local explica mejor las regresiones del taller, y cuánto trabajo tienen que hacer las reglas antes de preguntarle.
+English · [Castellano](README.es.md) · [Català](README.ca.md)
 
-## Qué hace
+Reproduces the data of the model benchmark: which local model best explains the workshop regressions, and how much work the rules have to do before asking it.
 
-1. [`fixtures.mjs`](fixtures.mjs) genera la entrada del Judge para cada rama de regresión, con datos reales:
-   - el veredicto y las métricas del gate, de [`experiments/regressions`](../regressions);
-   - el diff de la rama, sin los tests;
-   - los resúmenes de trace-engine-cli de la versión base y de la candidata en los dos escenarios, con CPU 4x y red fast-4g. En `add-to-cart` hay dos traces por lado: el de la carga da los layout shifts y el del click, las interacciones y las tareas.
+## What it does
 
-   Los guarda en [`fixtures/`](fixtures), así que todos los modelos reciben exactamente el mismo prompt.
-2. [`bench.mjs`](bench.mjs) pasa cada caso por cada modelo en Ollama, con Chromium abierto en otro contenedor, como en el laboratorio. Mide:
-   - la latencia;
-   - si la respuesta es JSON y si cumple [`agents/schemas/verdict.schema.json`](../../agents/schemas/verdict.schema.json);
-   - si repite el veredicto y la métrica de las reglas;
-   - si nombra la causa real;
-   - la RAM que Ollama da al modelo.
-3. [`claims.test.mjs`](claims.test.mjs) comprueba las cifras de la documentación sobre las respuestas guardadas en [`results/`](results), una por etapa, y en [`history/`](history).
+1. [`fixtures.mjs`](fixtures.mjs) generates the Judge input for each regression branch, with real data:
+   - the verdict and the metrics of the gate, from [`experiments/regressions`](../regressions);
+   - the diff of the branch, without the tests;
+   - the trace-engine-cli summaries of the baseline and of the candidate in both scenarios, with 4x CPU and fast-4g network. In `add-to-cart` there are two traces per side: the load one gives the layout shifts and the click one, the interactions and the tasks.
 
-Las reglas y el prompt son los del Judge: viven en [`agents/src/judge`](../../agents/src/judge), con sus tests en `agents/test/judge`, y el experimento los importa desde allí. Así el benchmark mide el mismo código que ejecuta el Judge.
+   It saves them in [`fixtures/`](fixtures), so every model gets exactly the same prompt.
+2. [`bench.mjs`](bench.mjs) runs each case through each model in Ollama, with Chromium open in another container, as in the lab. It measures:
+   - the latency;
+   - whether the answer is JSON and whether it meets [`agents/schemas/verdict.schema.json`](../../agents/schemas/verdict.schema.json);
+   - whether it repeats the verdict and the metric of the rules;
+   - whether it names the real cause;
+   - the RAM that Ollama gives the model.
+3. [`claims.test.mjs`](claims.test.mjs) checks the figures of the documentation against the answers saved in [`results/`](results), one per stage, and in [`history/`](history).
 
-Un caso es una métrica que empeora en una rama. `pr/loaf-cart-handler` empeora dos (el LCP por `ab.js` y el INP por `recommendFor`), así que el Judge pide dos explicaciones. Una rama sin regresión es un caso propio.
+The rules and the prompt are those of the Judge: they live in [`agents/src/judge`](../../agents/src/judge), with their tests in `agents/test/judge`, and the experiment imports them from there. That way the benchmark measures the same code that the Judge runs.
 
-## Requisitos
+A case is a metric that regresses on a branch. `pr/loaf-cart-handler` regresses two (the LCP because of `ab.js` and the INP because of `recommendFor`), so the Judge asks for two explanations. A branch without regression is a case of its own.
 
-- Node 22.18 o superior y Docker.
-- Ollama 0.40.13 en un contenedor, con los modelos descargados:
+## Requirements
+
+- Node 22.18 or later and Docker.
+- Ollama 0.40.13 in a container, with the models pulled:
 
   ```bash
   docker run -d --name ollama-bench -p 127.0.0.1:11434:11434 -v ollama-bench:/root/.ollama ollama/ollama:0.40.13
-  docker exec ollama-bench ollama pull llama3.2:3b   # y qwen3:1.7b, qwen2.5-coder:1.5b, gemma3:1b
+  docker exec ollama-bench ollama pull llama3.2:3b   # and qwen3:1.7b, qwen2.5-coder:1.5b, gemma3:1b
   ```
 
-- La imagen `agents` construida, para el Chromium de fondo: `docker compose build agents`.
-- Para regenerar los fixtures, `npm test` en `experiments/regressions` antes de nada.
+- The `agents` image built, for the background Chromium: `docker compose build agents`.
+- To regenerate the fixtures, `npm test` in `experiments/regressions` first.
 
-## Uso
+## Usage
 
 ```bash
 npm install
-npm test                          # tests de la puntuación y las cifras de results/
-npm run fixtures                  # regenera fixtures/ con traces nuevos
-node fixtures.mjs --gate-only     # actualiza el gate de fixtures/ sin traces nuevos
-STAGE=llm COLD=1 REPS=1 MODES=schema node bench.mjs   # una etapa con los cuatro modelos, en frío
-STAGE=quotes COLD=1 REPS=1 MODES=schema node bench.mjs llama3.2:3b   # la etapa del Judge
-STAGE=quotes REPS=3 MODES=schema node bench.mjs llama3.2:3b   # la latencia en caliente, con la máquina en reposo
-node bench.mjs --rescore results/rules.json   # vuelve a puntuar respuestas guardadas, sin modelos
+npm test                          # tests of the scoring and the figures of results/
+npm run fixtures                  # regenerates fixtures/ with new traces
+node fixtures.mjs --gate-only     # updates the gate of fixtures/ without new traces
+STAGE=llm COLD=1 REPS=1 MODES=schema node bench.mjs   # one stage with the four models, cold
+STAGE=quotes COLD=1 REPS=1 MODES=schema node bench.mjs llama3.2:3b   # the Judge stage
+STAGE=quotes REPS=3 MODES=schema node bench.mjs llama3.2:3b   # the warm latency, with the machine idle
+node bench.mjs --rescore results/rules.json   # scores saved answers again, without models
 ```
 
-Cada pasada escribe en `out/results.json`; las de `results/` son copias con el nombre de su etapa.
+Each pass writes to `out/results.json`; the ones in `results/` are copies named after their stage.
 
-Ojo con `npm run fixtures` y `node fixtures.mjs --gate-only`: los dos reescriben `fixtures/` con el último `results.json` de `experiments/regressions`, que puede ser de otra medición. Las respuestas de `results/` y las cifras de Learnings salen de los fixtures actuales, así que después de regenerarlos hay que volver a pasar el benchmark antes de citar una cifra.
+Careful with `npm run fixtures` and `node fixtures.mjs --gate-only`: both rewrite `fixtures/` with the latest `results.json` of `experiments/regressions`, which may come from another measurement. The answers in `results/` and the figures in Learnings come from the current fixtures, so after regenerating them the benchmark has to run again before quoting a figure.
 
-`STAGE` dice cuánto hacen las reglas antes del LLM. Cada etapa añade algo a la anterior:
+`STAGE` says how much the rules do before the LLM. Each stage adds something to the previous one:
 
-| `STAGE` | Qué hacen las reglas |
+| `STAGE` | What the rules do |
 |---|---|
-| `llm` | Deciden el veredicto y qué métrica explicar |
-| `suspects` | Además, comparan los traces de la base y de la candidata, y pasan al prompt las funciones y scripts nuevos o que crecen ([`suspects.ts`](../../agents/src/judge/suspects.ts)) |
-| `rules` | Además, no preguntan al LLM cuando nada empeora, y relacionan cada sospechoso con la línea del diff que lo añade ([`match.ts`](../../agents/src/judge/match.ts)) |
-| `quotes` | Además, escapan las comillas dobles del diff y de la línea relacionada (`escapeQuotes` en [`prompt.ts`](../../agents/src/judge/prompt.ts)), como las envía el Judge. Es el valor por defecto |
+| `llm` | They decide the verdict and which metric to explain |
+| `suspects` | Also, they compare the traces of the baseline and of the candidate, and pass to the prompt the functions and scripts that are new or that grow ([`suspects.ts`](../../agents/src/judge/suspects.ts)) |
+| `rules` | Also, they do not ask the LLM when nothing regresses, and they relate each suspect to the line of the diff that adds it ([`match.ts`](../../agents/src/judge/match.ts)) |
+| `quotes` | Also, they escape the double quotes of the diff and of the related line (`escapeQuotes` in [`prompt.ts`](../../agents/src/judge/prompt.ts)), as the Judge sends them. It is the default |
 
-`COLD=1` descarga el modelo antes de cada llamada, así que ninguna aprovecha la caché del prompt de la anterior.
+`COLD=1` unloads the model before each call, so none of them benefits from the prompt cache of the previous one.
 
-## Qué comprueba el test
+## What the test checks
 
-El test vuelve a puntuar las respuestas guardadas en lugar de llamar a los modelos. Con temperatura 0 y semilla fija, las respuestas son deterministas en frío: las tres repeticiones de cada caso de las pasadas 5 y 6 de la historia son idénticas, así que las pasadas actuales hacen una sola. En caliente no lo son del todo, porque Ollama reutiliza la caché del prompt de la llamada anterior, que comparte el prompt de sistema, y con ella la misma entrada puede dar otra redacción.
+The test scores the saved answers again instead of calling the models. With temperature 0 and a fixed seed, the answers are deterministic when cold: the three repetitions of each case in passes 5 and 6 of the history are identical, so the current passes run only one. When warm they are not quite, because Ollama reuses the prompt cache of the previous call, which shares the system prompt, and with it the same input can give a different wording.
 
-En frío, la imagen `ollama` del taller da las mismas respuestas que la etapa `quotes`, así que sus cifras valen para lo que verán los asistentes. Lo comprueba [`agents/test/ollama.test.ts`](../../agents/test/ollama.test.ts) dentro de Docker Compose, con este experimento montado:
+When cold, the workshop `ollama` image gives the same answers as the `quotes` stage, so its figures hold for what attendees will see. [`agents/test/ollama.test.ts`](../../agents/test/ollama.test.ts) checks it inside Docker Compose, with this experiment mounted:
 
 ```bash
 docker compose run --rm -v "$PWD/experiments:/experiments:ro" agents npm test
 ```
 
-### Pasadas actuales
+### Current passes
 
-En frío y con una repetición, sobre los fixtures de [`fixtures/`](fixtures):
+Cold and with one repetition, on the fixtures in [`fixtures/`](fixtures):
 
-| Etapa | Afirmación |
+| Stage | Claim |
 |---|---|
-| `llm` | `llama3.2:3b` nombra la causa en 3 de 5 respuestas; `qwen3:1.7b` y `qwen2.5-coder:1.5b` en 2 y `gemma3:1b` en ninguna. Los cuatro cumplen el schema en todas |
-| `suspects` | `llama3.2:3b` sigue en 3 de 5, y `qwen3:1.7b` sube a 3 |
-| `rules` | `llama3.2:3b` acierta 5 de 5, con 4 llamadas al LLM. La puntuación da por buena la frase del hero, pero mezcla el atributo `loading` con una "propiedad `fetchPriority`" |
-| `quotes` | 5 de 5, y la frase del hero nombra el atributo `loading="lazy"` del `img` |
+| `llm` | `llama3.2:3b` names the cause in 3 of 5 answers; `qwen3:1.7b` and `qwen2.5-coder:1.5b` in 2 and `gemma3:1b` in none. All four meet the schema in every answer |
+| `suspects` | `llama3.2:3b` stays at 3 of 5, and `qwen3:1.7b` goes up to 3 |
+| `rules` | `llama3.2:3b` gets 5 of 5, with 4 calls to the LLM. The scoring accepts the hero sentence, but it mixes the `loading` attribute with a "`fetchPriority` property" |
+| `quotes` | 5 of 5, and the hero sentence names the `loading="lazy"` attribute of the `img` |
 
-Una de las 22 evidencias de `rules` y `quotes` mide justo 200 caracteres, el límite del schema, y es una frase completa.
+One of the 22 pieces of evidence of `rules` and `quotes` is exactly 200 characters long, the limit of the schema, and it is a complete sentence.
 
-### Historia: fixtures del 10 de noviembre
+### History: fixtures of November 10
 
-En [`history/2026-11-10`](history/2026-11-10), con los fixtures en los que se midieron. Las pasadas 1 a 4 se hicieron en caliente y con tres repeticiones; la 1 pedía al modelo también la métrica, y el código actual ya no la reproduce:
+In [`history/2026-11-10`](history/2026-11-10), with the fixtures they were measured on. Passes 1 to 4 ran warm and with three repetitions; pass 1 also asked the model for the metric, and the current code no longer reproduces it:
 
-| Pasada | Afirmación |
+| Pass | Claim |
 |---|---|
-| `1-free-metric` | Con el schema como salida estructurada, los cuatro modelos devuelven JSON válido en todas las respuestas; con el JSON descrito solo en el prompt, `qwen2.5-coder:1.5b` no lo hace nunca |
-| `2-metric-by-rules` | Con la métrica decidida por las reglas, `llama3.2:3b` nombra la causa en 9 de 15 respuestas, y los demás en 6 o menos |
-| `3-suspects` | Con los sospechosos de los traces en el prompt, `llama3.2:3b` sigue en 9 de 15 |
-| `4-rules` | Con la causa relacionada con el diff por las reglas, `llama3.2:3b` la nombra en 14 de 15, con 12 llamadas al LLM; la única que falla es la del LCP del hero |
-| `5-rules-cold` | La misma etapa en frío: 12 de 15. La frase del hero se corta en `loading=` en las tres repeticiones, porque la comilla de `loading="lazy"` cierra la cadena del JSON restringido por el schema |
-| `6-quotes-cold` | Con las comillas del diff escapadas, en frío: 15 de 15, con la frase del hero completa |
+| `1-free-metric` | With the schema as structured output, the four models return valid JSON in every answer; with the JSON described only in the prompt, `qwen2.5-coder:1.5b` never does |
+| `2-metric-by-rules` | With the metric decided by the rules, `llama3.2:3b` names the cause in 9 of 15 answers, and the others in 6 or fewer |
+| `3-suspects` | With the suspects of the traces in the prompt, `llama3.2:3b` stays at 9 of 15 |
+| `4-rules` | With the cause related to the diff by the rules, `llama3.2:3b` names it in 14 of 15, with 12 calls to the LLM; the only one that fails is the hero LCP |
+| `5-rules-cold` | The same stage, cold: 12 of 15. The hero sentence is cut at `loading=` in the three repetitions, because the quote of `loading="lazy"` closes the string of the JSON constrained by the schema |
+| `6-quotes-cold` | With the quotes of the diff escaped, cold: 15 of 15, with the full hero sentence |
 
-Ninguna de las 108 evidencias de las pasadas 4 a 6 llega al límite de 200 caracteres.
+None of the 108 pieces of evidence of passes 4 to 6 reaches the 200-character limit.
 
-La puntuación de la causa es estricta ([`score.mjs`](score.mjs)): la causa tiene que estar en la frase, no basta con la evidencia, y en una rama sin regresión la frase tiene que decir que no hay regresión, sin culpar a ningún cambio ni copiar las instrucciones del prompt.
+The scoring of the cause is strict ([`score.mjs`](score.mjs)): the cause has to be in the sentence, the evidence is not enough, and on a branch without regression the sentence has to say that there is no regression, without blaming any change or copying the instructions of the prompt.
 
-## Resultados en el Mac de referencia
+## Results on the reference Mac
 
-Apple Silicon de 16 GB, Ollama en Docker en CPU, VM de 8 GB:
+16 GB Apple Silicon, Ollama in Docker on CPU, 8 GB VM:
 
-| Modelo | RAM del modelo | Causa (`llm`) | Causa (`suspects`) | Causa (`rules`) | Causa (`quotes`) |
+| Model | Model RAM | Cause (`llm`) | Cause (`suspects`) | Cause (`rules`) | Cause (`quotes`) |
 |---|---|---|---|---|---|
 | `llama3.2:3b` | 3295 MiB | 3/5 | 3/5 | 5/5 | 5/5 |
 | `qwen3:1.7b` | 2315 MiB | 2/5 | 3/5 | | |
 | `qwen2.5-coder:1.5b` | 1493 MiB | 2/5 | 2/5 | | |
 | `gemma3:1b` | 1225 MiB | 0/5 | 0/5 | | |
 
-En la historia, con tres repeticiones en caliente: `llama3.2:3b` 9/15, 9/15 y 14/15; `qwen3:1.7b` 6/15 y 8/15; `qwen2.5-coder:1.5b` 6/15 y 6/15; `gemma3:1b` 0/15 y 0/15.
+In the history, with three warm repetitions: `llama3.2:3b` 9/15, 9/15 and 14/15; `qwen3:1.7b` 6/15 and 8/15; `qwen2.5-coder:1.5b` 6/15 and 6/15; `gemma3:1b` 0/15 and 0/15.
 
-La RAM del modelo es la que Ollama le asigna con un contexto de 8192 tokens, con un solo modelo cargado cada vez.
+The model RAM is what Ollama assigns it with a context of 8192 tokens, with a single model loaded at a time.
 
-La latencia cambia mucho con la carga de la máquina. En caliente, en la etapa `quotes` y con la máquina en reposo al empezar, las 12 llamadas de `llama3.2:3b` tardaron entre 13,7 y 40,3 segundos, con una mediana de 23,2 s ([`results/quotes-warm.json`](results/quotes-warm.json)). En la pasada `4-rules` de la historia, en un portátil en uso normal, entre 9 y 37 segundos, con una mediana de 15,8 s. Es la cifra de orientación para el taller: entre 15 y 25 segundos por explicación. En frío cada llamada incluye cargar el modelo, y la mediana sube a 46-48 s (pasadas 5 y 6 de la historia).
+The latency changes a lot with the load of the machine. Warm, in the `quotes` stage and with the machine idle at the start, the 12 calls of `llama3.2:3b` took between 13.7 and 40.3 seconds, with a median of 23.2 s ([`results/quotes-warm.json`](results/quotes-warm.json)). In the `4-rules` pass of the history, on a laptop in normal use, between 9 and 37 seconds, with a median of 15.8 s. That is the guideline figure for the workshop: between 15 and 25 seconds per explanation. Cold, each call includes loading the model, and the median goes up to 46-48 s (passes 5 and 6 of the history).
 
-La carga media del host no sirve para vigilar la medida mientras corre: durante cada llamada, Ollama usa casi todos los núcleos de la VM de Docker y la carga se dispara. Hay que mirarla antes de empezar.
+The host load average is no use to watch the measurement while it runs: during each call, Ollama uses almost every core of the Docker VM and the load shoots up. It has to be checked before starting.
 
-## Versiones
+## Versions
 
-`ollama/ollama` 0.40.13, `ajv` 8.20.0, `playwright` 1.63.0 y `trace-engine-cli` 0.2.0. Los modelos se descargan por su etiqueta de Ollama.
+`ollama/ollama` 0.40.13, `ajv` 8.20.0, `playwright` 1.63.0 and `trace-engine-cli` 0.2.0. The models are pulled by their Ollama tag.

@@ -77,7 +77,7 @@ La regresión de LCP y la de CLS quedan dentro de "good" en valor absoluto: se v
 
 ## Compruébalo
 
-El experimento [`experiments/previews`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/previews) mide los cinco sitios en las dos condiciones y comprueba estas conclusiones:
+El experimento [`experiments/previews`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/previews/README.es.md) mide los cinco sitios en las dos condiciones y comprueba estas conclusiones:
 
 ```bash
 cd experiments/previews

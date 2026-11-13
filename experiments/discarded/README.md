@@ -1,71 +1,73 @@
-# Experimento: alternativas descartadas
+# Experiment: discarded alternatives
 
-Reproduce los datos de tres filas de la página mapa ("Por qué este stack"). En cada una, mide la alternativa descartada al lado de lo que usa el taller, con las mismas herramientas que el gate y el Judge.
+English · [Castellano](README.es.md) · [Català](README.ca.md)
 
-| Decisión del taller | Alternativa descartada | Qué se mide |
+Reproduces the data of three rows of the map page ("Why this stack"). In each one, it measures the discarded alternative next to what the workshop uses, with the same tools as the gate and the Judge.
+
+| Workshop decision | Discarded alternative | What is measured |
 |---|---|---|
-| El gate mide con red fast-4g | Medir sin throttling de red | El gate en `pr/lcp-hero-lazy` con `--cpu 4 --runs 5`, sin `--network fast-4g` |
-| El servidor de la tienda hace preload de la imagen LCP | Una versión base sin preload | El gate en `pr/lcp-hero-lazy` contra un `main` sin el preload del hero |
-| El build conserva los nombres de función (`keepNames`) | La minificación por defecto | Los sospechosos del INP de `pr/loaf-cart-handler` y la línea del diff con la que los relaciona el Judge, con un build de `main` y de la rama sin `keepNames` |
+| The gate measures with fast-4g network | Measuring without network throttling | The gate on `pr/lcp-hero-lazy` with `--cpu 4 --runs 5`, without `--network fast-4g` |
+| The shop server preloads the LCP image | A baseline without preload | The gate on `pr/lcp-hero-lazy` against a `main` without the preload of the hero |
+| The build keeps function names (`keepNames`) | The default minification | The INP suspects of `pr/loaf-cart-handler` and the line of the diff the Judge relates them to, with a build of `main` and of the branch without `keepNames` |
 
-## Qué hace
+## What it does
 
-1. Construye seis versiones de la tienda con el `build` de [`experiments/regressions`](../regressions): `main`, `pr/lcp-hero-lazy` y `pr/loaf-cart-handler` tal cual; `main` sin la marca `<!-- lcp-preload -->` de `index.html`, donde `server.mjs` pone el preload de la imagen LCP de cada ruta; y `main` y `pr/loaf-cart-handler` con `keepNames: false` en `vite.config.ts`.
-2. Las sirve a la vez, cada una en su puerto, con los mocks de third parties de `main`.
-3. Pasa el gate de la home en `pr/lcp-hero-lazy` tres veces: con las condiciones del gate, sin throttling de red y contra el `main` sin preload. Es la misma llamada a la CLI que [`agents/src/judge/gate.ts`](../../agents/src/judge/gate.ts), con las condiciones de cada caso.
-4. Graba el trace del click en "Add to cart" de cada lado con [`record`](../../agents/src/judge/traces.ts), lo resume con trace-engine-cli y aplica las reglas del Judge: [`suspectsFor`](../../agents/src/judge/suspects.ts) y [`matchSuspects`](../../agents/src/judge/match.ts) con el diff de `pr/loaf-cart-handler`.
-5. Escribe `out/results.json` e imprime un resumen.
+1. Builds six versions of the shop with the `build` of [`experiments/regressions`](../regressions): `main`, `pr/lcp-hero-lazy` and `pr/loaf-cart-handler` as they are; `main` without the `<!-- lcp-preload -->` marker of `index.html`, where `server.mjs` puts the preload of the LCP image of each route; and `main` and `pr/loaf-cart-handler` with `keepNames: false` in `vite.config.ts`.
+2. Serves them at once, each on its own port, with the third-party mocks of `main`.
+3. Runs the home gate on `pr/lcp-hero-lazy` three times: with the gate conditions, without network throttling and against the `main` without preload. It is the same CLI call as [`agents/src/judge/gate.ts`](../../agents/src/judge/gate.ts), with the conditions of each case.
+4. Records the trace of the click on "Add to cart" on each side with [`record`](../../agents/src/judge/traces.ts), summarizes it with trace-engine-cli and applies the Judge rules: [`suspectsFor`](../../agents/src/judge/suspects.ts) and [`matchSuspects`](../../agents/src/judge/match.ts) with the diff of `pr/loaf-cart-handler`.
+5. Writes `out/results.json` and prints a summary.
 
-Las mediciones van una detrás de otra, para que dos Chromium no se repartan la CPU.
+The measurements run one after the other, so that two Chromium instances do not share the CPU.
 
-## Requisitos
+## Requirements
 
-Los mismos que `experiments/regressions`: Node 22.18 o superior, `npm ci` en `apps/shop`, las ramas `pr/*` en local o en `origin` y el Chromium de Playwright 1.63.0 (`npx playwright install chromium`).
+The same as `experiments/regressions`: Node 22.18 or later, `npm ci` in `apps/shop`, the `pr/*` branches local or in `origin` and the Chromium of Playwright 1.63.0 (`npx playwright install chromium`).
 
-## Uso
+## Usage
 
 ```bash
 npm install
-npm run measure     # construye y mide las seis versiones, unos 3 minutos
-npm test            # mide otra vez y comprueba cada afirmación
+npm run measure     # builds and measures the six versions, about 3 minutes
+npm test            # measures again and checks each claim
 ```
 
-## Qué comprueba el test
+## What the test checks
 
-| Afirmación | Cómo |
+| Claim | How |
 |---|---|
-| Con las condiciones del gate, el LCP de `pr/lcp-hero-lazy` empeora | El LCP sale `regressed` y la CLI sale con 1 |
-| Sin throttling de red, el gate no ve la regresión | El LCP no sale `regressed` y la CLI sale con 0 |
-| Sin el preload del hero en `main`, el gate no ve la regresión | El LCP no sale `regressed` y la CLI sale con 0 |
-| Con `keepNames`, el Judge relaciona el INP con el diff | El sospechoso es `recommendFor` y la regla lo relaciona con la línea que lo llama |
-| Sin `keepNames`, el Judge no puede | Sigue habiendo un sospechoso, pero no se llama `recommendFor` y ninguna línea relacionada lo nombra |
+| With the gate conditions, the LCP of `pr/lcp-hero-lazy` regresses | The LCP comes out `regressed` and the CLI exits with 1 |
+| Without network throttling, the gate does not see the regression | The LCP does not come out `regressed` and the CLI exits with 0 |
+| Without the preload of the hero in `main`, the gate does not see the regression | The LCP does not come out `regressed` and the CLI exits with 0 |
+| With `keepNames`, the Judge relates the INP to the diff | The suspect is `recommendFor` and the rule relates it to the line that calls it |
+| Without `keepNames`, the Judge cannot | There is still a suspect, but it is not named `recommendFor` and no related line names it |
 
-El test comprueba los veredictos, no las cifras: los milisegundos cambian de una máquina a otra.
+The test checks the verdicts, not the figures: the milliseconds change from one machine to another.
 
-## Resultados en el Mac de referencia
+## Results on the reference Mac
 
-Dos ejecuciones seguidas en un Apple Silicon de 16 GB, con el Chromium completo de Playwright. El LCP de `pr/lcp-hero-lazy` en la home:
+Two consecutive runs on a 16 GB Apple Silicon, with the full Chromium of Playwright. The LCP of `pr/lcp-hero-lazy` on the home:
 
-| Caso | Versión base | Rama | Cambio | p | Umbral | Veredicto |
+| Case | Baseline | Branch | Change | p | Threshold | Verdict |
 |---|---|---|---|---|---|---|
-| Condiciones del gate | 652 y 648 ms | 1060 ms | +62,6 y +63,6 % | 0,0056 y 0,0058 | 100 ms | `regressed` |
-| Sin throttling de red | 484 ms | 500 y 504 ms | +3,3 y +4,1 % | 0,0058 y 0,0688 | 100 ms | `unchanged` |
-| Sin preload en `main` | 1028 y 1032 ms | 1068 ms | +3,9 y +3,5 % | 0,006 y 0,0055 | 102,8 y 103,2 ms | `unchanged` |
+| Gate conditions | 652 and 648 ms | 1060 ms | +62.6 and +63.6 % | 0.0056 and 0.0058 | 100 ms | `regressed` |
+| Without network throttling | 484 ms | 500 and 504 ms | +3.3 and +4.1 % | 0.0058 and 0.0688 | 100 ms | `unchanged` |
+| Without preload in `main` | 1028 and 1032 ms | 1068 ms | +3.9 and +3.5 % | 0.006 and 0.0055 | 102.8 and 103.2 ms | `unchanged` |
 
-El umbral del LCP en la CLI es el mayor entre 100 ms y el 10 % de la versión base.
+The LCP threshold in the CLI is the larger of 100 ms and 10 % of the baseline.
 
-- **Sin throttling de red**, la imagen del hero llega casi al instante aunque se pida tarde: el LCP sube entre 16 y 20 ms, muy por debajo del umbral. A veces la diferencia es significativa (p menor que 0,05), pero el gate solo falla si además supera el umbral.
-- **Sin preload**, la imagen ya se descubre tarde en `main`, cuando el JavaScript pinta la página, y su LCP pasa de unos 650 ms a unos 1030. Quitar `fetchpriority` y añadir `loading="lazy"` solo suma entre 36 y 40 ms más.
+- **Without network throttling**, the hero image arrives almost instantly even when it is requested late: the LCP grows between 16 and 20 ms, far below the threshold. Sometimes the difference is significant (p below 0.05), but the gate only fails if it also exceeds the threshold.
+- **Without preload**, the image is already discovered late in `main`, when the JavaScript renders the page, and its LCP goes from about 650 ms to about 1030. Removing `fetchpriority` and adding `loading="lazy"` only adds between 36 and 40 ms more.
 
-El INP de `pr/loaf-cart-handler`, con las reglas del Judge:
+The INP of `pr/loaf-cart-handler`, with the Judge rules:
 
-| Build | Sospechoso | Self time | Línea del diff relacionada |
+| Build | Suspect | Self time | Related line of the diff |
 |---|---|---|---|
-| Con `keepNames` | `recommendFor` | 78 y 78 ms | `setRecommended(recommendFor(product.slug));` en `apps/shop/src/pages.tsx` |
-| Sin `keepNames` | `Ae` | 80 y 80 ms | Ninguna |
+| With `keepNames` | `recommendFor` | 78 and 78 ms | `setRecommended(recommendFor(product.slug));` in `apps/shop/src/pages.tsx` |
+| Without `keepNames` | `Ae` | 80 and 80 ms | None |
 
-Sin `keepNames`, el Judge sigue viendo que una función nueva tarda unos 80 ms en el click, pero el profiler la llama `Ae`, un nombre que no está en el diff. trace-engine-cli no lee source maps, así que el Judge no tiene forma de saber que es `recommendFor`.
+Without `keepNames`, the Judge still sees that a new function takes about 80 ms on the click, but the profiler calls it `Ae`, a name that is not in the diff. trace-engine-cli does not read source maps, so the Judge has no way to know that it is `recommendFor`.
 
-## Versiones
+## Versions
 
-`webperf-snippets` 1.15.0, `trace-engine-cli` 0.2.0 y `playwright` 1.63.0, fijadas en [`package.json`](package.json), las mismas que en `experiments/regressions` y `experiments/models`.
+`webperf-snippets` 1.15.0, `trace-engine-cli` 0.2.0 and `playwright` 1.63.0, pinned in [`package.json`](package.json), the same as in `experiments/regressions` and `experiments/models`.

@@ -1,66 +1,68 @@
-# Experimento: ramas de regresión
+# Experiment: regression branches
 
-Reproduce las cifras de las cuatro ramas de regresión del taller: el gate de WebPerf Snippets sobre cada rama `pr/*`, con `main` como baseline.
+English · [Castellano](README.es.md) · [Català](README.ca.md)
 
-## Qué hace
+Reproduces the figures of the four regression branches of the workshop: the WebPerf Snippets gate on each `pr/*` branch, with `main` as the baseline.
 
-1. Extrae `apps/` de `main` y de cada rama con `git archive`, sin tocar tu árbol de trabajo, y construye la tienda de cada una.
-2. Sirve las cinco versiones a la vez, cada una en su puerto, con los mocks de third parties de `main`.
-3. Mide dos escenarios, uno detrás de otro para que dos Chromium no se repartan la CPU:
-   - `home`: la carga de `/`, con LCP y CLS.
-   - `add-to-cart`: la carga de `/product/kenya-aa` y un click en "Add to cart" ([`agents/journeys/add-to-cart.json`](../../agents/journeys/add-to-cart.json)), con `--workflow interaction` para tener el INP.
-4. En cada escenario, mide `main` y guarda su JSON como baseline. Después pasa el gate en cada rama: `--baseline` y `--fail-on-regression`, con `--cpu 4 --network fast-4g --runs 5`.
-5. Escribe `out/results.json` e imprime una tabla.
+## What it does
 
-## Requisitos
+1. Extracts `apps/` from `main` and from each branch with `git archive`, without touching your working tree, and builds the shop of each one.
+2. Serves the five versions at once, each on its own port, with the third-party mocks of `main`.
+3. Measures two scenarios, one after the other so that two Chromium instances do not share the CPU:
+   - `home`: the load of `/`, with LCP and CLS.
+   - `add-to-cart`: the load of `/product/kenya-aa` and a click on "Add to cart" ([`agents/journeys/add-to-cart.json`](../../agents/journeys/add-to-cart.json)), with `--workflow interaction` to get the INP.
+4. In each scenario, it measures `main` and saves its JSON as the baseline. Then it runs the gate on each branch: `--baseline` and `--fail-on-regression`, with `--cpu 4 --network fast-4g --runs 5`.
+5. Writes `out/results.json` and prints a table.
 
-- Node 22.18 o superior.
-- Las dependencias de la tienda instaladas: `npm ci` en `apps/shop`. El script las reutiliza en cada rama y se detiene si una rama tiene otro `package-lock.json`.
-- Las ramas `pr/*`, en local o en `origin`.
-- El Chromium de Playwright 1.63.0: `npx playwright install chromium`.
+## Requirements
 
-## Uso
+- Node 22.18 or later.
+- The shop dependencies installed: `npm ci` in `apps/shop`. The script reuses them for each branch and stops if a branch has a different `package-lock.json`.
+- The `pr/*` branches, local or in `origin`.
+- The Chromium of Playwright 1.63.0: `npx playwright install chromium`.
+
+## Usage
 
 ```bash
 npm install
-npm run measure     # mide main y las cuatro ramas, unos 5 minutos
-npm test            # mide otra vez y comprueba los veredictos
+npm run measure     # measures main and the four branches, about 5 minutes
+npm test            # measures again and checks the verdicts
 ```
 
-## Qué comprueba el test
+## What the test checks
 
-| Rama | Veredicto esperado |
+| Branch | Expected verdict |
 |---|---|
-| `pr/lcp-hero-lazy` | El gate falla en `home` con el LCP en `regressed` |
-| `pr/cls-promo-banner` | El gate falla en `home` con el CLS en `regressed` |
-| `pr/loaf-cart-handler` | El gate falla en `add-to-cart` con el INP en `regressed` |
-| `pr/noop-refactor` | El gate pasa en los dos escenarios y ninguna métrica empeora |
+| `pr/lcp-hero-lazy` | The gate fails on `home` with the LCP `regressed` |
+| `pr/cls-promo-banner` | The gate fails on `home` with the CLS `regressed` |
+| `pr/loaf-cart-handler` | The gate fails on `add-to-cart` with the INP `regressed` |
+| `pr/noop-refactor` | The gate passes in both scenarios and no metric regresses |
 
-El test comprueba el veredicto, no las cifras: los milisegundos cambian de una máquina a otra.
+The test checks the verdict, not the figures: the milliseconds change from one machine to another.
 
-## Resultados en el Mac de referencia
+## Results on the reference Mac
 
-Una ejecución de `npm test` en un Apple Silicon de 16 GB, con el Chromium completo de Playwright (`"build": "chromium"` en las condiciones):
+One run of `npm test` on a 16 GB Apple Silicon, with the full Chromium of Playwright (`"build": "chromium"` in the conditions):
 
-| Rama | Escenario | Métrica | `main` | Rama | Cambio | p | Exit |
+| Branch | Scenario | Metric | `main` | Branch | Change | p | Exit |
 |---|---|---|---|---|---|---|---|
-| `pr/lcp-hero-lazy` | home | LCP | 656 ms | 1056 ms | +61 % | 0,0055 | 1 |
-| `pr/cls-promo-banner` | home | CLS | 0 | 0,070 | | 0,002 | 1 |
-| `pr/cls-promo-banner` | add-to-cart | CLS | 0 | 0,055 | | 0,002 | 1 |
-| `pr/loaf-cart-handler` | add-to-cart | INP | 48 ms | 120 ms | +150 % | 0,005 | 1 |
-| `pr/loaf-cart-handler` | home | LCP | 656 ms | 972 ms | +48,2 % | 0,0055 | 1 |
-| `pr/noop-refactor` | home | LCP | 656 ms | 648 ms | -1,2 % | 0,0987 | 0 |
-| `pr/noop-refactor` | add-to-cart | INP | 48 ms | 40 ms | -16,7 % | 0,0416 | 0 |
+| `pr/lcp-hero-lazy` | home | LCP | 656 ms | 1056 ms | +61 % | 0.0055 | 1 |
+| `pr/cls-promo-banner` | home | CLS | 0 | 0.070 | | 0.002 | 1 |
+| `pr/cls-promo-banner` | add-to-cart | CLS | 0 | 0.055 | | 0.002 | 1 |
+| `pr/loaf-cart-handler` | add-to-cart | INP | 48 ms | 120 ms | +150 % | 0.005 | 1 |
+| `pr/loaf-cart-handler` | home | LCP | 656 ms | 972 ms | +48.2 % | 0.0055 | 1 |
+| `pr/noop-refactor` | home | LCP | 656 ms | 648 ms | -1.2 % | 0.0987 | 0 |
+| `pr/noop-refactor` | add-to-cart | INP | 48 ms | 40 ms | -16.7 % | 0.0416 | 0 |
 
-En `pr/noop-refactor`, el INP baja 8 ms con p = 0,0416: la diferencia es significativa, pero no supera el umbral absoluto, así que el veredicto es `unchanged`. El gate combina las dos condiciones para no dar por buena ni por mala una diferencia de ruido.
+On `pr/noop-refactor`, the INP drops 8 ms with p = 0.0416: the difference is significant, but it does not exceed the absolute threshold, so the verdict is `unchanged`. The gate combines both conditions so that a noise difference is counted neither as good nor as bad.
 
-Dos ramas empeoran más de una métrica, como pasa en una PR real:
+Two branches regress more than one metric, as happens in a real PR:
 
-- **El script síncrono de A/B testing de `pr/loaf-cart-handler`** está en el `index.html` común, así que también retrasa el LCP de la home.
-- **El hueco del banner sin altura reservada de `pr/cls-promo-banner`** está en todas las páginas, así que también mueve la ficha de producto.
+- **The synchronous A/B testing script of `pr/loaf-cart-handler`** is in the shared `index.html`, so it also delays the LCP of the home.
+- **The gap of the banner without reserved height of `pr/cls-promo-banner`** is on every page, so it also shifts the product page.
 
-El Judge tiene que atribuir cada métrica a su causa, no solo dar el veredicto.
+The Judge has to attribute each metric to its cause, not only give the verdict.
 
-## Versiones
+## Versions
 
-`webperf-snippets` 1.15.0 y `playwright` 1.63.0, fijadas en [`package.json`](package.json). La CLI usa el Chromium completo cuando está instalado, el mismo binario que Chrome DevTools MCP; con solo el headless shell (`npx playwright install --only-shell chromium`), las cifras pueden ser algo distintas.
+`webperf-snippets` 1.15.0 and `playwright` 1.63.0, pinned in [`package.json`](package.json). The CLI uses the full Chromium when it is installed, the same binary as Chrome DevTools MCP; with only the headless shell (`npx playwright install --only-shell chromium`), the figures can be somewhat different.

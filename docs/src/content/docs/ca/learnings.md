@@ -53,7 +53,7 @@ Per això cada eina fa una cosa: Chrome DevTools MCP captura el trace i trace-en
 
 ### Comprova-ho
 
-L'experiment és a [`experiments/trace-engine-cli`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/trace-engine-cli). Enregistra un trace nou a la teva màquina i comprova cada afirmació d'aquesta pàgina:
+L'experiment és a [`experiments/trace-engine-cli`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/trace-engine-cli/README.ca.md). Enregistra un trace nou a la teva màquina i comprova cada afirmació d'aquesta pàgina:
 
 ```bash
 cd experiments/trace-engine-cli
@@ -115,7 +115,7 @@ El Chromium de Playwright s'instal·la a la ruta per defecte, `~/.cache/ms-playw
 
 ### Comprova-ho
 
-L'experiment és a [`experiments/chrome-devtools-mcp`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/chrome-devtools-mcp). Cada test arrenca un servidor amb uns flags diferents i comprova un d'aquests comportaments; un altre arrenca Node amb l'entorn que el client stdio passa al servidor i comprova on busca Playwright el navegador:
+L'experiment és a [`experiments/chrome-devtools-mcp`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/chrome-devtools-mcp/README.ca.md). Cada test arrenca un servidor amb uns flags diferents i comprova un d'aquests comportaments; un altre arrenca Node amb l'entorn que el client stdio passa al servidor i comprova on busca Playwright el navegador:
 
 ```bash
 cd experiments/chrome-devtools-mcp
@@ -212,7 +212,7 @@ Amb els fixtures actuals la frase ja no es talla sense escapar, però tampoc no 
 
 ### Comprova-ho
 
-L'experiment és a [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models). Les respostes estan desades, les actuals a `results/` i les de la primera mesura a `history/2026-11-10/` amb els seus fixtures, així que el test comprova aquestes xifres sense necessitar Ollama:
+L'experiment és a [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/models/README.ca.md). Les respostes estan desades, les actuals a `results/` i les de la primera mesura a `history/2026-11-10/` amb els seus fixtures, així que el test comprova aquestes xifres sense necessitar Ollama:
 
 ```bash
 cd experiments/models
@@ -297,7 +297,7 @@ Sense `keepNames`, les regles continuen veient que una funció nova triga uns 80
 
 ### Comprova-ho
 
-L'experiment és a [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/discarded). Construeix les dues versions de cada costat, grava els traces i aplica `suspectsFor` i `matchSuspects`, les regles del Judge:
+L'experiment és a [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/discarded/README.ca.md). Construeix les dues versions de cada costat, grava els traces i aplica `suspectsFor` i `matchSuspects`, les regles del Judge:
 
 ```bash
 cd experiments/discarded

@@ -1,46 +1,48 @@
-# Experimento: Chrome DevTools MCP
+# Experiment: Chrome DevTools MCP
 
-Reproduce los datos de la sección "Chrome DevTools MCP fuera del editor" de la página Learnings.
+English · [Castellano](README.es.md) · [Català](README.ca.md)
 
-## Qué hace
+Reproduces the data of the "Chrome DevTools MCP outside the editor" section of the Learnings page.
 
-Arranca [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) por stdio con el cliente del SDK de MCP, como lo hacen los subagentes del taller, contra una página servida en local. Cada test arranca un servidor con unos flags distintos y comprueba un valor por defecto que los subagentes cambian.
+## What it does
 
-## Requisitos
+It starts [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) over stdio with the MCP SDK client, the way the workshop subagents do, against a page served locally. Each test starts a server with different flags and checks a default that the subagents change.
 
-- Node 22 o superior.
-- El Chromium de Playwright 1.63.0. Dentro del contenedor del taller ya está instalado. Fuera de él: `npx playwright install chromium`.
+## Requirements
 
-## Uso
+- Node 22 or later.
+- The Chromium of Playwright 1.63.0. It is already installed inside the workshop container. Outside it: `npx playwright install chromium`.
+
+## Usage
 
 ```bash
 npm install
 npm test
 ```
 
-Para ejecutarlo en Linux, dentro de la imagen `agents`:
+To run it on Linux, inside the `agents` image:
 
 ```bash
 docker run --rm --network none -v "$PWD":/exp -w /exp agent-first-perf-audits/agents:dev node --test
 ```
 
-## Qué comprueba el test
+## What the test checks
 
-| Afirmación | Cómo |
+| Claim | How |
 |---|---|
-| Por defecto, las tools de página exigen `pageId` | `navigate_page` sin `pageId` devuelve un error que lo nombra |
-| `--no-page-id-routing` lo desactiva | `navigate_page` sin `pageId` funciona |
-| Por defecto, se puede guardar un trace en el directorio temporal del servidor | `performance_start_trace` con `filePath` en ese directorio funciona |
-| Ese directorio no es el del cliente si `TMPDIR` lo cambia | Un `filePath` en el `os.tmpdir()` del cliente devuelve `Access denied`. Solo se ejecuta si los dos directorios son distintos, como en macOS |
-| Por defecto, no se puede guardar fuera del directorio temporal | `filePath` en `out/` devuelve un error y el fichero no existe |
-| `--workspace` añade una carpeta y solo esa | Se puede guardar en `out/workspace/` pero no en `out/` |
-| `--workspace` no quita el directorio temporal | Con `--workspace`, el directorio temporal del servidor sigue permitido |
-| El cliente stdio no pasa `PLAYWRIGHT_BROWSERS_PATH` al servidor | Con la variable en el cliente, Node arrancado con el entorno que el cliente pasa al servidor busca el Chromium de Playwright en la ruta por defecto, no en la de la variable |
+| By default, page tools require `pageId` | `navigate_page` without `pageId` returns an error that names it |
+| `--no-page-id-routing` turns it off | `navigate_page` without `pageId` works |
+| By default, a trace can be saved in the server's temporary directory | `performance_start_trace` with `filePath` in that directory works |
+| That directory is not the client's when `TMPDIR` moves it | A `filePath` in the client's `os.tmpdir()` returns `Access denied`. It only runs when both directories differ, as on macOS |
+| By default, nothing can be saved outside the temporary directory | `filePath` in `out/` returns an error and the file does not exist |
+| `--workspace` adds one folder and only that one | A trace can be saved in `out/workspace/` but not in `out/` |
+| `--workspace` does not remove the temporary directory | With `--workspace`, the server's temporary directory is still allowed |
+| The stdio client does not pass `PLAYWRIGHT_BROWSERS_PATH` to the server | With the variable set in the client, Node started with the environment the client passes to the server looks for the Chromium of Playwright in the default path, not in the one of the variable |
 
-El directorio temporal del servidor se calcula arrancando Node con el mismo entorno que el cliente stdio pasa al servidor (`getDefaultEnvironment()` del SDK).
+The server's temporary directory is computed by starting Node with the same environment that the stdio client passes to the server (`getDefaultEnvironment()` of the SDK).
 
-Si una versión futura de Chrome DevTools MCP cambia alguno de estos valores por defecto, el test fallará y habrá que actualizar la página Learnings.
+If a future version of Chrome DevTools MCP changes any of these defaults, the test fails and the Learnings page needs an update.
 
-## Versiones
+## Versions
 
-`chrome-devtools-mcp` 1.12.0, `@modelcontextprotocol/client` 2.4.0 y `playwright` 1.63.0, fijadas en [`package.json`](package.json).
+`chrome-devtools-mcp` 1.12.0, `@modelcontextprotocol/client` 2.4.0 and `playwright` 1.63.0, pinned in [`package.json`](package.json).

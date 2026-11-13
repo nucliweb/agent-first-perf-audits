@@ -210,12 +210,12 @@ Cada cifra de la documentación sale de un experimento de [`experiments/`](exper
 
 | Experimento | Qué reproduce |
 |---|---|
-| [`regressions`](experiments/regressions) | El veredicto del gate en las cuatro ramas |
-| [`models`](experiments/models) | El benchmark de los modelos del Judge |
-| [`trace-engine-cli`](experiments/trace-engine-cli) | Por qué trace-engine-cli se llama como CLI y no como MCP |
-| [`chrome-devtools-mcp`](experiments/chrome-devtools-mcp) | Chrome DevTools MCP fuera del editor |
-| [`discarded`](experiments/discarded) | Las alternativas descartadas de la página mapa: sin throttling de red, sin preload y sin `keepNames` |
-| [`previews`](experiments/previews) | Las ramas en el navegador: la tienda en Vercel, con y sin throttling de red |
+| [`regressions`](experiments/regressions/README.es.md) | El veredicto del gate en las cuatro ramas |
+| [`models`](experiments/models/README.es.md) | El benchmark de los modelos del Judge |
+| [`trace-engine-cli`](experiments/trace-engine-cli/README.es.md) | Por qué trace-engine-cli se llama como CLI y no como MCP |
+| [`chrome-devtools-mcp`](experiments/chrome-devtools-mcp/README.es.md) | Chrome DevTools MCP fuera del editor |
+| [`discarded`](experiments/discarded/README.es.md) | Las alternativas descartadas de la página mapa: sin throttling de red, sin preload y sin `keepNames` |
+| [`previews`](experiments/previews/README.es.md) | Las ramas en el navegador: la tienda en Vercel, con y sin throttling de red |
 
 ## Licencia
 

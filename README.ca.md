@@ -210,12 +210,12 @@ Cada xifra de la documentació surt d'un experiment d'[`experiments/`](experimen
 
 | Experiment | Què reprodueix |
 |---|---|
-| [`regressions`](experiments/regressions) | El veredicte del gate a les quatre branques |
-| [`models`](experiments/models) | El benchmark dels models del Judge |
-| [`trace-engine-cli`](experiments/trace-engine-cli) | Per què trace-engine-cli es crida com a CLI i no com a MCP |
-| [`chrome-devtools-mcp`](experiments/chrome-devtools-mcp) | Chrome DevTools MCP fora de l'editor |
-| [`discarded`](experiments/discarded) | Les alternatives descartades de la pàgina mapa: sense throttling de xarxa, sense preload i sense `keepNames` |
-| [`previews`](experiments/previews) | Les branques al navegador: la botiga a Vercel, amb i sense throttling de xarxa |
+| [`regressions`](experiments/regressions/README.ca.md) | El veredicte del gate a les quatre branques |
+| [`models`](experiments/models/README.ca.md) | El benchmark dels models del Judge |
+| [`trace-engine-cli`](experiments/trace-engine-cli/README.ca.md) | Per què trace-engine-cli es crida com a CLI i no com a MCP |
+| [`chrome-devtools-mcp`](experiments/chrome-devtools-mcp/README.ca.md) | Chrome DevTools MCP fora de l'editor |
+| [`discarded`](experiments/discarded/README.ca.md) | Les alternatives descartades de la pàgina mapa: sense throttling de xarxa, sense preload i sense `keepNames` |
+| [`previews`](experiments/previews/README.ca.md) | Les branques al navegador: la botiga a Vercel, amb i sense throttling de xarxa |
 
 ## Llicència
 
