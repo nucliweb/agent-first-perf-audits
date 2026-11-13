@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "./router.tsx";
 import { addToCart, changeQuantity, cartTotals, linePrice, useCartLines } from "./cart.ts";
 import { FREE_SHIPPING_FROM } from "./cart-lines.ts";
+import { recommendFor } from "./recommendations.ts";
 import { ProductGrid, Section, Stepper, useTitle } from "./components.tsx";
 import {
   HERO_SIZES,
@@ -82,6 +83,7 @@ export function ProductPage({ slug }: { slug: string }) {
   const [size, setSize] = useState<string>(SIZES[0].id);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(0);
+  const [recommended, setRecommended] = useState<string[]>([]);
   if (!product) return <NotFound />;
 
   const isCoffee = product.category === "coffee";
@@ -90,6 +92,7 @@ export function ProductPage({ slug }: { slug: string }) {
   const onAdd = () => {
     addToCart({ slug: product.slug, size: lineSize, quantity });
     setAdded((n) => n + 1);
+    setRecommended(recommendFor(product.slug));
   };
 
   return (
@@ -136,7 +139,7 @@ export function ProductPage({ slug }: { slug: string }) {
             </button>
           </div>
           <p className="status" role="status">
-            {added > 0 ? "Added to your cart." : ""}
+            {added > 0 ? `Added to your cart. Goes well with ${recommended.map((s) => productBySlug(s)?.name).join(" and ")}.` : ""}
           </p>
         </div>
       </div>
