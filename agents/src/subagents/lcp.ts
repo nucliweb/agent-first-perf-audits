@@ -51,7 +51,36 @@ const ok = (result: SnippetResult | undefined, name: string): SnippetResult => {
 // The report of one page, from the answers of run_workflow and of run_snippet LCP-Subparts
 export function lcpReportOf(workflow: any, subparts: any): LcpReport {
   // workshop: step 2, shape the answers of WebPerf Snippets into the LCP report (test/subagents/lcp.test.ts)
-  throw new Error("Step 2 of the workshop: shape the answers of WebPerf Snippets into the LCP report. Its tests: test/subagents/lcp.test.ts");
+  const lcp = ok(workflow.results.find((r: SnippetResult) => r.script === "LCP"), "LCP");
+  const breakdown = ok(subparts.result, "LCP-Subparts");
+  const audit = workflow.results.find((r: SnippetResult) => r.script === "Image-Element-Audit" && r.status === "ok");
+  const item = audit?.items?.find((i: { isLCP: boolean }) => i.isLCP);
+  const runs = subparts.runs.summary.LCP;
+  return {
+    url: subparts.url,
+    conditions: { cpu: subparts.throttling.cpu, network: subparts.throttling.network, runs: subparts.runs.count },
+    lcp: {
+      value: breakdown.value,
+      unit: breakdown.unit,
+      rating: breakdown.rating,
+      runs: { median: runs.median, min: runs.min, max: runs.max, agreement: runs.agreement },
+    },
+    element: { selector: lcp.details.element, type: lcp.details.elementType, url: lcp.details.url ?? null },
+    subparts: Object.fromEntries(
+      Object.entries(breakdown.details.subParts).map(([phase, part]) => [phase, (part as { value: number }).value]),
+    ) as LcpReport["subparts"],
+    slowestPhase: breakdown.details.slowestPhase,
+    image: item
+      ? {
+          format: item.format,
+          loading: item.loading,
+          fetchpriority: item.fetchpriority,
+          decoding: item.decoding,
+          preloaded: audit.details.lcpCandidate.preloaded,
+          issues: item.issues,
+        }
+      : null,
+  };
   // workshop: end
 }
 
@@ -59,7 +88,15 @@ export function lcpReportOf(workflow: any, subparts: any): LcpReport {
 // audit of the LCP image, and the LCP-Subparts snippet, under the conditions of the gate
 export async function askWebPerf(url: string): Promise<{ workflow: unknown; subparts: unknown }> {
   // workshop: step 2, call run_workflow and run_snippet of WebPerf Snippets MCP (test/subagents/lcp.test.ts)
-  throw new Error("Step 2 of the workshop: call run_workflow and run_snippet of WebPerf Snippets MCP. Its tests: test/subagents/lcp.test.ts");
+  const webperf = await connect("webperf");
+  try {
+    const options = { url, ...CONDITIONS, detail: "full" };
+    const workflow = await callTool(webperf, "run_workflow", { ...options, workflow: "core-web-vitals" });
+    const subparts = await callTool(webperf, "run_snippet", { ...options, snippet: "LCP-Subparts" });
+    return { workflow: workflow.structuredContent, subparts: subparts.structuredContent };
+  } finally {
+    await webperf.close();
+  }
   // workshop: end
 }
 
