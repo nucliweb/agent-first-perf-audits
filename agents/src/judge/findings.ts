@@ -34,13 +34,39 @@ function grownPhase(baseline: Record<string, number>, candidate: Record<string, 
 
 function lcpFacts(found: Found, scenario: string): string[] {
   // workshop: step 4, the facts of the LCP subagent for a regressed LCP (test/judge/findings.test.ts)
-  throw new Error("Step 4 of the workshop: the facts of the LCP subagent for a regressed LCP. Its tests: test/judge/findings.test.ts");
+  const lcp = bothSides<LcpReport>(found, "lcp");
+  if (!lcp || scenario !== "home") return [];
+  const { baseline: b, candidate: c } = lcp;
+  const facts = [
+    `LCP of the home: ${b.lcp.value} ms in the baseline, ${c.lcp.value} ms in the branch (median of ${c.conditions.runs} runs)`,
+    grownPhase(b.subparts, c.subparts, " ms"),
+  ];
+  if (b.element.selector !== c.element.selector) facts.push(`The LCP element changes: ${b.element.selector} to ${c.element.selector}`);
+  if (b.image && c.image) {
+    const changes = (["loading", "fetchpriority", "decoding"] as const)
+      .filter((attribute) => b.image![attribute] !== c.image![attribute])
+      .map((attribute) => `${attribute} ${b.image![attribute]} to ${c.image![attribute]}`);
+    if (b.image.preloaded !== c.image.preloaded) changes.push(c.image.preloaded ? "preload added" : "preload removed");
+    if (changes.length) facts.push(`The LCP image changes: ${changes.join(", ")}`);
+    const before = new Set(b.image.issues.map((i) => i.code));
+    const added = c.image.issues.map((i) => i.code).filter((code) => !before.has(code));
+    if (added.length) facts.push(`New warnings of the LCP image: ${added.join(", ")}`);
+  }
+  return facts;
   // workshop: end
 }
 
 function clsFacts(found: Found, scenario: string): string[] {
   // workshop: step 4, the facts of the CLS subagent for a regressed CLS (test/judge/findings.test.ts)
-  throw new Error("Step 4 of the workshop: the facts of the CLS subagent for a regressed CLS. Its tests: test/judge/findings.test.ts");
+  const cls = bothSides<ClsReport>(found, "cls");
+  const b = cls?.baseline.journeys.find((j) => j.name === scenario);
+  const c = cls?.candidate.journeys.find((j) => j.name === scenario);
+  if (!b || !c) return [];
+  const facts = [`CLS of the journey ${scenario}: ${b.cls.value} in the baseline, ${c.cls.value} in the branch (median of ${cls!.candidate.conditions.runs} runs)`];
+  const before = new Set(b.elements.map((e) => e.selector));
+  const moved = c.elements.map((e) => e.selector).filter((selector) => !before.has(selector)).slice(0, 3);
+  if (moved.length) facts.push(`Nodes that move in the branch and not in the baseline: ${moved.join(", ")}`);
+  return facts;
   // workshop: end
 }
 
@@ -51,7 +77,29 @@ const scriptKey = ({ invoker, source }: { invoker: string; source: string }) =>
 
 function inpFacts(found: Found, scenario: string): string[] {
   // workshop: step 4, the facts of the LoAF/INP subagent for a regressed INP (test/judge/findings.test.ts)
-  throw new Error("Step 4 of the workshop: the facts of the LoAF/INP subagent for a regressed INP. Its tests: test/judge/findings.test.ts");
+  const loaf = bothSides<LoafReport>(found, "loaf");
+  const b = loaf?.baseline.journeys.find((j) => j.name === scenario);
+  const c = loaf?.candidate.journeys.find((j) => j.name === scenario);
+  if (!b || !c) return [];
+  const facts: string[] = [];
+  if (b.inp && c.inp) {
+    facts.push(`INP of the journey ${scenario}: ${b.inp.value} ms in the baseline, ${c.inp.value} ms in the branch (${c.inp.event})`);
+    facts.push(grownPhase(b.inp.phases, c.inp.phases, " ms"));
+  }
+  const before = new Set(b.longFrames.topScripts.map(scriptKey));
+  const added = c.longFrames.topScripts
+    .filter((s) => !before.has(scriptKey(s)))
+    .map((s) => (/^https?:\/\//.test(s.invoker) ? `${s.invoker}, ${s.totalDurationMs} ms` : `${s.invoker} in ${s.source}, ${s.totalDurationMs} ms`));
+  if (added.length) facts.push(`Scripts of the long frames that only the branch runs: ${added.join("; ")}`);
+  if (b.trace && c.trace) {
+    const traces = { [scenario]: { baseline: b.trace.summaries, candidate: c.trace.summaries } };
+    for (const s of suspectsFor(traces, { metric: "INP", scenario })) {
+      if (s.kind === "layout-shift") continue;
+      const named = s.kind === "function" ? `the function ${s.name} (${s.url}, line ${s.line})` : `the script ${s.name}`;
+      facts.push(`The trace of the click names ${named}: ${s.selfTimeMs} ms of self time in the branch, ${s.baselineSelfTimeMs} ms in the baseline`);
+    }
+  }
+  return facts;
   // workshop: end
 }
 
