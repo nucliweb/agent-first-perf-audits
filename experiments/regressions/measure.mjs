@@ -30,7 +30,7 @@ export const BRANCHES = [
 const git = (...args) => execFileSync("git", ["-C", REPO, ...args], { encoding: "utf8" }).trim();
 
 // A branch of a fresh clone may exist only on the remote
-function resolveRef(ref) {
+export function resolveRef(ref) {
   for (const candidate of [ref, `origin/${ref}`]) {
     try {
       git("rev-parse", "--verify", "--quiet", `${candidate}^{commit}`);
@@ -40,7 +40,7 @@ function resolveRef(ref) {
   throw new Error(`The ref ${ref} does not exist. Fetch the branches of the repo first.`);
 }
 
-function run(command, args, options = {}) {
+export function run(command, args, options = {}) {
   return new Promise((ok, fail) => {
     const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"], ...options });
     let stdout = "";
@@ -52,7 +52,7 @@ function run(command, args, options = {}) {
   });
 }
 
-const freePort = () =>
+export const freePort = () =>
   new Promise((ok) => {
     const server = createServer();
     server.listen(0, "127.0.0.1", () => {
@@ -61,7 +61,7 @@ const freePort = () =>
     });
   });
 
-async function waitFor(url) {
+export async function waitFor(url) {
   for (let i = 0; i < 100; i++) {
     try {
       if ((await fetch(url)).ok) return;
@@ -71,12 +71,13 @@ async function waitFor(url) {
   throw new Error(`${url} did not start`);
 }
 
-// Extracts apps/ of a ref and builds the shop, with the dependencies installed in apps/shop
-async function build(ref) {
-  const dir = join(OUT, "refs", ref.replaceAll("/", "-"));
+// Extracts apps/ of a ref into dir and builds the shop, with the dependencies installed in
+// apps/shop. patch, if given, changes the extracted sources before the build.
+export async function build(ref, { dir = join(OUT, "refs", ref.replaceAll("/", "-")), patch } = {}) {
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   execFileSync("sh", ["-c", `git -C "${REPO}" archive "${ref}" apps | tar -x -C "${dir}"`]);
+  if (patch) await patch(dir);
 
   const lockOf = (r) => git("show", `${r}:apps/shop/package-lock.json`);
   if (lockOf(ref) !== (await readFile(join(REPO, "apps/shop/package-lock.json"), "utf8")).trim()) {
@@ -90,7 +91,7 @@ async function build(ref) {
   return dir;
 }
 
-function serve(script, cwd, env) {
+export function serve(script, cwd, env) {
   const child = spawn(process.execPath, [script], { cwd, env: { ...process.env, ...env }, stdio: "ignore" });
   return child;
 }

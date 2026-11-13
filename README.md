@@ -212,6 +212,7 @@ Cada cifra de la documentación sale de un experimento de [`experiments/`](exper
 | [`models`](experiments/models) | El benchmark de los modelos del Judge |
 | [`trace-engine-cli`](experiments/trace-engine-cli) | Por qué trace-engine-cli se llama como CLI y no como MCP |
 | [`chrome-devtools-mcp`](experiments/chrome-devtools-mcp) | Chrome DevTools MCP fuera del editor |
+| [`discarded`](experiments/discarded) | Las alternativas descartadas de la página mapa: sin throttling de red, sin preload y sin `keepNames` |
 | [`previews`](experiments/previews) | Las ramas en el navegador: la tienda en Vercel, con y sin throttling de red |
 
 ## Licencia
