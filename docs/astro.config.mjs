@@ -7,25 +7,25 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Multi-Agent Performance Audits",
-      description: "Taller de PerfReviews: un gate de rendimiento para pull requests con agentes, MCP y un LLM local.",
+      description: "A PerfReviews workshop: a performance gate for pull requests with agents, MCP and a local LLM.",
       defaultLocale: "root",
       locales: {
-        // The Markdown of the root locale lives in src/content/docs/es (see src/content.config.ts)
-        root: { label: "Español", lang: "es" },
+        // The Markdown of the root locale lives in src/content/docs/en (see src/content.config.ts)
+        root: { label: "English", lang: "en" },
+        es: { label: "Español", lang: "es" },
         ca: { label: "Català", lang: "ca" },
-        en: { label: "English", lang: "en" },
       },
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/nucliweb/agent-first-perf-audits" }],
       customCss: ["./src/styles/perfreviews.css"],
       sidebar: [
         {
-          label: "El taller",
-          translations: { ca: "El taller", en: "The workshop" },
+          label: "The workshop",
+          translations: { es: "El taller", ca: "El taller" },
           items: [{ autogenerate: { directory: "workshop" } }],
         },
         {
-          label: "Referencia",
-          translations: { ca: "Referència", en: "Reference" },
+          label: "Reference",
+          translations: { es: "Referencia", ca: "Referència" },
           items: ["previews", "stack", "learnings"],
         },
       ],
