@@ -1,0 +1,96 @@
+# Demo of the performance gate on a pull request. On each pull request from a pr/* branch, ci
+# measures the shop of the branch against the one of main with the lite profile, without the local
+# LLM; Claude explains each regressed metric with the same input that the local model of the
+# workshop gets; and a comment on the pull request gives the report. The check fails when the gate
+# fails, as it would in the CI of a team. The pull requests of the pr/* branches are a demo: they
+# are not merged.
+# Claude runs after ci and outside its network, which has no internet access, with the
+# ANTHROPIC_API_KEY secret of the repo.
+name: Performance gate
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: perf-gate-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  MODEL: claude-sonnet-5-5
+  AGENTS_IMAGE: ghcr.io/nucliweb/agent-first-perf-audits/agents:main
+
+jobs:
+  gate:
+    if: startsWith(github.head_ref, 'pr/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      # Every branch: the Judge reads the diff of the branch against main
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # The shop image of a branch is tagged with its name and "/" as "-"
+      - name: Shop image of the branch
+        run: echo "CANDIDATE=${GITHUB_HEAD_REF//\//-}" >> "$GITHUB_ENV"
+
+      - name: Pull the images of the lab
+        run: docker compose --profile run pull
+
+      # The container runs as node (UID 1000) and the runner as another user
+      - name: Output folder
+        run: mkdir -p out/ci && chmod -R 777 out
+
+      - name: Performance gate
+        id: gate
+        run: |
+          set +e
+          docker compose run --rm -e OUT=/out/ci ci
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+
+      # Only with a regression: without one, the rules answer on their own
+      - name: Explanation by Claude
+        if: steps.gate.outputs.exit == '1'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          docker run --rm -e ANTHROPIC_API_KEY \
+            -v "$PWD/agents/src:/app/src:ro" -v "$PWD/out:/out" \
+            "$AGENTS_IMAGE" node src/ci/explain.ts /out/ci "$MODEL"
+
+      - name: Comment on the pull request
+        if: always() && steps.gate.outputs.exit != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          report=out/ci/report.md
+          [ -f "out/ci/report-$MODEL.md" ] && report="out/ci/report-$MODEL.md"
+          {
+            echo "> Demo of the workshop [agent-first-perf-audits](https://github.com/nucliweb/agent-first-perf-audits): ci measured this branch against main on a GitHub runner, with the lite profile. The rules decide the verdict. The explanation comes from $MODEL, with the same input that the local model of the workshop, llama3.2:3b, gets on a laptop: the local model is small so it fits next to Chromium, and a larger one can relate every change of the diff to the regression."
+            echo
+            cat "$report"
+            echo
+            echo "Traces, gate results and the handoff of the Judge: [artifacts of the run]($RUN_URL)."
+          } > comment.md
+          gh pr comment "$PR" --body-file comment.md --edit-last || gh pr comment "$PR" --body-file comment.md
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: perf-gate-${{ env.CANDIDATE }}
+          path: out/ci
+          if-no-files-found: ignore
+
+      # The check follows the gate: 0 pass, 1 a metric regressed, 2 it could not measure
+      - name: Verdict of the gate
+        if: always()
+        env:
+          GATE_EXIT: ${{ steps.gate.outputs.exit || 2 }}
+        run: exit "$GATE_EXIT"

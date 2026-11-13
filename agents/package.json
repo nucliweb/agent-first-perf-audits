@@ -9,6 +9,7 @@
     "check": "node src/check.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "1.8.0",
     "@modelcontextprotocol/client": "2.4.0",
     "ajv": "8.20.0",
     "chrome-devtools-mcp": "1.12.0",

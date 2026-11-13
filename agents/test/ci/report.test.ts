@@ -161,3 +161,9 @@ test("without facts of the rules there is no section for them", () => {
   assert.doesNotMatch(reportMarkdown({ ...base, ruleFacts: [] }), /Facts of the rules/);
   assert.doesNotMatch(reportHtml(base), /Facts of the rules/);
 });
+
+test("names the model that wrote the explanation", () => {
+  assert.match(reportMarkdown({ ...base, explainedBy: "claude-sonnet-5-5" }), /## Explanation\n\nModel: claude-sonnet-5-5\.\n/);
+  assert.match(reportHtml({ ...base, explainedBy: "claude-sonnet-5-5" }), /<p class="meta">Model: claude-sonnet-5-5\.<\/p>/);
+  assert.doesNotMatch(reportMarkdown(base), /Model:/);
+});

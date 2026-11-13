@@ -16,6 +16,8 @@ export interface Report {
   gate: Gate;
   // null in the lite profile: the explanation comes from the handoff
   explanations: MetricExplanation[] | null;
+  // The model that wrote the explanation, such as llama3.2:3b or claude-sonnet-5-5
+  explainedBy?: string;
   // The lines of the diff that the rules relate to each regressed metric (lcp-loading.ts)
   ruleFacts?: RuleFacts[];
   // Only from the orchestrator: what the subagents measured for each regressed metric
@@ -85,6 +87,7 @@ export function reportMarkdown(report: Report): string {
     "",
     "## Explanation",
     "",
+    ...(report.explainedBy ? [`Model: ${report.explainedBy}.`, ""] : []),
   ];
   if (!report.explanations) {
     lines.push(LITE, "");
@@ -165,7 +168,7 @@ ${rows}
 </tbody>
 </table>
 <h2>Explanation</h2>
-${explanations}
+${report.explainedBy ? `<p class="meta">Model: ${escape(report.explainedBy)}.</p>\n` : ""}${explanations}
 ${ruleFacts}
 ${findings}
 </body>

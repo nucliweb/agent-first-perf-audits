@@ -180,6 +180,17 @@ La botiga de `main` és a [perf-coffee.vercel.app](https://perf-coffee.vercel.ap
 
 Les tres regressions queden dins de "good" en valor absolut. El gate les detecta perquè compara amb la versió base, no amb els llindars de Google. Els tests de l'app passen a les quatre branques: el CI clàssic no en veu cap.
 
+## El gate en una pull request
+
+Cada branca `pr/*` té una [pull request en esborrany](https://github.com/nucliweb/agent-first-perf-audits/pulls) que no es fusiona: és la demo del gate a GitHub Actions ([`perf-gate.yml`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/.github/workflows/perf-gate.yml)). A cadascuna, `ci` mesura la botiga de la branca contra la de `main` amb el perfil `lite`, les regles decideixen el veredicte i Claude Sonnet 5.5 explica cada mètrica que empitjora, amb la mateixa entrada que rep el model local del taller. L'informe arriba com a comentari a la pull request, amb els fets de les regles, i el check falla quan falla el gate.
+
+El model local és petit perquè càpiga en un portàtil al costat de Chromium; la demo dona la mateixa entrada a un model més gran. Per fer-ho en local amb la teva clau de l'API, després de `ci`:
+
+```bash
+cd agents
+ANTHROPIC_API_KEY=... node src/ci/explain.ts ../out claude-sonnet-5-5   # escriu out/report-claude-sonnet-5-5.md
+```
+
 ## Estructura
 
 ```

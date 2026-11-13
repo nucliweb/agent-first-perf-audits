@@ -180,6 +180,17 @@ The shop of `main` is at [perf-coffee.vercel.app](https://perf-coffee.vercel.app
 
 The three regressions stay within "good" in absolute value. The gate detects them because it compares with the baseline, not with the Google thresholds. The app tests pass on all four branches: classic CI does not see any of them.
 
+## The gate on a pull request
+
+Each `pr/*` branch has a [draft pull request](https://github.com/nucliweb/agent-first-perf-audits/pulls) that is not merged: it is the demo of the gate on GitHub Actions ([`perf-gate.yml`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/.github/workflows/perf-gate.yml)). On each one, `ci` measures the shop of the branch against the one of `main` with the `lite` profile, the rules decide the verdict and Claude Sonnet 5.5 explains each metric that regresses, with the same input that the local model of the workshop gets. The report arrives as a comment on the pull request, with the facts of the rules, and the check fails when the gate fails.
+
+The local model is small so it fits on a laptop next to Chromium; the demo gives the same input to a larger model. To do it locally with your API key, after `ci`:
+
+```bash
+cd agents
+ANTHROPIC_API_KEY=... node src/ci/explain.ts ../out claude-sonnet-5-5   # writes out/report-claude-sonnet-5-5.md
+```
+
 ## Structure
 
 ```

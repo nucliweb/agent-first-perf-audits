@@ -7,7 +7,8 @@
 //      no local LLM, and the handoff files carry the same input for an external agent.
 //   4. The facts of the rules: the lines of the diff they relate to each regressed metric.
 //   5. From the orchestrator, the findings of the subagents for each regressed metric.
-// It writes gate/, traces/, report.json, report.md, report.html, handoff.json and handoff.md to out.
+// It writes gate/, traces/, input.json (what the Judge gets), report.json, report.md, report.html,
+// handoff.json and handoff.md to out. explain.ts reads input.json to explain the run with another model.
 // One Chromium at a time: the measurements and the traces run one after the other.
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -110,6 +111,7 @@ export async function runGate(run: GateRun, found?: Found): Promise<Report> {
 
   // 3. The explanation, and the handoff with the same input
   const input: JudgeInput = { branch: candidateRef, gate, diff: diffOf(repo, baselineRef, candidateRef), traces };
+  await writeFile(join(out, "input.json"), JSON.stringify(input, null, 2) + "\n");
   const handoff = handoffOf(input);
   await writeFile(join(out, "handoff.json"), JSON.stringify(handoff, null, 2) + "\n");
   await writeFile(join(out, "handoff.md"), handoffMarkdown(handoff));
@@ -131,6 +133,7 @@ export async function runGate(run: GateRun, found?: Found): Promise<Report> {
     verdict: gate.verdict,
     gate,
     explanations,
+    ...(explanations && run.ollama && handoff.requests.length ? { explainedBy: run.ollama.model } : {}),
     // 4. The facts of the rules, which the LLM does not see
     ruleFacts: regressedMetrics(gate.scenarios)
       .map(({ metric, scenario }) => ({ metric, scenario, facts: lcpLoadingFacts(input, { metric, scenario }) }))
