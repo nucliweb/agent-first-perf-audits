@@ -49,40 +49,7 @@ export interface LoafReport {
 // One journey, from the answer of run_workflow interaction, without the trace
 export function loafJourneyOf(name: string, answer: any): LoafJourney {
   // workshop: step 3, shape the answer of the interaction workflow into the LoAF and INP of a journey (test/subagents/loaf.test.ts)
-  const step = (id: string) => {
-    const result = answer.results.find((r: { id: string }) => r.id === id);
-    if (result?.status !== "ok" && !(id === "INP" && result?.status === "skipped")) {
-      throw new Error(`${name}: ${id}: ${result?.error ?? result?.message ?? result?.status ?? "no result"}`);
-    }
-    return result;
-  };
-  const inp = step("INP");
-  const frames = step("long-frames").details;
-  const tasks = step("long-tasks").details;
-  const runs = answer.runs.summary.INP;
-  return {
-    name,
-    url: answer.url,
-    inp:
-      inp.status === "ok"
-        ? {
-            value: inp.value,
-            rating: inp.rating,
-            runs: { median: runs.median, min: runs.min, max: runs.max, agreement: runs.agreement ?? null },
-            event: inp.details.worstEvent,
-            phases: inp.details.phases,
-          }
-        : null,
-    longFrames: {
-      count: frames.totalLoAFs,
-      withBlockingTime: frames.withBlockingTime,
-      totalBlockingTimeMs: frames.totalBlockingTimeMs,
-      worstBlockingMs: frames.worstBlockingMs,
-      topScripts: frames.topScripts,
-    },
-    longTasks: { totalBlockingTimeMs: tasks.totalBlockingTimeMs, worstTaskMs: tasks.worstTaskMs },
-    trace: null,
-  };
+  throw new Error("Step 3 of the workshop: shape the answer of the interaction workflow into the LoAF and INP of a journey. Its tests: test/subagents/loaf.test.ts");
   // workshop: end
 }
 
@@ -90,14 +57,7 @@ type JourneyRun = NavigatorReport["journeys"][number];
 
 async function measure(webperf: Client, origin: string, journey: JourneyRun): Promise<LoafJourney> {
   // workshop: step 3, run the interaction workflow with the steps of the journey (test/subagents/loaf.test.ts)
-  const answer = await callTool(webperf, "run_workflow", {
-    url: `${origin}${journey.path}`,
-    workflow: "interaction",
-    interactions: journey.steps.map((s) => s.step),
-    ...CONDITIONS,
-    detail: "full",
-  });
-  return loafJourneyOf(journey.name, answer.structuredContent);
+  throw new Error("Step 3 of the workshop: run the interaction workflow with the steps of the journey. Its tests: test/subagents/loaf.test.ts");
   // workshop: end
 }
 

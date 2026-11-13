@@ -49,26 +49,7 @@ const described = (step: Step) =>
 
 async function runJourney(webperf: Client, origin: string, journey: Journey): Promise<JourneyRun> {
   // workshop: step 3, run the steps of a journey with open_page, interact and read_results (test/subagents/navigator.test.ts)
-  // open_page needs a tracking snippet; INP records nothing until a click and costs nothing
-  const opened = await callTool(webperf, "open_page", { url: `${origin}${journey.path}`, track: ["INP"], ...THROTTLING });
-  const { sessionId, url } = opened.structuredContent as { sessionId: string; url: string };
-  try {
-    // One step per call, so a step that breaks is known by its number
-    const steps: JourneyRun["steps"] = [];
-    for (const [index, step] of journey.interactions.entries()) {
-      try {
-        const done = await callTool(webperf, "interact", { sessionId, steps: [step] });
-        steps.push({ step, url: (done.structuredContent as { url: string }).url });
-      } catch (error) {
-        throw new Error(`journey ${journey.name}, step ${index + 1} (${described(step)}): ${(error as Error).message}`);
-      }
-    }
-    const read = await callTool(webperf, "read_results", { sessionId, detail: "summary" });
-    const { pageErrors = [] } = read.structuredContent as { pageErrors?: string[] };
-    return { name: journey.name, path: journey.path, url, steps, pageErrors };
-  } finally {
-    await callTool(webperf, "close_page", { sessionId }).catch(() => {});
-  }
+  throw new Error("Step 3 of the workshop: run the steps of a journey with open_page, interact and read_results. Its tests: test/subagents/navigator.test.ts");
   // workshop: end
 }
 
