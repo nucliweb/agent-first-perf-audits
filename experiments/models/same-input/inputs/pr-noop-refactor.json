@@ -1,0 +1,79 @@
+{
+  "branch": "origin/pr/noop-refactor",
+  "gate": {
+    "verdict": "pass",
+    "scenarios": [
+      {
+        "scenario": "home",
+        "exitCode": 0,
+        "metrics": {
+          "LCP": {
+            "baseline": 848,
+            "candidate": 840,
+            "deltaPercent": -0.9,
+            "threshold": 100,
+            "p": 0.3763,
+            "verdict": "unchanged"
+          },
+          "CLS": {
+            "baseline": 0,
+            "candidate": 0,
+            "deltaPercent": null,
+            "threshold": 0.05,
+            "p": 1,
+            "verdict": "unchanged"
+          }
+        }
+      },
+      {
+        "scenario": "add-to-cart",
+        "exitCode": 0,
+        "metrics": {
+          "CLS": {
+            "baseline": 0,
+            "candidate": 0,
+            "deltaPercent": null,
+            "threshold": 0.05,
+            "p": 1,
+            "verdict": "unchanged"
+          },
+          "INP": {
+            "baseline": 32,
+            "candidate": 32,
+            "deltaPercent": 0,
+            "threshold": 50,
+            "p": 0.3002,
+            "verdict": "unchanged"
+          }
+        }
+      }
+    ]
+  },
+  "diff": "diff --git a/apps/shop/src/pages.tsx b/apps/shop/src/pages.tsx\nindex 83dbdd0..185e454 100644\n--- a/apps/shop/src/pages.tsx\n+++ b/apps/shop/src/pages.tsx\n@@ -17,30 +17,36 @@ import {\n   type Category,\n } from \"./products.ts\";\n \n+function Hero() {\n+  return (\n+    <section className=\"hero\">\n+      <img\n+        className=\"hero__image\"\n+        data-lcp=\"hero\"\n+        src=\"/images/hero-1200.webp\"\n+        srcSet={heroSrcSet()}\n+        sizes={HERO_SIZES}\n+        width={1600}\n+        height={900}\n+        fetchPriority=\"high\"\n+        alt=\"Freshly brewed specialty coffee\"\n+      />\n+      <div className=\"hero__text\">\n+        <h1 className=\"hero__title\">Roasted on Monday. In your cup by Thursday.</h1>\n+        <p className=\"hero__lead\">Single origins and blends from farms we know, roasted in small batches every week.</p>\n+        <Link to=\"/shop\" className=\"button\">\n+          Browse the coffee\n+        </Link>\n+      </div>\n+    </section>\n+  );\n+}\n+\n export function Home() {\n   useTitle(\"\");\n   return (\n     <>\n-      <section className=\"hero\">\n-        <img\n-          className=\"hero__image\"\n-          data-lcp=\"hero\"\n-          src=\"/images/hero-1200.webp\"\n-          srcSet={heroSrcSet()}\n-          sizes={HERO_SIZES}\n-          width={1600}\n-          height={900}\n-          fetchPriority=\"high\"\n-          alt=\"Freshly brewed specialty coffee\"\n-        />\n-        <div className=\"hero__text\">\n-          <h1 className=\"hero__title\">Roasted on Monday. In your cup by Thursday.</h1>\n-          <p className=\"hero__lead\">Single origins and blends from farms we know, roasted in small batches every week.</p>\n-          <Link to=\"/shop\" className=\"button\">\n-            Browse the coffee\n-          </Link>\n-        </div>\n-      </section>\n+      <Hero />\n       <Section title=\"This week's roasts\">\n         <ProductGrid products={PRODUCTS.filter((p) => p.category === \"coffee\")} />\n       </Section>",
+  "traces": {
+    "home": {
+      "baseline": {
+        "overview": "bounds:\n  durationMs: 2686.45\nmainUrl: \"http://shop-baseline:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 625.62\n    rating: good\n  lcp:\n    valueMs: 812.17\n    rating: good\n    url: \"http://shop-baseline:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 13.56\n  layoutMs: 14.17\n  renderingMs: 16.01\n  gcMs: 0\n  systemMs: 538.34\n  idleMs: 2104.37\n  totalMs: 2686.45\nwarnings[1]: 1 render-blocking resource(s) detected.",
+        "shifts": "clusters: []",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  582.08,63.18,RunTask,null,null,null\n  60.98,60.9,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  57.51,57.44,formatPrice,\"http://shop-baseline:3000/assets/index-Dq8xWP3D.js\",8,66440\n  506.38,49.88,\"ThreadControllerImpl::RunTask\",null,null,null\n  35.18,34.35,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1"
+      },
+      "candidate": {
+        "overview": "bounds:\n  durationMs: 2754.46\nmainUrl: \"http://shop-candidate:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 725.8\n    rating: good\n  lcp:\n    valueMs: 858.96\n    rating: good\n    url: \"http://shop-candidate:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 16.67\n  layoutMs: 12.52\n  renderingMs: 11.11\n  gcMs: 0\n  systemMs: 603.27\n  idleMs: 2110.88\n  totalMs: 2754.46\nwarnings[1]: 1 render-blocking resource(s) detected.",
+        "shifts": "clusters: []",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  643.58,73.21,RunTask,null,null,null\n  559.22,67.4,\"ThreadControllerImpl::RunTask\",null,null,null\n  61.11,61.02,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  53.17,53.16,formatPrice,\"http://shop-candidate:3000/assets/index-DbbniX0m.js\",8,66440\n  113.03,44.98,Receive mojo message,null,null,null"
+      }
+    },
+    "add-to-cart": {
+      "baseline": {
+        "shifts": "clusters: []",
+        "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,48.91,8.57,24.16,16.18,null",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  107.46,107.38,\"CpuProfiler::StartProfiling\",null,null,null\n  148.86,30.22,EvaluateScript,null,null,null\n  205.17,26.86,Receive mojo message,null,null,null\n  272.59,14.23,\"ThreadControllerImpl::RunTask\",null,null,null\n  281.96,8.58,RunTask,null,null,null"
+      },
+      "candidate": {
+        "shifts": "clusters: []",
+        "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,48.41,8.92,23.55,15.94,null",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  97.89,97.79,\"CpuProfiler::StartProfiling\",null,null,null\n  130.14,24.42,EvaluateScript,null,null,null\n  168.28,18.7,Receive mojo message,null,null,null\n  224.7,8.38,\"ThreadControllerImpl::RunTask\",null,null,null\n  24.72,4.33,FunctionCall,null,null,null"
+      }
+    }
+  }
+}

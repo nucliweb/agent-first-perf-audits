@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { diffOf, refOfTag } from "../../src/judge/diff.ts";
+import { branchOf, diffOf, refOfTag } from "../../src/judge/diff.ts";
 
 const REFS = ["main", "pr/lcp-hero-lazy", "origin/pr/cls-promo-banner", "origin/main"];
 
@@ -32,4 +32,12 @@ test("the diff of a regression branch leaves out the tests of the shop", { skip:
   const diff = diffOf(REPO!, "main", "pr/lcp-hero-lazy");
   assert.match(diff, /^\+\+\+ b\/apps\/shop\//m);
   assert.doesNotMatch(diff, /\.test\.(ts|mjs)/);
+});
+
+// In a fresh clone, such as the checkout of GitHub Actions, the branches are only remote; the
+// report and the prompt name them as the branch, without the remote
+test("names a ref as its branch, without the remote", () => {
+  assert.equal(branchOf("origin/pr/lcp-hero-lazy"), "pr/lcp-hero-lazy");
+  assert.equal(branchOf("origin/main"), "main");
+  assert.equal(branchOf("pr/lcp-hero-lazy"), "pr/lcp-hero-lazy");
 });

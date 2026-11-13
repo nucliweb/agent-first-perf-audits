@@ -1,0 +1,106 @@
+{
+  "model": "llama3.2:3b",
+  "source": "same-input.mjs, cold",
+  "answers": {
+    "pr/cls-promo-banner": {
+      "explanations": [
+        {
+          "metric": "CLS",
+          "scenario": "add-to-cart",
+          "source": "llm",
+          "answer": {
+            "verdict": "fail",
+            "metric": "CLS",
+            "suspected_cause": "The change of the diff that most likely caused the regression of the CLS metric is the addition of the line `font-display: swap;` in the `styles.css` file, which introduces a new layout shift cluster.",
+            "evidence": [
+              "The diff of the branch shows the addition of the line `font-display: swap;` in the `styles.css` file, which is likely the cause of the regression.",
+              "The `add-to-cart` page in the candidate branch has a cumulative score of 0.0541, which is higher than the baseline score of 0.0547, indicating a regression in CLS.",
+              "The `add-to-cart` page in the candidate branch has a layout shift cluster with a cumulative score of 0.0541, which is likely the cause of the regression in CLS."
+            ],
+            "confidence": "medium"
+          },
+          "discrepancies": []
+        }
+      ]
+    },
+    "pr/lcp-hero-lazy": {
+      "explanations": [
+        {
+          "metric": "LCP",
+          "scenario": "home",
+          "source": "llm",
+          "answer": {
+            "verdict": "fail",
+            "metric": "LCP",
+            "suspected_cause": "The change of the diff that most likely caused the regression of the LCP metric is the addition of the `loading=\"lazy\"` attribute to the `img` tag in `apps/shop/src/pages.tsx`, which likely caused the browser to delay the loading of the image, leading to a slower LCP.",
+            "evidence": [
+              "The diff shows the addition of the `loading=\"lazy\"` attribute to the `img` tag in `apps/shop/src/pages.tsx`.",
+              "The baseline trace shows an LCP of 842.58 ms, while the candidate trace shows an LCP of 1442.94 ms, indicating a significant increase in LCP.",
+              "The baseline trace does not show any render-blocking resources, while the candidate trace shows a warning about 1 render-blocking resource(s) detected."
+            ],
+            "confidence": "low"
+          },
+          "discrepancies": []
+        }
+      ]
+    },
+    "pr/loaf-cart-handler": {
+      "explanations": [
+        {
+          "metric": "LCP",
+          "scenario": "home",
+          "source": "llm",
+          "answer": {
+            "verdict": "fail",
+            "metric": "LCP",
+            "suspected_cause": "The addition of the script http://thirdparty:4000/ab.js?cpu=150, which takes 153 ms of self time in the candidate, is likely the cause of the regression in the LCP metric.",
+            "evidence": [
+              "The script http://thirdparty:4000/ab.js?cpu=150 is added in apps/shop/index.html by the line: <script src=\"__THIRDPARTY_ORIGIN__/ab.js?cpu=150\"></script>",
+              "The LCP value in the baseline is 784.82 ms, while in the candidate it is 1076.32 ms, indicating a significant increase.",
+              "The LCP value is calculated based on the element with the lowest latency, which in this case is the IMG class='hero__image' with a value of 1076.32 ms."
+            ],
+            "confidence": "high"
+          },
+          "discrepancies": []
+        },
+        {
+          "metric": "INP",
+          "scenario": "add-to-cart",
+          "source": "llm",
+          "answer": {
+            "verdict": "fail",
+            "metric": "INP",
+            "suspected_cause": "The change of the function recommendFor added in apps/shop/src/pages.tsx by the line: setRecommended(recommendFor(product.slug)); likely caused the regression of the INP metric.",
+            "evidence": [
+              "The function recommendFor added in apps/shop/src/pages.tsx by the line: setRecommended(recommendFor(product.slug));",
+              "The candidate branch has 192 ms of INP time, while the baseline branch has 32 ms of INP time.",
+              "The candidate branch has 174 ms of self time in the recommendFor function, while the baseline branch has 0 ms in the recommendFor function."
+            ],
+            "confidence": "high"
+          },
+          "discrepancies": []
+        }
+      ]
+    },
+    "pr/noop-refactor": {
+      "explanations": [
+        {
+          "metric": "none",
+          "scenario": null,
+          "source": "rules",
+          "answer": {
+            "verdict": "pass",
+            "metric": "none",
+            "suspected_cause": "Nothing regressed: no metric of the gate went beyond its threshold.",
+            "evidence": [
+              "home: LCP unchanged, CLS unchanged",
+              "add-to-cart: CLS unchanged, INP unchanged"
+            ],
+            "confidence": "high"
+          },
+          "discrepancies": []
+        }
+      ]
+    }
+  }
+}

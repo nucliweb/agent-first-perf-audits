@@ -124,6 +124,19 @@ The latency changes a lot with the load of the machine. Warm, in the `quotes` st
 
 The host load average is no use to watch the measurement while it runs: during each call, Ollama uses almost every core of the Docker VM and the load shoots up. It has to be checked before starting.
 
+## The same input to a larger model
+
+`same-input/` keeps the input of the Judge (`input.json`) of the four runs of the demo on GitHub Actions ([`perf-gate.yml`](../../.github/workflows/perf-gate.yml)), and the answers of Claude Sonnet 5.5 in those runs, taken from their artifacts. `node same-input.mjs` gives those same inputs to `llama3.2:3b` cold, with the same `explain()` of the Judge, and writes `same-input/answers/llama3.2-3b.json`; two runs in a row give the same file. Claude gets the same prompt plus one line with the length limits of the schema, which its structured output does not take.
+
+| Branch and metric | Claude Sonnet 5.5 | `llama3.2:3b` |
+|---|---|---|
+| `pr/lcp-hero-lazy`, LCP | The three changes: `fetchPriority`, `loading="lazy"` and the preload | Only `loading="lazy"` |
+| `pr/cls-promo-banner`, CLS | The `min-height` removed from `.promo-slot` | The `font-display: swap` |
+| `pr/loaf-cart-handler`, LCP | Synchronous `ab.js` | Synchronous `ab.js` |
+| `pr/loaf-cart-handler`, INP | `recommendFor` | `recommendFor` |
+
+`claims.test.mjs` checks each row on the saved answers, and that `llama3.2:3b` copies the wording of the prompt in 2 of the 4 sentences and Claude in none.
+
 ## Versions
 
 `ollama/ollama` 0.40.13, `ajv` 8.20.0, `playwright` 1.63.0 and `trace-engine-cli` 0.2.0. The models are pulled by their Ollama tag.

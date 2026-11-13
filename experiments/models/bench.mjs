@@ -103,7 +103,7 @@ async function chat(model, mode, input, target = null, suspects = undefined, mat
 
 const loadedModels = async () => (await (await fetch(`${OLLAMA}/api/ps`)).json()).models ?? [];
 
-async function unloadAll() {
+export async function unloadAll() {
   for (const { name } of await loadedModels()) {
     await fetch(`${OLLAMA}/api/generate`, { method: "POST", body: JSON.stringify({ model: name, keep_alive: 0 }) });
   }

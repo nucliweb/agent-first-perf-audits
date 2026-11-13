@@ -215,6 +215,19 @@ Con varias causas a la vez, el modelo nombra una. `pr/lcp-hero-lazy` quita el pr
 - **El informe de `ci` añade los hechos de las reglas**: el elemento LCP del trace y las líneas del diff que cambian cómo carga, también las que nombran su imagen ([`lcp-loading.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/src/judge/lcp-loading.ts)). El LLM no los ve, así que su entrada y las cifras de esta sección no cambian.
 - **Un modelo más potente recibe la misma entrada en `handoff.md`.** El modelo del taller es pequeño para que quepa en un portátil; el handoff lo dice, para quien quiera probar la misma entrada con Claude, Gemini u otro.
 
+### La misma entrada a un modelo más grande
+
+En la demo de GitHub Actions, Claude Sonnet 5.5 explica las regresiones de las cuatro pull requests con la misma entrada que recibe `llama3.2:3b`. Sobre esas mismas entradas, `llama3.2:3b` en frío:
+
+| Rama y métrica | Claude Sonnet 5.5 | `llama3.2:3b` |
+|---|---|---|
+| `pr/lcp-hero-lazy`, LCP | Los tres cambios: `fetchPriority`, `loading="lazy"` y el preload | Solo `loading="lazy"` |
+| `pr/cls-promo-banner`, CLS | El `min-height` borrado de `.promo-slot`, que reservaba el hueco del banner | El `font-display: swap` |
+| `pr/loaf-cart-handler`, LCP | `ab.js` síncrono | `ab.js` síncrono |
+| `pr/loaf-cart-handler`, INP | `recommendFor` en el handler del click | `recommendFor` en el handler del click |
+
+Con el criterio del benchmark, los dos nombran la causa de las cuatro métricas. La diferencia está en cuál y en cuántas: con varios cambios en el diff, el modelo grande los relaciona todos con la regresión, y el pequeño se queda con uno, que no siempre es el principal. Además, `llama3.2:3b` copia la redacción del prompt en 2 de las 4 frases, y Claude en ninguna. El veredicto no cambia con el modelo: lo deciden las reglas. Las entradas y las respuestas están en [`experiments/models/same-input`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/models/same-input).
+
 ### Compruébalo
 
 El experimento está en [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/models/README.es.md). Las respuestas están guardadas, las actuales en `results/` y las de la primera medida en `history/2026-11-10/` con sus fixtures, así que el test comprueba estas cifras sin necesitar Ollama:
@@ -225,6 +238,7 @@ npm install
 npm test                          # reglas, puntuación y las cifras de cada etapa
 STAGE=llm COLD=1 REPS=1 MODES=schema node bench.mjs   # una etapa con los cuatro modelos, en frío
 STAGE=quotes COLD=1 REPS=1 MODES=schema node bench.mjs llama3.2:3b   # la etapa del Judge
+node same-input.mjs                # la misma entrada que Claude en la demo, a llama3.2:3b en frío
 ```
 
 La latencia depende mucho de la carga de la máquina. En caliente, en la etapa `quotes` y con la máquina en reposo al empezar, las 12 llamadas de `llama3.2:3b` tardaron entre 13,7 y 40,3 segundos, con una mediana de 23,2 s. En la etapa `rules` de la primera medida, en un portátil en uso normal, entre 9 y 37 segundos, con una mediana de 15,8 s. En frío, cada llamada incluye cargar el modelo y la mediana sube a 46-48 s. La carga media del host no sirve para vigilar la medida mientras corre: durante cada llamada, Ollama usa casi todos los núcleos de la VM de Docker y la carga se dispara. Hay que mirarla antes de empezar.

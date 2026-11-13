@@ -13,7 +13,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "playwright";
-import { diffOf, refOfTag, refsOf } from "../judge/diff.ts";
+import { branchOf, diffOf, refOfTag, refsOf } from "../judge/diff.ts";
 import { findingsFor, type Found } from "../judge/findings.ts";
 import { CONDITIONS, gateOf, measureWithCli, SCENARIOS, type ScenarioResult } from "../judge/gate.ts";
 import { handoffMarkdown, handoffOf } from "../judge/handoff.ts";
@@ -66,7 +66,7 @@ export function gateRunFromEnv(out: string, log: GateRun["log"]): GateRun {
 // found: what the subagents of the orchestrator measured, for the findings; ci has none
 export async function runGate(run: GateRun, found?: Found): Promise<Report> {
   const { urls, repo, out, profile, baselineRef, candidateRef, log } = run;
-  log(`${candidateRef} against ${baselineRef}, ${profile} profile`);
+  log(`${branchOf(candidateRef)} against ${branchOf(baselineRef)}, ${profile} profile`);
 
   await mkdir(join(out, "gate"), { recursive: true });
   await mkdir(join(out, "traces"), { recursive: true });
@@ -110,7 +110,7 @@ export async function runGate(run: GateRun, found?: Found): Promise<Report> {
   }
 
   // 3. The explanation, and the handoff with the same input
-  const input: JudgeInput = { branch: candidateRef, gate, diff: diffOf(repo, baselineRef, candidateRef), traces };
+  const input: JudgeInput = { branch: branchOf(candidateRef), gate, diff: diffOf(repo, baselineRef, candidateRef), traces };
   await writeFile(join(out, "input.json"), JSON.stringify(input, null, 2) + "\n");
   const handoff = handoffOf(input);
   await writeFile(join(out, "handoff.json"), JSON.stringify(handoff, null, 2) + "\n");
@@ -126,8 +126,8 @@ export async function runGate(run: GateRun, found?: Found): Promise<Report> {
   }
 
   const report: Report = {
-    branch: candidateRef,
-    baseline: baselineRef,
+    branch: branchOf(candidateRef),
+    baseline: branchOf(baselineRef),
     profile,
     conditions: [CONDITIONS.join(" "), browserBuild].filter(Boolean).join(", "),
     verdict: gate.verdict,

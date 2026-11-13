@@ -1,0 +1,79 @@
+{
+  "branch": "origin/pr/lcp-hero-lazy",
+  "gate": {
+    "verdict": "fail",
+    "scenarios": [
+      {
+        "scenario": "home",
+        "exitCode": 1,
+        "metrics": {
+          "LCP": {
+            "baseline": 848,
+            "candidate": 1236,
+            "deltaPercent": 45.8,
+            "threshold": 100,
+            "p": 0.006,
+            "verdict": "regressed"
+          },
+          "CLS": {
+            "baseline": 0,
+            "candidate": 0,
+            "deltaPercent": null,
+            "threshold": 0.05,
+            "p": 1,
+            "verdict": "unchanged"
+          }
+        }
+      },
+      {
+        "scenario": "add-to-cart",
+        "exitCode": 0,
+        "metrics": {
+          "CLS": {
+            "baseline": 0,
+            "candidate": 0,
+            "deltaPercent": null,
+            "threshold": 0.05,
+            "p": 1,
+            "verdict": "unchanged"
+          },
+          "INP": {
+            "baseline": 32,
+            "candidate": 32,
+            "deltaPercent": 0,
+            "threshold": 50,
+            "p": 0.8169,
+            "verdict": "unchanged"
+          }
+        }
+      }
+    ]
+  },
+  "diff": "diff --git a/apps/shop/src/pages.tsx b/apps/shop/src/pages.tsx\nindex 83dbdd0..6fb5a12 100644\n--- a/apps/shop/src/pages.tsx\n+++ b/apps/shop/src/pages.tsx\n@@ -30,7 +30,7 @@ export function Home() {\n           sizes={HERO_SIZES}\n           width={1600}\n           height={900}\n-          fetchPriority=\"high\"\n+          loading=\"lazy\"\n           alt=\"Freshly brewed specialty coffee\"\n         />\n         <div className=\"hero__text\">\ndiff --git a/apps/shop/src/products.ts b/apps/shop/src/products.ts\nindex 63c2817..cae0344 100644\n--- a/apps/shop/src/products.ts\n+++ b/apps/shop/src/products.ts\n@@ -115,7 +115,6 @@ export const PRODUCT_PAGE_SIZES = \"(min-width: 960px) 50vw, 100vw\";\n // The LCP image of a route. server.mjs preloads it from the HTML, so the browser fetches it\n // while the JavaScript of the app downloads, instead of after the app renders the page.\n export function lcpImageFor(pathname: string) {\n-  if (pathname === \"/\") return { href: \"/images/hero-1200.webp\", srcset: heroSrcSet(), sizes: HERO_SIZES };\n   const slug = pathname.match(/^\\/product\\/([\\w-]+)$/)?.[1];\n   if (slug && productBySlug(slug)) {\n     return { href: productSrc(slug, 800), srcset: productSrcSet(slug), sizes: PRODUCT_PAGE_SIZES };",
+  "traces": {
+    "home": {
+      "baseline": {
+        "overview": "bounds:\n  durationMs: 2723.54\nmainUrl: \"http://shop-baseline:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 700.3\n    rating: good\n  lcp:\n    valueMs: 842.58\n    rating: good\n    url: \"http://shop-baseline:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 17.15\n  layoutMs: 13.97\n  renderingMs: 14.93\n  gcMs: 0\n  systemMs: 620.19\n  idleMs: 2057.3\n  totalMs: 2723.54\nwarnings[1]: 1 render-blocking resource(s) detected.",
+        "shifts": "clusters: []",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  666.24,76.42,RunTask,null,null,null\n  577.21,72.9,\"ThreadControllerImpl::RunTask\",null,null,null\n  58.04,57.34,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  55.11,54.81,formatPrice,\"http://shop-baseline:3000/assets/index-Dq8xWP3D.js\",8,66440\n  162.84,42.08,\"SimpleWatcher::OnHandleReady\",null,null,null"
+      },
+      "candidate": {
+        "overview": "bounds:\n  durationMs: 2954.01\nmainUrl: \"http://shop-candidate:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 830.99\n    rating: good\n  lcp:\n    valueMs: 1442.94\n    rating: good\n    url: \"http://shop-candidate:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 18.57\n  layoutMs: 14\n  renderingMs: 16.66\n  gcMs: 0\n  systemMs: 790.06\n  idleMs: 2114.72\n  totalMs: 2954.01\nwarnings[1]: 1 render-blocking resource(s) detected.",
+        "shifts": "clusters: []",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  839.29,95.62,RunTask,null,null,null\n  731.83,95.41,\"ThreadControllerImpl::RunTask\",null,null,null\n  83.31,83.3,formatPrice,\"http://shop-candidate:3000/assets/index-CG2uOPZs.js\",8,66440\n  61.18,61.05,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  168.46,56.87,Receive mojo message,null,null,null"
+      }
+    },
+    "add-to-cart": {
+      "baseline": {
+        "shifts": "clusters: []",
+        "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,54.31,11.07,23.94,19.31,null",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  118.74,117.08,\"CpuProfiler::StartProfiling\",null,null,null\n  157.59,29.52,EvaluateScript,null,null,null\n  200.47,20.05,Receive mojo message,null,null,null\n  269.72,12.84,\"ThreadControllerImpl::RunTask\",null,null,null\n  274.57,4.42,RunTask,null,null,null"
+      },
+      "candidate": {
+        "shifts": "clusters: []",
+        "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,58.14,12.41,26.05,19.67,null",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  125.69,125.59,\"CpuProfiler::StartProfiling\",null,null,null\n  167.91,32.87,EvaluateScript,null,null,null\n  215.69,26.95,Receive mojo message,null,null,null\n  292.31,19.46,\"ThreadControllerImpl::RunTask\",null,null,null\n  31.18,6.8,FunctionCall,null,null,null"
+      }
+    }
+  }
+}

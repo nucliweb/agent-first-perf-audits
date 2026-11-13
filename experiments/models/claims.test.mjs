@@ -160,3 +160,43 @@ test("current fixtures, quotes warm: 12 calls to llama3.2:3b with a median of 23
   assert.equal(Math.round(ms.at(-1) / 100) / 10, 40.3);
   assert.equal(rows.filter((r) => r.score.cause).length, 12);
 });
+
+// The same input to the local model and to a larger one: the input.json of the Judge in the runs of
+// the demo on GitHub Actions, explained there by Claude Sonnet 5.5 and here by llama3.2:3b, cold
+// (same-input.mjs)
+const sameInput = async (model) => JSON.parse(await readFile(new URL(`same-input/answers/${model}.json`, import.meta.url), "utf8")).answers;
+const sentencesOf = (answers) =>
+  Object.entries(answers).flatMap(([ref, { explanations }]) =>
+    explanations.filter((e) => e.source === "llm").map((e) => ({ ref, metric: e.metric, cause: e.answer.suspected_cause, confidence: e.answer.confidence })),
+  );
+const sentenceOf = (answers, ref, metric) => sentencesOf(answers).find((s) => s.ref === ref && s.metric === metric).cause;
+
+test("same input: Claude Sonnet 5.5 and llama3.2:3b name the cause of the 4 regressed metrics, by the criterion of the benchmark", async () => {
+  const expected = Object.fromEntries(current.map((f) => [f.ref, f.expected]));
+  for (const model of ["claude-sonnet-5-5", "llama3.2-3b"]) {
+    const sentences = sentencesOf(await sameInput(model));
+    assert.equal(sentences.length, 4, model);
+    for (const s of sentences) assert.match(s.cause, new RegExp(expected[s.ref][s.metric], "i"), `${model} ${s.ref} ${s.metric}`);
+  }
+});
+
+test("same input, hero branch: Claude names the three changes, llama3.2:3b only loading=\"lazy\"", async () => {
+  const claude = sentenceOf(await sameInput("claude-sonnet-5-5"), "pr/lcp-hero-lazy", "LCP");
+  for (const change of [/fetchPriority/, /loading="lazy"/, /preload/]) assert.match(claude, change);
+  const llama = sentenceOf(await sameInput("llama3.2-3b"), "pr/lcp-hero-lazy", "LCP");
+  assert.match(llama, /loading="lazy"/);
+  assert.doesNotMatch(llama, /preload|fetch-?priority/i);
+});
+
+test("same input, banner branch: Claude names the min-height of the promo slot, llama3.2:3b the font swap", async () => {
+  assert.match(sentenceOf(await sameInput("claude-sonnet-5-5"), "pr/cls-promo-banner", "CLS"), /promo-slot min-height/);
+  const llama = sentenceOf(await sameInput("llama3.2-3b"), "pr/cls-promo-banner", "CLS");
+  assert.match(llama, /font-display: swap/);
+  assert.doesNotMatch(llama, /min-height/);
+});
+
+test("same input: llama3.2:3b copies the wording of the prompt in 2 of 4 sentences, Claude in none", async () => {
+  const copied = (answers) => sentencesOf(answers).filter((s) => /most likely caused the regression/.test(s.cause)).length;
+  assert.equal(copied(await sameInput("llama3.2-3b")), 2);
+  assert.equal(copied(await sameInput("claude-sonnet-5-5")), 0);
+});

@@ -124,6 +124,19 @@ La latencia cambia mucho con la carga de la máquina. En caliente, en la etapa `
 
 La carga media del host no sirve para vigilar la medida mientras corre: durante cada llamada, Ollama usa casi todos los núcleos de la VM de Docker y la carga se dispara. Hay que mirarla antes de empezar.
 
+## La misma entrada a un modelo más grande
+
+`same-input/` guarda la entrada del Judge (`input.json`) de los cuatro runs de la demo en GitHub Actions ([`perf-gate.yml`](../../.github/workflows/perf-gate.yml)), y las respuestas de Claude Sonnet 5.5 en esos runs, sacadas de sus artifacts. `node same-input.mjs` pasa esas mismas entradas a `llama3.2:3b` en frío, con el mismo `explain()` del Judge, y escribe `same-input/answers/llama3.2-3b.json`; dos ejecuciones seguidas dan el mismo fichero. Claude recibe el mismo prompt más una línea con los límites de longitud del schema, que su salida estructurada no admite.
+
+| Rama y métrica | Claude Sonnet 5.5 | `llama3.2:3b` |
+|---|---|---|
+| `pr/lcp-hero-lazy`, LCP | Los tres cambios: `fetchPriority`, `loading="lazy"` y el preload | Solo `loading="lazy"` |
+| `pr/cls-promo-banner`, CLS | El `min-height` borrado de `.promo-slot` | El `font-display: swap` |
+| `pr/loaf-cart-handler`, LCP | `ab.js` síncrono | `ab.js` síncrono |
+| `pr/loaf-cart-handler`, INP | `recommendFor` | `recommendFor` |
+
+`claims.test.mjs` comprueba cada fila sobre las respuestas guardadas, y que `llama3.2:3b` copia la redacción del prompt en 2 de las 4 frases y Claude en ninguna.
+
 ## Versiones
 
 `ollama/ollama` 0.40.13, `ajv` 8.20.0, `playwright` 1.63.0 y `trace-engine-cli` 0.2.0. Los modelos se descargan por su etiqueta de Ollama.

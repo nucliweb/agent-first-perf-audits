@@ -1,0 +1,79 @@
+{
+  "branch": "origin/pr/cls-promo-banner",
+  "gate": {
+    "verdict": "fail",
+    "scenarios": [
+      {
+        "scenario": "home",
+        "exitCode": 1,
+        "metrics": {
+          "LCP": {
+            "baseline": 768,
+            "candidate": 772,
+            "deltaPercent": 0.5,
+            "threshold": 100,
+            "p": 0.4582,
+            "verdict": "unchanged"
+          },
+          "CLS": {
+            "baseline": 0,
+            "candidate": 0.053,
+            "deltaPercent": null,
+            "threshold": 0.05,
+            "p": 0.002,
+            "verdict": "regressed"
+          }
+        }
+      },
+      {
+        "scenario": "add-to-cart",
+        "exitCode": 1,
+        "metrics": {
+          "CLS": {
+            "baseline": 0,
+            "candidate": 0.0547,
+            "deltaPercent": null,
+            "threshold": 0.05,
+            "p": 0.002,
+            "verdict": "regressed"
+          },
+          "INP": {
+            "baseline": 32,
+            "candidate": 24,
+            "deltaPercent": -25,
+            "threshold": 50,
+            "p": 0.0416,
+            "verdict": "unchanged"
+          }
+        }
+      }
+    ]
+  },
+  "diff": "diff --git a/apps/shop/index.html b/apps/shop/index.html\nindex 3c324d7..1120ab3 100644\n--- a/apps/shop/index.html\n+++ b/apps/shop/index.html\n@@ -7,7 +7,6 @@\n     <meta name=\"description\" content=\"Specialty coffee and brewing gear, roasted every week.\" />\n     <link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\" />\n     <!-- lcp-preload -->\n-    <link rel=\"preload\" href=\"/fonts/fraunces-latin-600-normal.woff2\" as=\"font\" type=\"font/woff2\" crossorigin />\n     <script async src=\"__THIRDPARTY_ORIGIN__/analytics.js?delay=100&cpu=30\"></script>\n     <script async src=\"__THIRDPARTY_ORIGIN__/promo.js?delay=800&cpu=20\"></script>\n     <script defer src=\"__THIRDPARTY_ORIGIN__/chat.js?delay=300&cpu=60\"></script>\ndiff --git a/apps/shop/src/styles.css b/apps/shop/src/styles.css\nindex 833ad0f..52e34d8 100644\n--- a/apps/shop/src/styles.css\n+++ b/apps/shop/src/styles.css\n@@ -5,7 +5,7 @@\n   src: url(\"/fonts/fraunces-latin-600-normal.woff2\") format(\"woff2\");\n   font-weight: 600;\n   font-style: normal;\n-  font-display: optional;\n+  font-display: swap;\n }\n \n :root {\n@@ -99,11 +99,6 @@ h3 {\n   line-height: 22px;\n }\n \n-/* Reserves the height of the third-party promo banner */\n-.promo-slot {\n-  min-height: 48px;\n-}\n-\n .hero {\n   display: grid;\n   gap: 24px;",
+  "traces": {
+    "home": {
+      "baseline": {
+        "overview": "bounds:\n  durationMs: 2633.15\nmainUrl: \"http://shop-baseline:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 606.43\n    rating: good\n  lcp:\n    valueMs: 753.21\n    rating: good\n    url: \"http://shop-baseline:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0\n    rating: good\n    worstClusterScore: null\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 9.39\n  layoutMs: 13.41\n  renderingMs: 14.86\n  gcMs: 0\n  systemMs: 450.98\n  idleMs: 2144.51\n  totalMs: 2633.15\nwarnings[1]: 1 render-blocking resource(s) detected.",
+        "shifts": "clusters: []",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  60.58,60.48,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  444.5,53.39,\"ThreadControllerImpl::RunTask\",null,null,null\n  38.45,38.44,formatPrice,\"http://shop-baseline:3000/assets/index-Dq8xWP3D.js\",8,66440\n  488.64,36.01,RunTask,null,null,null\n  34.54,33.62,ProfileCall,\"http://thirdparty:4000/analytics.js?delay=100&cpu=30\",0,1"
+      },
+      "candidate": {
+        "overview": "bounds:\n  durationMs: 2725.58\nmainUrl: \"http://shop-candidate:3000/\"\ncoreWebVitals:\n  fcp:\n    valueMs: 617.22\n    rating: good\n  lcp:\n    valueMs: 783.55\n    rating: good\n    url: \"http://shop-candidate:3000/images/hero-800.webp\"\n    element: IMG class='hero__image'\n  cls:\n    value: 0.0524\n    rating: good\n    worstClusterScore: 0.0524\n  inp: null\nmainThreadBreakdown:\n  scriptingMs: 10.37\n  layoutMs: 17.14\n  renderingMs: 14.92\n  gcMs: 0\n  systemMs: 519.54\n  idleMs: 2163.61\n  totalMs: 2725.58\nwarnings[1]: 1 render-blocking resource(s) detected.",
+        "shifts": "clusters[1]:\n  - durationMs: 1000\n    cumulativeScore: 0.0524\n    culprits[3]{nodeId,tagName,selector,debugName,scoreDelta}:\n      16,null,Node #16,null,0.0524\n      36,null,Node #36,null,0.0524\n      42,null,Node #42,null,0.0524",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  60.64,60.1,ProfileCall,\"http://thirdparty:4000/chat.js?delay=300&cpu=60\",0,1\n  561.97,53.01,RunTask,null,null,null\n  500.73,51.84,\"ThreadControllerImpl::RunTask\",null,null,null\n  48.05,48.02,\"LocalFrameView::performLayout\",null,null,null\n  43.16,43.16,formatPrice,\"http://shop-candidate:3000/assets/index-B4JK7bbx.js\",8,66440"
+      }
+    },
+    "add-to-cart": {
+      "baseline": {
+        "shifts": "clusters: []",
+        "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,41.24,7.69,19.19,14.37,null",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  85.35,85.24,\"CpuProfiler::StartProfiling\",null,null,null\n  113.03,20.73,EvaluateScript,null,null,null\n  145.85,15.87,Receive mojo message,null,null,null\n  193.33,7.37,\"ThreadControllerImpl::RunTask\",null,null,null\n  22.05,4.62,FunctionCall,null,null,null"
+      },
+      "candidate": {
+        "shifts": "clusters[1]:\n  - durationMs: 1000\n    cumulativeScore: 0.0541\n    culprits[3]{nodeId,tagName,selector,debugName,scoreDelta}:\n      16,null,Node #16,null,0.0541\n      41,null,Node #41,null,0.0541\n      43,null,Node #43,null,0.0541",
+        "interactions": "interactions[1]{eventType,durationMs,inputDelayMs,processingDurationMs,presentationDelayMs,targetElement}:\n  pointerdown,42.6,7.96,19.44,15.21,null",
+        "tasks": "mode: bottom-up\ntasks[5]{durationMs,selfTimeMs,functionName,url,lineNumber,columnNumber}:\n  86.86,86.11,\"CpuProfiler::StartProfiling\",null,null,null\n  114.4,22.26,EvaluateScript,null,null,null\n  148.43,18.91,Receive mojo message,null,null,null\n  201.74,8.54,\"ThreadControllerImpl::RunTask\",null,null,null\n  22.21,8.01,FunctionCall,null,null,null"
+      }
+    }
+  }
+}

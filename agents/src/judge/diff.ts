@@ -22,3 +22,7 @@ export function refOfTag(tag: string, refs: string[]): string {
   if (!ref) throw new Error(`No branch of the repo builds the shop image ${tag}. Fetch the branches of the repo first.`);
   return ref;
 }
+
+// The branch of a ref, without the remote: origin/pr/lcp-hero-lazy is pr/lcp-hero-lazy. The diff
+// needs the ref; the report and the prompt name the branch, as on the laptop of an attendee.
+export const branchOf = (ref: string) => ref.replace(/^origin\//, "");

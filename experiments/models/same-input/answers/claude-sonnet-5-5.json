@@ -1,0 +1,89 @@
+{
+  "model": "claude-sonnet-5-5",
+  "source": "GitHub Actions, perf-gate.yml, 2026-11-13",
+  "answers": {
+    "pr/lcp-hero-lazy": {
+      "run": "https://github.com/nucliweb/agent-first-perf-audits/actions/runs/43417811796",
+      "explanations": [
+        {
+          "metric": "LCP",
+          "scenario": "home",
+          "source": "llm",
+          "answer": {
+            "verdict": "fail",
+            "metric": "LCP",
+            "suspected_cause": "The hero image lost fetchPriority=\"high\" and became loading=\"lazy\" (pages.tsx), and the server preload for \"/\" was removed from lcpImageFor (products.ts), so the LCP image is discovered and fetched later.",
+            "evidence": [
+              "pages.tsx: fetchPriority=\"high\" replaced by loading=\"lazy\" on the hero image, which is the LCP element (IMG class='hero__image', hero-800.webp)",
+              "products.ts: removed the line returning the hero preload for pathname === \"/\" from lcpImageFor, so server.mjs no longer preloads it",
+              "home LCP 848 ms -> 1236 ms (+45.8%) while FCP and scripting stay close, so the delay is in loading the image"
+            ],
+            "confidence": "high"
+          },
+          "discrepancies": []
+        }
+      ]
+    },
+    "pr/cls-promo-banner": {
+      "run": "https://github.com/nucliweb/agent-first-perf-audits/actions/runs/43417818197",
+      "explanations": [
+        {
+          "metric": "CLS",
+          "scenario": "add-to-cart",
+          "source": "llm",
+          "answer": {
+            "verdict": "fail",
+            "metric": "CLS",
+            "suspected_cause": "The branch deletes the .promo-slot min-height rule in styles.css, so the space for the late-loading third-party promo banner (promo.js, delay=800) is no longer reserved and the content shifts when it is injected.",
+            "evidence": [
+              "styles.css diff removes '.promo-slot { min-height: 48px; }', which reserved the promo banner height; promo.js loads async with delay=800",
+              "add-to-cart candidate has a layout shift cluster of 0.0541 with 3 shifted nodes; baseline has none (CLS 0 -> 0.0547)",
+              "The same missing slot shows on home: CLS 0 -> 0.0524 with 3 culprit nodes, while the baseline has no clusters"
+            ],
+            "confidence": "medium"
+          },
+          "discrepancies": []
+        }
+      ]
+    },
+    "pr/loaf-cart-handler": {
+      "run": "https://github.com/nucliweb/agent-first-perf-audits/actions/runs/43417822835",
+      "explanations": [
+        {
+          "metric": "LCP",
+          "scenario": "home",
+          "source": "llm",
+          "answer": {
+            "verdict": "fail",
+            "metric": "LCP",
+            "suspected_cause": "The branch adds a synchronous, render-blocking third-party script, ab.js?cpu=150, in the head of apps/shop/index.html. It burns about 153 ms of main-thread time before the hero image can render, which delays LCP on home.",
+            "evidence": [
+              "Diff adds in apps/shop/index.html: <script src=\"__THIRDPARTY_ORIGIN__/ab.js?cpu=150\"></script> with no async or defer",
+              "Candidate home trace: ab.js ProfileCall has 153.38 ms self time, absent from the baseline; render-blocking resources go from 1 to 2",
+              "home LCP 800 ms -> 1124 ms (+40.5%); FCP in the trace rises from 668 ms to 976 ms, with the same hero-800.webp LCP element"
+            ],
+            "confidence": "high"
+          },
+          "discrepancies": []
+        },
+        {
+          "metric": "INP",
+          "scenario": "add-to-cart",
+          "source": "llm",
+          "answer": {
+            "verdict": "fail",
+            "metric": "INP",
+            "suspected_cause": "The click handler onAdd in apps/shop/src/pages.tsx now calls setRecommended(recommendFor(product.slug)). recommendFor runs a nested loop over 3000 orders (about 9M iterations) synchronously, blocking the main thread during the interaction.",
+            "evidence": [
+              "Diff line in pages.tsx onAdd: setRecommended(recommendFor(product.slug)); recommendations.ts loops ORDERS (3000) inside ORDERS, an O(n^2) scan.",
+              "Trace add-to-cart candidate: recommendFor in /assets/index-BsVNkX21.js line 8 has 173.5 ms self time; absent from the baseline tasks.",
+              "Interaction pointerdown: processing 19.39 ms -> 205.35 ms; input delay and presentation delay unchanged; INP 32 -> 192 ms."
+            ],
+            "confidence": "high"
+          },
+          "discrepancies": []
+        }
+      ]
+    }
+  }
+}

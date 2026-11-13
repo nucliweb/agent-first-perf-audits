@@ -215,6 +215,19 @@ With several causes at once, the model names one. `pr/lcp-hero-lazy` removes the
 - **The `ci` report adds the facts of the rules**: the LCP element of the trace and the lines of the diff that change how it loads, including the ones that name its image ([`lcp-loading.ts`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/src/judge/lcp-loading.ts)). The LLM does not see them, so its input and the figures of this section do not change.
 - **A more capable model gets the same input in `handoff.md`.** The workshop model is small so it fits on a laptop; the handoff says so, for anyone who wants to try the same input with Claude, Gemini or another one.
 
+### The same input to a larger model
+
+In the demo on GitHub Actions, Claude Sonnet 5.5 explains the regressions of the four pull requests with the same input that `llama3.2:3b` gets. On those same inputs, `llama3.2:3b`, cold:
+
+| Branch and metric | Claude Sonnet 5.5 | `llama3.2:3b` |
+|---|---|---|
+| `pr/lcp-hero-lazy`, LCP | The three changes: `fetchPriority`, `loading="lazy"` and the preload | Only `loading="lazy"` |
+| `pr/cls-promo-banner`, CLS | The `min-height` removed from `.promo-slot`, which reserved the space of the banner | The `font-display: swap` |
+| `pr/loaf-cart-handler`, LCP | Synchronous `ab.js` | Synchronous `ab.js` |
+| `pr/loaf-cart-handler`, INP | `recommendFor` in the click handler | `recommendFor` in the click handler |
+
+By the criterion of the benchmark, both name the cause of the four metrics. The difference is in which one and how many: with several changes in the diff, the large model relates all of them to the regression, and the small one settles on one, which is not always the main one. Besides, `llama3.2:3b` copies the wording of the prompt in 2 of the 4 sentences, and Claude in none. The verdict does not change with the model: the rules decide it. The inputs and the answers are in [`experiments/models/same-input`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/models/same-input).
+
 ### Check it
 
 The experiment is in [`experiments/models`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/models). The answers are saved, the current ones in `results/` and those of the first measurement in `history/2026-11-10/` with their fixtures, so the test checks these figures without needing Ollama:
@@ -225,6 +238,7 @@ npm install
 npm test                          # rules, scoring and the figures of each stage
 STAGE=llm COLD=1 REPS=1 MODES=schema node bench.mjs   # one stage with the four models, cold
 STAGE=quotes COLD=1 REPS=1 MODES=schema node bench.mjs llama3.2:3b   # the Judge stage
+node same-input.mjs                # the same input as Claude in the demo, to llama3.2:3b cold
 ```
 
 Latency depends heavily on the machine load. Warm, in the `quotes` stage and with the machine idle at the start, the 12 calls of `llama3.2:3b` took between 13.7 and 40.3 seconds, with a median of 23.2 s. In the `rules` stage of the first measurement, on a laptop in normal use, between 9 and 37 seconds, with a median of 15.8 s. Cold, each call includes loading the model and the median rises to 46-48 s. The host load average is no use for monitoring the measurement while it runs: during each call, Ollama uses almost every core of the Docker VM and the load spikes. You have to check it before starting.
