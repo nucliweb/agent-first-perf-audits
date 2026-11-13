@@ -1,5 +1,7 @@
 # agent-first-perf-audits
 
+[English](README.md) · [Castellano](README.es.md) · Català
+
 Repositori del taller **Multi-Agent Performance Audits: Automatizando Core Web Vitals en tu plataforma interna con MCP**, de PerfReviews.
 
 Construïm un gate de rendiment per a pull requests amb agents: mesuren una botiga d'exemple abans i després d'un canvi, decideixen si ha empitjorat i expliquen per què. Tot s'executa al teu portàtil amb Docker Compose, sense sortida a internet.

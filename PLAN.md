@@ -92,7 +92,7 @@ Las cifras salen de `experiments/regressions/` (`npm run measure`), y su test co
 ## Estructura del repo
 
 ```
-├── README.md / README.ca.md / README.en.md
+├── README.md / README.es.md / README.ca.md
 ├── AGENTS.md                    # instrucciones para agentes; CLAUDE.md lo importa
 ├── PLAN.md
 ├── compose.yaml                 # perfiles: llm (por defecto, desde .env) y lite
