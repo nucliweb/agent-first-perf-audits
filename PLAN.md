@@ -231,12 +231,13 @@ Cada paso tiene un comando de verificación (`npm run check -- step-03`) y un ta
 - **Sin `--workspace` en Chrome DevTools MCP**: el subagente de LCP graba el trace en `/tmp`, que en el contenedor comparten el cliente y el servidor, y lo copia a `out/agents/traces/`. Learnings y la página mapa lo describen así en los tres idiomas; antes nombraban `--workspace` como flag del servidor.
 - **El aviso de los fixtures** pasa al README de `experiments/models`: `npm run fixtures` y `node fixtures.mjs --gate-only` reescriben `fixtures/` con el último `results.json` de `experiments/regressions`.
 - **Experimento de las alternativas descartadas** en `experiments/discarded/`, con 5 tests y los mismos veredictos en dos ejecuciones: el gate en `pr/lcp-hero-lazy` ve el LCP con fast-4g (+63 %) pero no sin throttling de red (+3-4 %, por debajo del umbral de 100 ms) ni contra un `main` sin el preload del hero (+3-4 %); sin `keepNames`, el sospechoso del INP de `pr/loaf-cart-handler` se llama `Ae` en lugar de `recommendFor` y las reglas del Judge no lo relacionan con el diff. Reutiliza el `build` de `experiments/regressions`, que ahora acepta una carpeta y un parche de las fuentes, y las reglas de `agents/src/judge/`. La página mapa enlaza el experimento y da las cifras en las tres filas.
+- **Learning "Si quieres que un agente atribuya, conserva los nombres"** en los tres idiomas, con los datos de `experiments/discarded`, y enlazado desde la fila de `keepNames` de la página mapa.
+- **Slide "Disclaimer"** después de la portada, en las tres presentaciones: el taller se llama agent-first, pero los subagentes son código que llama a herramientas MCP, el gate y las reglas deciden, y el único LLM explica.
 
 ## Pendiente
 
 - La explicación del LCP de `pr/lcp-hero-lazy` sigue siendo la floja, como en el benchmark: en la primera ejecución de `ci` nombra `lazy` pero lo mezcla con `fetchPriority`, con confianza baja.
 - En la ejecución de `ci` de `pr-lcp-hero-lazy`, la tercera evidencia dice que `lcpImageFor` no cambia, cuando la rama quita su línea de la home. Es una evidencia falsa con la causa correcta; el criterio de `score.mjs` no mira las evidencias.
-- Decidir si se lleva a Learnings "si quieres que un agente atribuya, conserva los nombres": los datos están en `experiments/discarded`.
 - Generar y publicar la rama `workshop` y sus tags con `node scripts/workshop.mjs` cada vez que cambie `main`.
 - El INP de añadir al carrito en `pr/loaf-cart-handler` cambia de una sesión a otra: el subagente de LoAF/INP dio de 32 a 192 ms en una y de 16 a 96 ms en otra, consistente dentro de cada una (el gate en Compose ya había visto de 16 a 96 ms). Averiguar de qué depende antes de dar una cifra en los docs.
 - Medir el tamaño de descarga real de la imagen `agents` (con un solo Chromium, Docker Desktop muestra 1,51 GB y `docker image inspect`, 416 MB).

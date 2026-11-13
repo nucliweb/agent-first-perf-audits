@@ -269,3 +269,48 @@ Cada pull request describe el fallo, el cambio y los tests que lo comprueban, en
 2. Lleva el arreglo con un test que falle sin él, en el repositorio de la herramienta.
 3. Fija la versión que lo incluye, y no la cambies sin volver a pasar tus tests.
 4. Si no puedes cambiar la herramienta, deja el parche aislado y con un enlace al issue, para quitarlo cuando llegue el arreglo.
+
+## Si quieres que un agente atribuya, conserva los nombres
+
+### Contexto
+
+El Judge atribuye una regresión de INP o de LCP a una función. Compara los resúmenes `tasks` de trace-engine-cli de la versión base y de la rama, se queda con las funciones nuevas o que crecen, y busca su nombre en las líneas que añade el diff. Si lo encuentra, la causa la da la regla y el LLM solo tiene que redactarla.
+
+El build de producción de la tienda está minificado, y la minificación por defecto de Rolldown renombra las funciones. trace-engine-cli no lee source maps: el nombre que da es el del bundle.
+
+### Qué probamos
+
+Construimos `main` y `pr/loaf-cart-handler` con y sin `keepNames`, grabamos el trace del click en "Add to cart" de cada lado y aplicamos las mismas reglas del Judge:
+
+| Build | Sospechoso del INP | Self time | Línea del diff relacionada |
+|---|---|---|---|
+| Con `keepNames` | `recommendFor` | 78 ms | `setRecommended(recommendFor(product.slug));` |
+| Sin `keepNames` | `Ae` | 80 ms | Ninguna |
+
+Sin `keepNames`, las reglas siguen viendo que una función nueva tarda unos 80 ms en el click. Lo que se pierde es el nombre: `Ae` no está en el diff, así que nada la relaciona con el cambio que la añade, y el LLM tendría que adivinar la causa.
+
+### Decisión
+
+- **El build de la tienda conserva los nombres de función**, con `keepNames: true` en la salida de Rolldown (`apps/shop/vite.config.ts`). El bundle sigue minificado.
+- **Un test lo comprueba**: `apps/shop/build.test.mjs` construye la tienda y busca en el bundle los nombres de varias funciones.
+- **Descartamos los source maps.** trace-engine-cli no los lee, y resolverlos sería un paso más entre el trace y el Judge.
+
+### Compruébalo
+
+El experimento está en [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/discarded). Construye las dos versiones de cada lado, graba los traces y aplica `suspectsFor` y `matchSuspects`, las reglas del Judge:
+
+```bash
+cd experiments/discarded
+npm install
+npm test            # comprueba el sospechoso y la línea relacionada con y sin keepNames
+npm run measure     # imprime los sospechosos y las líneas del diff que relacionan
+```
+
+Los milisegundos cambian de una máquina a otra; el test comprueba que con `keepNames` el sospechoso es `recommendFor` y se relaciona con la línea que lo llama, y que sin `keepNames` no. El test del build está en [`apps/shop/build.test.mjs`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/apps/shop/build.test.mjs).
+
+### Cómo aplicarlo en tu plataforma
+
+1. Si un agente tiene que relacionar un perfil con un diff, el perfil tiene que usar los nombres del diff. Mide el build que el agente puede leer.
+2. Conserva los nombres en ese build: `keepNames` en Rolldown y esbuild, `keep_fnames` en Terser.
+3. Si no puedes conservarlos, resuelve los source maps antes de pasarle el trace al agente, no después.
+4. Comprueba en un test que el bundle conserva los nombres. Una actualización del bundler puede cambiar el valor por defecto sin avisar.

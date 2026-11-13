@@ -21,6 +21,17 @@
   <p class="lead" style="font-size:28px">The rules decide, the LLM explains</p>
 </section>
 
+<section class="slide" data-title="Disclaimer">
+  <p class="eyebrow">Disclaimer</p>
+  <h2>It is called agent-first, but scripts decide</h2>
+  <div class="grid three">
+    <div class="card"><h3>Subagents</h3><p>Code that calls MCP tools with fixed arguments. No model chooses what to measure</p></div>
+    <div class="card"><h3>Gate</h3><p>The CLI gives the verdict with its exit code, and the rules pick the metric and, when they can, the cause</p></div>
+    <div class="card"><h3>LLM</h3><p>A single local model that writes the explanation. With no regression, it is not even asked</p></div>
+  </div>
+  <p class="lead">A gate has to give the same result for the same branch: what is not deterministic does not decide</p>
+</section>
+
 <section class="slide" data-title="What we will do">
   <p class="eyebrow">Today</p>
   <h2>What we will do</h2>

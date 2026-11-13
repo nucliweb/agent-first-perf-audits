@@ -21,6 +21,17 @@
   <p class="lead" style="font-size:28px">Les regles decideixen, l’LLM explica</p>
 </section>
 
+<section class="slide" data-title="Disclaimer">
+  <p class="eyebrow">Disclaimer</p>
+  <h2>Es diu agent-first, però el que decideix són scripts</h2>
+  <div class="grid three">
+    <div class="card"><h3>Subagents</h3><p>Codi que crida eines MCP amb arguments fixos. Cap model no tria què mesurar</p></div>
+    <div class="card"><h3>Gate</h3><p>La CLI dona el veredicte amb el seu exit code, i les regles trien la mètrica i, quan poden, la causa</p></div>
+    <div class="card"><h3>LLM</h3><p>Un sol model, local, que redacta l’explicació. Sense regressió, ni tan sols es consulta</p></div>
+  </div>
+  <p class="lead">Un gate ha de donar el mateix resultat amb la mateixa branca: el que no és determinista no decideix</p>
+</section>
+
 <section class="slide" data-title="Què farem">
   <p class="eyebrow">Avui</p>
   <h2>Què farem</h2>

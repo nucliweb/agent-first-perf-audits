@@ -269,3 +269,48 @@ Each pull request describes the bug, the change and the tests that check it, in 
 2. Ship the fix with a test that fails without it, in the tool's repository.
 3. Pin the version that includes it, and do not change it without running your tests again.
 4. If you cannot change the tool, keep the patch isolated and with a link to the issue, so you can remove it when the fix arrives.
+
+## If you want an agent to attribute, keep the names
+
+### Context
+
+The Judge attributes an INP or LCP regression to a function. It compares the trace-engine-cli `tasks` summaries of the baseline and of the branch, keeps the functions that are new or that grow, and looks for their name in the lines the diff adds. If it finds it, the rule gives the cause and the LLM only has to write it up.
+
+The production build of the shop is minified, and the default minification of Rolldown renames functions. trace-engine-cli does not read source maps: the name it gives is the one in the bundle.
+
+### What we tried
+
+We built `main` and `pr/loaf-cart-handler` with and without `keepNames`, recorded the trace of the click on "Add to cart" on each side and applied the same Judge rules:
+
+| Build | INP suspect | Self time | Related line of the diff |
+|---|---|---|---|
+| With `keepNames` | `recommendFor` | 78 ms | `setRecommended(recommendFor(product.slug));` |
+| Without `keepNames` | `Ae` | 80 ms | None |
+
+Without `keepNames`, the rules still see that a new function takes about 80 ms on the click. What is lost is the name: `Ae` is not in the diff, so nothing relates it to the change that adds it, and the LLM would have to guess the cause.
+
+### Decision
+
+- **The shop build keeps function names**, with `keepNames: true` in the Rolldown output (`apps/shop/vite.config.ts`). The bundle is still minified.
+- **A test checks it**: `apps/shop/build.test.mjs` builds the shop and looks for the names of several functions in the bundle.
+- **We discarded source maps.** trace-engine-cli does not read them, and resolving them would be one more step between the trace and the Judge.
+
+### Check it
+
+The experiment is in [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/discarded). It builds both versions of each side, records the traces and applies `suspectsFor` and `matchSuspects`, the Judge rules:
+
+```bash
+cd experiments/discarded
+npm install
+npm test            # checks the suspect and the related line with and without keepNames
+npm run measure     # prints the suspects and the lines of the diff they relate to
+```
+
+The milliseconds change from one machine to another; the test checks that with `keepNames` the suspect is `recommendFor` and relates to the line that calls it, and that without `keepNames` it does not. The build test is in [`apps/shop/build.test.mjs`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/apps/shop/build.test.mjs).
+
+### How to apply it to your platform
+
+1. If an agent has to relate a profile to a diff, the profile has to use the names in the diff. Measure the build that the agent can read.
+2. Keep the names in that build: `keepNames` in Rolldown and esbuild, `keep_fnames` in Terser.
+3. If you cannot keep them, resolve the source maps before passing the trace to the agent, not after.
+4. Check in a test that the bundle keeps the names. A bundler update can change the default without warning.
