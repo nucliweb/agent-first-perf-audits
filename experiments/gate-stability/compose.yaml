@@ -1,0 +1,37 @@
+# The shops of main and of every regression branch, all of them up at once in the lab, so the
+# collector of gate-stability can interleave their runs. An override of the compose.yaml of the
+# repo, run from the root of the repo:
+#   docker compose -f compose.yaml -f experiments/gate-stability/compose.yaml up -d --wait shop-main
+# collect.mjs starts the shops it needs and stops and removes them when it finishes. The images are
+# the ones already on the machine, from scripts/build-shop.sh or from GHCR: nothing is built or pulled.
+x-shop: &shop
+  environment:
+    THIRDPARTY_ORIGIN: http://thirdparty:4000
+  depends_on:
+    thirdparty:
+      condition: service_healthy
+  networks: [lab]
+  pull_policy: never
+  # Only when named: a docker compose up of the lab does not start them
+  profiles: [gate-stability]
+
+services:
+  shop-main:
+    <<: *shop
+    image: ghcr.io/nucliweb/agent-first-perf-audits/shop:main
+
+  shop-pr-lcp-hero-lazy:
+    <<: *shop
+    image: ghcr.io/nucliweb/agent-first-perf-audits/shop:pr-lcp-hero-lazy
+
+  shop-pr-cls-promo-banner:
+    <<: *shop
+    image: ghcr.io/nucliweb/agent-first-perf-audits/shop:pr-cls-promo-banner
+
+  shop-pr-loaf-cart-handler:
+    <<: *shop
+    image: ghcr.io/nucliweb/agent-first-perf-audits/shop:pr-loaf-cart-handler
+
+  shop-pr-noop-refactor:
+    <<: *shop
+    image: ghcr.io/nucliweb/agent-first-perf-audits/shop:pr-noop-refactor
