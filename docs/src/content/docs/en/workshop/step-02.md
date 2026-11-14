@@ -95,7 +95,7 @@ It is two functions:
 
 The rest of the subagent was already in place: `lcp.run` calls both and records the trace with the `recordTrace` from step 1, with the gate throttling.
 
-`connect("webperf")` starts WebPerf Snippets MCP and, as in step 1, each tool is called with `callTool(client, name, args)`. Both calls use the gate conditions, `CONDITIONS` from `agents/src/subagents/subagent.ts` (4x CPU, `fast-4g` and the median of 3 runs), plus `detail: "full"` to receive the full objects:
+`connect("webperf")` starts WebPerf Snippets MCP and, as in step 1, each tool is called with `callTool(client, name, args)`. Both calls use `CONDITIONS` from `agents/src/subagents/subagent.ts`, which are the throttling of the gate (4x CPU and `fast-4g`) and the median of 3 runs, plus `detail: "full"` to receive the full objects:
 
 | Tool (`name`) | Arguments (`args`) | What it gives |
 |---|---|---|

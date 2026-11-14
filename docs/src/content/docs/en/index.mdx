@@ -30,7 +30,7 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
     The WebPerf Snippets CLI gives the verdict with statistics; trace-engine-cli names the function; a local model only explains the cause.
   </Card>
   <Card title="A gate in CI" icon="setting">
-    The `ci` service compares each branch with `main` and exits with 0 or 1, with a report and a handoff for another agent.
+    The `ci` service compares each branch with `main` and exits with 0 when it passes and 1 when it fails, with a report and a handoff for another agent.
   </Card>
   <Card title="All on your laptop" icon="laptop">
     Docker Compose, with no internet access and no API keys. With little memory, the `lite` profile leaves the explanation to an agent of your choice.

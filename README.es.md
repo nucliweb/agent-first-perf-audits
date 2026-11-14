@@ -22,7 +22,7 @@ shop-candidate ┘        │                 └─ explicación: llama3.2:3b e
 | `shop-baseline` y `shop-candidate` | La tienda Perf Coffee construida desde dos refs git: `main` y la rama que se compara |
 | `thirdparty` | Mocks locales de scripts de terceros (analytics, chat, banner de promo, A/B testing) |
 | `agents` | Node 22, el Chromium de Playwright, Chrome DevTools MCP, WebPerf Snippets y trace-engine-cli |
-| `ci` | El gate de una PR: mide, atribuye, explica, escribe los informes y sale con 0 o 1 |
+| `ci` | El gate de una PR: mide, atribuye, explica, escribe los informes y sale con 0 si pasa, 1 si falla y 2 si no ha podido medir |
 | `ollama` | El LLM local del Judge, con `llama3.2:3b` dentro de la imagen |
 
 La comparación ocurre en la misma máquina y en la misma ejecución, así que la diferencia entre portátiles no afecta al veredicto.
