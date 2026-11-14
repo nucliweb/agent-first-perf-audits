@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" role="img" aria-labelledby="t d">
+  <title id="t">The lab of the workshop in Docker Compose</title>
+  <desc id="d">agents and ci measure shop-baseline and shop-candidate, which load the scripts of thirdparty; agents asks ollama for the explanation and writes the reports in out/. The services share a network with no internet.</desc>
+  <style>
+    .bg { fill: #f6f8f6; }
+    .box { fill: #ffffff; stroke: #2f3b33; stroke-width: 2; }
+    .net { fill: none; stroke: #7b8a80; stroke-width: 2; stroke-dasharray: 8 6; }
+    .host { fill: #ffffff; stroke: #2f3b33; stroke-width: 2; stroke-dasharray: 3 4; }
+    .name { font: 600 19px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #17201a; }
+    .note { font: 15px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #4f5e54; }
+    .label { font: 600 14px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #5b6a60; }
+    .line { fill: none; stroke: #2f3b33; stroke-width: 2; }
+    .head { fill: #2f3b33; }
+    .accent { stroke: #15803d; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #131915; }
+      .box, .host { fill: #1b231e; stroke: #c9d5cc; }
+      .net { stroke: #8a998f; }
+      .name { fill: #eef3ef; }
+      .note { fill: #aab8ae; }
+      .label { fill: #9aa89f; }
+      .line { stroke: #c9d5cc; }
+      .head { fill: #c9d5cc; }
+      .accent { stroke: #4ade80; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path class="head" d="M0,0 L10,5 L0,10 z" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="960" height="420" rx="16" />
+
+  <rect class="net" x="16" y="40" width="632" height="356" rx="14" />
+  <text class="label" x="32" y="30">network: lab (internal, no internet)</text>
+
+  <rect class="box" x="72" y="72" width="224" height="72" rx="10" />
+  <text class="name" x="88" y="102">shop-baseline</text>
+  <text class="note" x="88" y="126">main</text>
+
+  <rect class="box" x="72" y="172" width="224" height="72" rx="10" />
+  <text class="name" x="88" y="202">shop-candidate</text>
+  <text class="note" x="88" y="226">pr/*</text>
+
+  <rect class="box" x="72" y="296" width="224" height="72" rx="10" />
+  <text class="name" x="88" y="326">thirdparty</text>
+  <text class="note" x="88" y="350">analytics, chat, banner, A/B</text>
+
+  <rect class="box accent" x="384" y="72" width="232" height="172" rx="10" />
+  <text class="name" x="400" y="102">agents · ci</text>
+  <text class="note" x="400" y="134">Chromium</text>
+  <text class="note" x="400" y="160">Chrome DevTools MCP</text>
+  <text class="note" x="400" y="186">WebPerf Snippets</text>
+  <text class="note" x="400" y="212">trace-engine-cli</text>
+
+  <rect class="box" x="384" y="296" width="232" height="72" rx="10" />
+  <text class="name" x="400" y="326">ollama</text>
+  <text class="note" x="400" y="350">llama3.2:3b · profile llm</text>
+
+  <rect class="host" x="724" y="120" width="212" height="76" rx="10" />
+  <text class="name" x="740" y="152">out/</text>
+  <text class="note" x="740" y="176">report.md, traces, handoff</text>
+
+  <path class="line" d="M384,108 H306" marker-end="url(#arrow)" />
+  <path class="line" d="M384,208 H306" marker-end="url(#arrow)" />
+  <path class="line" d="M72,108 H44 V332 H62" marker-end="url(#arrow)" />
+  <path class="line" d="M72,208 H44" />
+  <path class="line" d="M500,244 V286" marker-end="url(#arrow)" />
+  <path class="line" d="M616,158 H714" marker-end="url(#arrow)" />
+</svg>

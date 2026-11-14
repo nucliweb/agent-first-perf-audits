@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 340" role="img" aria-labelledby="t d">
+  <title id="t">How the gate decides</title>
+  <desc id="d">The gate measures the baseline and the candidate. A metric regresses when its delta beats its threshold and the Mann-Whitney U test gives p under 0.05: the gate exits with 1, trace-engine-cli attributes the change and the LLM explains it. Otherwise it exits with 0.</desc>
+  <style>
+    .bg { fill: #f6f8f6; }
+    .box { fill: #ffffff; stroke: #2f3b33; stroke-width: 2; }
+    .pass { stroke: #15803d; }
+    .fail { stroke: #b91c1c; }
+    .llm { stroke-dasharray: 6 5; }
+    .name { font: 600 18px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #17201a; text-anchor: middle; }
+    .note { font: 15px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #4f5e54; text-anchor: middle; }
+    .label { font: 600 14px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #5b6a60; }
+    .line { fill: none; stroke: #2f3b33; stroke-width: 2; }
+    .head { fill: #2f3b33; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #131915; }
+      .box { fill: #1b231e; stroke: #c9d5cc; }
+      .pass { stroke: #4ade80; }
+      .fail { stroke: #f87171; }
+      .name { fill: #eef3ef; }
+      .note { fill: #aab8ae; }
+      .label { fill: #9aa89f; }
+      .line { stroke: #c9d5cc; }
+      .head { fill: #c9d5cc; }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path class="head" d="M0,0 L10,5 L0,10 z" />
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1040" height="340" rx="16" />
+  <text class="label" x="24" y="38">rules</text>
+  <text class="label" x="924" y="216">LLM</text>
+
+  <rect class="box" x="24" y="60" width="140" height="64" rx="10" />
+  <text class="name" x="94" y="88">baseline</text>
+  <text class="note" x="94" y="110">N runs</text>
+
+  <rect class="box" x="194" y="60" width="140" height="64" rx="10" />
+  <text class="name" x="264" y="88">candidate</text>
+  <text class="note" x="264" y="110">N runs</text>
+
+  <rect class="box" x="354" y="60" width="210" height="64" rx="10" />
+  <text class="name" x="459" y="88">delta &gt; threshold</text>
+  <text class="note" x="459" y="110">median</text>
+
+  <rect class="box" x="584" y="60" width="130" height="64" rx="10" />
+  <text class="name" x="649" y="88">p &lt; 0.05</text>
+  <text class="note" x="649" y="110">Mann-Whitney U</text>
+
+  <rect class="box fail" x="744" y="60" width="110" height="64" rx="10" />
+  <text class="name" x="799" y="88">exit 1</text>
+  <text class="note" x="799" y="110">fail</text>
+
+  <rect class="box pass" x="494" y="230" width="120" height="64" rx="10" />
+  <text class="name" x="554" y="258">exit 0</text>
+  <text class="note" x="554" y="280">pass</text>
+
+  <rect class="box" x="704" y="230" width="190" height="64" rx="10" />
+  <text class="name" x="799" y="258">trace-engine-cli</text>
+  <text class="note" x="799" y="280">function, URL, line</text>
+
+  <rect class="box llm" x="924" y="230" width="102" height="64" rx="10" />
+  <text class="name" x="975" y="258">explain</text>
+  <text class="note" x="975" y="280">one sentence</text>
+
+  <path class="line" d="M164,92 H186" marker-end="url(#arrow)" />
+  <path class="line" d="M334,92 H346" marker-end="url(#arrow)" />
+  <path class="line" d="M564,92 H576" marker-end="url(#arrow)" />
+  <path class="line" d="M714,92 H736" marker-end="url(#arrow)" />
+  <path class="line" d="M459,124 V262 H486" marker-end="url(#arrow)" />
+  <path class="line" d="M649,124 V262 H622" marker-end="url(#arrow)" />
+  <path class="line" d="M799,124 V222" marker-end="url(#arrow)" />
+  <path class="line" d="M894,262 H916" marker-end="url(#arrow)" />
+
+  <text class="label" x="469" y="150">no</text>
+  <text class="label" x="659" y="150">no</text>
+  <text class="label" x="809" y="150">attribute</text>
+</svg>

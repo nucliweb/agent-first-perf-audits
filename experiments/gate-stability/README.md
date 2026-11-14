@@ -12,7 +12,7 @@ The gate measures the baseline and the branch with `--runs 5`, and the WebPerf S
 |---|---|---|---|
 | 5 | 0.004 | 0.0754 | 0.3452 |
 | 7 | 0.0003 | 0.0131 | 0.1043 |
-| 9 | 0 | 0.002 | 0.0252 |
+| 9 | < 0.0001 | 0.002 | 0.0252 |
 
 Five runs tolerate none; 6, 7 and 8 tolerate one, and 9, the maximum of the CLI, two.
 

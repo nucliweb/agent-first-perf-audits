@@ -12,7 +12,7 @@ El gate mesura el baseline i la branca amb `--runs 5`, i la CLI de WebPerf Snipp
 |---|---|---|---|
 | 5 | 0,004 | 0,0754 | 0,3452 |
 | 7 | 0,0003 | 0,0131 | 0,1043 |
-| 9 | 0 | 0,002 | 0,0252 |
+| 9 | < 0,0001 | 0,002 | 0,0252 |
 
 Cinc execucions no en toleren cap; 6, 7 i 8 en toleren una, i 9, que és el màxim de la CLI, dues.
 
