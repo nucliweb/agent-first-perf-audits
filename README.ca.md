@@ -2,7 +2,7 @@
 
 [English](README.md) · [Castellano](README.es.md) · Català
 
-Repositori del taller **Multi-Agent Performance Audits: Automatizando Core Web Vitals en tu plataforma interna con MCP**, de PerfReviews.
+Repositori del taller **Multi-Agent Performance Audits: Automatitzant Core Web Vitals a la teva plataforma interna amb MCP**, de PerfReviews.
 
 Construïm un gate de rendiment per a pull requests amb agents: mesuren una botiga d'exemple abans i després d'un canvi, decideixen si ha empitjorat i expliquen per què. Tot s'executa al teu portàtil amb Docker Compose, sense sortida a internet.
 
@@ -22,7 +22,7 @@ shop-candidate ┘        │                 └─ explicació: llama3.2:3b a 
 | `shop-baseline` i `shop-candidate` | La botiga Perf Coffee construïda des de dues refs git: `main` i la branca que es compara |
 | `thirdparty` | Mocks locals d'scripts de tercers (analytics, xat, bàner de promoció, A/B testing) |
 | `agents` | Node 22, el Chromium de Playwright, Chrome DevTools MCP, WebPerf Snippets i trace-engine-cli |
-| `ci` | El gate d'una PR: mesura, atribueix, explica, escriu els informes i surt amb 0 o 1 |
+| `ci` | El gate d'una PR: mesura, atribueix, explica, escriu els informes i surt amb 0 si passa, 1 si falla i 2 si no ha pogut mesurar |
 | `ollama` | L'LLM local del Judge, amb `llama3.2:3b` dins de la imatge |
 
 La comparació es fa a la mateixa màquina i en la mateixa execució, així que la diferència entre portàtils no afecta el veredicte.

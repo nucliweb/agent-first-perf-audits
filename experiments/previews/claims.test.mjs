@@ -76,7 +76,9 @@ const slideRow = (name, lang) => {
 
 for (const [lang, file] of Object.entries(SLIDES)) {
   test(`the figures of the slides in ${lang} are the medians of results.json with fast-4g`, () => {
-    const text = readFileSync(new URL(`../../docs/public/slides/${file}`, import.meta.url), "utf8");
+    // Without the whitespace that a formatter adds between tags and before the end of a tag
+    const html = readFileSync(new URL(`../../docs/public/slides/${file}`, import.meta.url), "utf8");
+    const text = html.replace(/\s+>/g, ">").replace(/>\s+</g, "><");
     for (const name of Object.keys(results.sites)) assert.ok(text.includes(slideRow(name, lang)), slideRow(name, lang));
   });
 }

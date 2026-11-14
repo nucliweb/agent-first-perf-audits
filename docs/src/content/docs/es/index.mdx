@@ -30,7 +30,7 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
     La CLI de WebPerf Snippets da el veredicto con estadística; trace-engine-cli nombra la función; un modelo local solo explica la causa.
   </Card>
   <Card title="Un gate en el CI" icon="setting">
-    El servicio `ci` compara cada rama con `main` y sale con 0 o 1, con un informe y un handoff para otro agente.
+    El servicio `ci` compara cada rama con `main` y sale con 0 si pasa y con 1 si falla, con un informe y un handoff para otro agente.
   </Card>
   <Card title="Todo en tu portátil" icon="laptop">
     Docker Compose, sin salida a internet ni claves de API. Con poca memoria, el perfil `lite` deja la explicación a un agente de tu elección.
@@ -40,7 +40,8 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 ## Por dónde empezar
 
 <CardGrid>
-  <LinkCard title="Requisitos y puesta en marcha" description="Descarga las imágenes en casa y pasa el preflight." href="https://github.com/nucliweb/agent-first-perf-audits/blob/main/README.es.md#requisitos" />
+  <LinkCard title="Preparación" description="Descarga las imágenes en casa y pasa el preflight." href="/es/setup/" />
+  <LinkCard title="Conceptos" description="Las métricas, sus fases y cómo decide el gate." href="/es/concepts/" />
   <LinkCard title="El taller paso a paso" description="Del primer trace al gate contra las cuatro ramas." href="/es/workshop/step-01/" />
   <LinkCard title="Por qué este stack" description="Cada pieza, qué descartamos y el dato que lo decidió." href="/es/stack/" />
   <LinkCard title="Learnings" description="Las decisiones de diseño con su contexto y sus datos." href="/es/learnings/" />
