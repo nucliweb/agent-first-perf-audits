@@ -107,4 +107,4 @@ Una mesura interrompuda conserva les seves rondes: la mateixa ordre amb `--resum
 
 ## Versions
 
-`webperf-snippets` 1.15.0, fixada a [`package.json`](package.json). Les condicions i els escenaris són els del gate, d'[`agents/src/judge/gate.ts`](../../agents/src/judge/gate.ts).
+`webperf-snippets` 1.15.0, fixada a [`package.json`](package.json) a propòsit: és la mesura que va portar a la política del gate. La CLI implementa aquesta política des de la 1.17.0 (`--baseline` amb una URL i `--max-runs`), que és la que fa servir el gate. Les condicions i els escenaris són els del gate, d'[`agents/src/judge/gate.ts`](../../agents/src/judge/gate.ts).

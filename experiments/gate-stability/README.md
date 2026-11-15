@@ -107,4 +107,4 @@ An interrupted measurement keeps its rounds: the same command with `--resume` co
 
 ## Versions
 
-`webperf-snippets` 1.15.0, pinned in [`package.json`](package.json). The conditions and the scenarios are those of the gate, from [`agents/src/judge/gate.ts`](../../agents/src/judge/gate.ts).
+`webperf-snippets` 1.15.0, pinned in [`package.json`](package.json) on purpose: it is the measurement that led to the gate policy. The CLI implements that policy since 1.17.0 (`--baseline` with a URL and `--max-runs`), which is what the gate uses. The conditions and the scenarios are those of the gate, from [`agents/src/judge/gate.ts`](../../agents/src/judge/gate.ts).

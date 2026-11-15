@@ -70,7 +70,7 @@ Per llegir més: [Interaction to Next Paint](https://web.dev/articles/inp) i [Lo
 | Quan arriba | Dies després de publicar | Abans del merge |
 | Per a què serveix | Saber què passa de debò | Comparar dues versions del codi |
 
-Un gate de pull request necessita laboratori. Les condicions del taller són sempre les mateixes: CPU 4x (quatre vegades més lenta), la xarxa Fast 4G de DevTools (8,1 Mbps de baixada, 1,35 Mbps de pujada i 165 ms de latència) i diverses execucions de cada mesura, `--runs 5` al gate.
+Un gate de pull request necessita laboratori. Les condicions del taller són sempre les mateixes: CPU 4x (quatre vegades més lenta), la xarxa Fast 4G de DevTools (8,1 Mbps de baixada, 1,35 Mbps de pujada i 165 ms de latència) i diverses execucions de cada mesura: `--runs 5` per botiga al gate, alternant una de `main` i una de la branca.
 
 El throttling de xarxa no és un adorn: sense ell, la prioritat de descàrrega d'una imatge gairebé no pesa i la regressió de `pr/lcp-hero-lazy` no es veu. Les dades són a [Per què aquest stack](../stack/).
 
@@ -80,18 +80,26 @@ Per llegir més: [Why lab and field data can be different](https://web.dev/artic
 
 Les tres regressions del taller deixen les seves mètriques dins de "good". Un gate que només mirés els llindars de Google les deixaria passar totes tres, i la pàgina aniria empitjorant de merge en merge fins a creuar el llindar sense que cap canvi concret en tingués la culpa.
 
-Per això el gate compara cada branca amb la seva versió base: la botiga de `main` (el baseline) i la de la branca (el candidate), mesurades a la mateixa màquina i en la mateixa execució. Així la diferència entre portàtils no compta: un portàtil lent mesura les dues botigues igual de lentes.
+Per això el gate compara cada branca amb la seva versió base: la botiga de `main` (el baseline) i la de la branca (el candidate), mesurades a la mateixa màquina i en la mateixa crida, alternant una execució de cada una. Així la diferència entre portàtils no compta: un portàtil lent mesura les dues botigues igual de lentes. I tampoc no compta el que li passi al portàtil a mitja mesura, perquè els passa a les dues.
 
 ## Com decideix el gate
 
-Una mètrica empitjora quan compleix dues condicions alhora:
+El gate mira dues coses de cada mètrica:
 
-1. **El canvi és gran.** La mediana de la branca supera la del baseline en més que el seu llindar: el més gran entre el 10 % i 100 ms per a l'LCP, el més gran entre el 10 % i 50 ms per a l'INP, i 0,05 per al CLS.
-2. **El canvi no és soroll.** Un test estadístic, Mann-Whitney U, dona p < 0,05.
+1. **Si el canvi és gran.** La mediana de la branca supera la del baseline en més que el seu llindar: el més gran entre el 10 % i 100 ms per a l'LCP, el més gran entre el 10 % i 50 ms per a l'INP, i 0,05 per al CLS.
+2. **Si el canvi no és soroll.** Un test estadístic, Mann-Whitney U, dona p < 0,05.
 
-Si alguna mètrica d'algun escenari empitjora, la CLI surt amb 1 i el gate falla. Cap model no intervé en aquesta decisió.
+Amb aquestes dues respostes, cada mètrica acaba en un de tres veredictes:
 
-<img src="/diagrams/gate.svg" alt="El gate mesura el baseline i la branca; si el canvi supera el llindar i p és menor que 0,05, surt amb 1, trace-engine-cli atribueix el canvi i l'LLM l'explica; si no, surt amb 0" width="1040" height="340" loading="lazy" decoding="async">
+| Veredicte | Quan | Què fa el gate |
+|---|---|---|
+| `regressed`, empitjora | El canvi supera el seu llindar i p < 0,05 | Falla: la CLI surt amb 1 |
+| `inconclusive`, no concloent | El canvi supera el seu llindar, però p no baixa de 0,05 | Mesura dues execucions més per botiga i decideix una altra vegada. Si continua igual, no falla, i l'informe diu que cal tornar-ho a llançar |
+| `unchanged`, sense canvis | El canvi no supera el seu llindar | Passa |
+
+Cap model no intervé en aquesta decisió.
+
+<img src="/diagrams/gate.svg" alt="El gate mesura el baseline i la branca alternant les seves execucions; si el canvi supera el llindar i p és menor que 0,05, surt amb 1, trace-engine-cli atribueix el canvi i l'LLM l'explica; si supera el llindar i p no hi arriba, mesura dues execucions més per costat i decideix una altra vegada; si no, surt amb 0" width="1120" height="340" loading="lazy" decoding="async">
 
 ### Què és p, sense fórmules
 
@@ -109,9 +117,15 @@ Amb poques execucions, l'ordre té poques combinacions possibles i una sola exec
 | 7 | 0,0003 | 0,0131 | 0,1043 |
 | 9 | < 0,0001 | 0,002 | 0,0252 |
 
-Amb 5 execucions per costat, una sola execució lenta del baseline deixa p a 0,0754, per sobre de 0,05, i el gate dona la branca per bona encara que el seu LCP hagi pujat un 50 %. No és una hipòtesi: va passar una vegada amb `pr/lcp-hero-lazy` mentre preparàvem el taller.
+Amb 5 execucions per costat, una sola execució lenta del baseline deixa p a 0,0754, per sobre de 0,05. Un gate que parés aquí donaria la branca per bona encara que el seu LCP hagués pujat un 50 %. No és una hipòtesi: mesurant amb el portàtil ocupat, a `pr/lcp-hero-lazy` li va passar 3 vegades de 20.
 
-La lliçó val per a qualsevol gate: les regles són deterministes, però les mostres no. Si el teu gate et dona un pass que no esperes, mira l'informe abans de refiar-te'n: un canvi gran amb un p que no arriba no és "sense canvis", és "no concloent", i el que toca és mesurar una altra vegada o mesurar més. L'experiment [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.ca.md) mesura quantes vegades encerta el gate amb cada nombre d'execucions.
+Per això el gate del taller no para aquí. Quan un canvi supera el seu llindar i p no hi arriba, en diu no concloent i mesura fins a 7 execucions per botiga (`--max-runs 7`), on aquesta mateixa execució lenta deixa p a 0,0131. Decideix com a màxim dues vegades, amb 5 i amb 7 execucions per botiga, mai després de cada execució afegida: mirar p una vegada i una altra fins que baixi de 0,05 acabaria trobant un canvi per casualitat.
+
+### Per què importa l'ordre
+
+Mesurar primer totes les execucions de `main` i després totes les de la branca sembla innocent. Però entre un bloc i l'altre passa prop de mig minut, i un portàtil no va sempre igual de ràpid: arrenca una còpia de seguretat, entra una videotrucada. Si es frena just durant el bloc de la branca, totes les seves execucions surten més lentes i el test veu una regressió on no n'hi ha. Amb el portàtil ocupat, una branca que no canvia res va fallar el gate 3 vegades de 40 mesurant per blocs, i cap alternant les execucions de les dues botigues.
+
+La lliçó val per a qualsevol gate: les regles són deterministes, però les mostres no. Alterna les mesures de les dues versions i, quan les dades no arribin per decidir, que el gate ho digui en lloc de donar un pass. Les xifres surten de les dues nits de mesura de l'experiment [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.ca.md).
 
 Per llegir més: [Mann-Whitney U test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test) i la [variabilitat de les mesures de laboratori](https://github.com/GoogleChrome/lighthouse/blob/main/docs/variability.md), a la documentació de Lighthouse.
 

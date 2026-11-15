@@ -37,7 +37,7 @@ The four branches are also deployed on Vercel, to see them in the browser withou
    done
    ```
 
-   `docker compose run` starts the shop of each branch before measuring it. Each branch takes a few minutes, because the gate measures each scenario five times on each side. When each one finishes, it prints its exit code:
+   `docker compose run` starts the shop of each branch before measuring it. Each branch takes a few minutes, because the gate measures each scenario five times on each side, alternating the two shops. When each one finishes, it prints its exit code:
 
    ```text
    pr-lcp-hero-lazy: exit 1
@@ -46,11 +46,12 @@ The four branches are also deployed on Vercel, to see them in the browser withou
    pr-noop-refactor: exit 0
    ```
 
-2. While the next one runs, read the `report.md` of the previous one, in `out/ci/<branch>/`. Look at four things:
+2. While the next one runs, read the `report.md` of the previous one, in `out/ci/<branch>/`. Look at five things:
 
    - `pr/loaf-cart-handler` regresses two metrics for two different causes, and the Judge asks for one explanation for each.
    - `pr/noop-refactor` passes and the LLM is never consulted: without a regression, the rules answer on their own, and there is no chance to make one up.
    - On `pr/lcp-hero-lazy`, the LLM explanation names `loading="lazy"`, and the facts of the rules, at the end of the report, add what it does not say: the `fetchPriority` and the preload the hero loses.
+   - If a metric goes beyond its threshold and p is not under 0.05, the report says so at the top, in an "Inconclusive: run the gate again." block with the metric, its change and its p, and how many runs a side the CLI measured. The gate does not fail on that metric.
    - With the `lite` profile, each folder has a `handoff.md` instead of the explanation. Sending it to an external service is a decision of each team for its own code.
 
 3. Run the check of the step:
@@ -60,3 +61,5 @@ The four branches are also deployed on Vercel, to see them in the browser withou
    ```
 
    It gives one `OK` per branch when its report has the expected verdict, and ends with `step-05 is done.`
+
+   When a branch that should fail passes with a metric inconclusive for the worse, the check says to run that branch again.

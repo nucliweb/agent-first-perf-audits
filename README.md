@@ -86,7 +86,7 @@ CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
 |---|---|
 | `report.md`, `report.html` and `report.json` | The verdict of the rules, the metrics of each scenario and the explanation of each metric that regresses |
 | `handoff.md` and `handoff.json` | The same input the local LLM receives, with the prompt and the schema, to pass it to another agent |
-| `gate/` and `traces/` | The CLI reports and the Chromium traces |
+| `gate/` and `traces/` | `gate/` has one JSON per scenario (`home.json` and `add-to-cart.json`) with the comparison of the CLI, and `traces/` the Chromium traces |
 
 The exit code of `ci` is the verdict: 0 if it passes, 1 if any metric regresses and 2 if the gate could not run.
 

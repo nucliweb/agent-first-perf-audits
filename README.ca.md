@@ -86,7 +86,7 @@ CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
 |---|---|
 | `report.md`, `report.html` i `report.json` | El veredicte de les regles, les mètriques de cada escenari i l'explicació de cada mètrica que empitjora |
 | `handoff.md` i `handoff.json` | La mateixa entrada que rep l'LLM local, amb el prompt i l'schema, per passar-la a un altre agent |
-| `gate/` i `traces/` | Els informes de la CLI i els traces de Chromium |
+| `gate/` i `traces/` | `gate/` té un JSON per escenari (`home.json` i `add-to-cart.json`) amb la comparació de la CLI, i `traces/` els traces de Chromium |
 
 L'exit code de `ci` és el veredicte: 0 si passa, 1 si alguna mètrica empitjora i 2 si el gate no s'ha pogut executar.
 

@@ -11,7 +11,7 @@ Reprodueix les xifres de les quatre branques de regressió del taller: el gate d
 3. Mesura dos escenaris, un darrere l'altre perquè dos Chromium no es reparteixin la CPU:
    - `home`: la càrrega de `/`, amb LCP i CLS.
    - `add-to-cart`: la càrrega de `/product/kenya-aa` i un clic a "Add to cart" ([`agents/journeys/add-to-cart.json`](../../agents/journeys/add-to-cart.json)), amb `--workflow interaction` per tenir l'INP.
-4. A cada escenari, mesura `main` i en desa el JSON com a baseline. Després passa el gate a cada branca: `--baseline` i `--fail-on-regression`, amb `--cpu 4 --network fast-4g --runs 5`.
+4. Passa el gate a cada branca i escenari amb una sola crida a la CLI: `--baseline` amb la URL de la botiga de `main`, `--cpu 4 --network fast-4g --runs 5 --max-runs 7` i `--fail-on-regression`. La CLI mesura les dues botigues en aquesta crida, alternant una execució de cada una, 5 per costat, i fins a 7 si una mètrica queda no concloent. `main` es mesura una altra vegada amb cada branca.
 5. Escriu `out/results.json` i imprimeix una taula.
 
 ## Requisits
@@ -25,7 +25,7 @@ Reprodueix les xifres de les quatre branques de regressió del taller: el gate d
 
 ```bash
 npm install
-npm run measure     # mesura main i les quatre branques, uns 5 minuts
+npm run measure     # mesura main i les quatre branques, uns 7 minuts (una execució va trigar 7 min 16 s)
 npm test            # mesura una altra vegada i comprova els veredictes
 ```
 
@@ -46,15 +46,15 @@ Una execució de `npm test` en un Apple Silicon de 16 GB, amb el Chromium comple
 
 | Branca | Escenari | Mètrica | `main` | Branca | Canvi | p | Exit |
 |---|---|---|---|---|---|---|---|
-| `pr/lcp-hero-lazy` | home | LCP | 656 ms | 1056 ms | +61 % | 0,0055 | 1 |
+| `pr/lcp-hero-lazy` | home | LCP | 648 ms | 1064 ms | +64,2 % | 0,004 | 1 |
 | `pr/cls-promo-banner` | home | CLS | 0 | 0,070 | | 0,002 | 1 |
 | `pr/cls-promo-banner` | add-to-cart | CLS | 0 | 0,055 | | 0,002 | 1 |
-| `pr/loaf-cart-handler` | add-to-cart | INP | 48 ms | 120 ms | +150 % | 0,005 | 1 |
-| `pr/loaf-cart-handler` | home | LCP | 656 ms | 972 ms | +48,2 % | 0,0055 | 1 |
-| `pr/noop-refactor` | home | LCP | 656 ms | 648 ms | -1,2 % | 0,0987 | 0 |
-| `pr/noop-refactor` | add-to-cart | INP | 48 ms | 40 ms | -16,7 % | 0,0416 | 0 |
+| `pr/loaf-cart-handler` | add-to-cart | INP | 40 ms | 120 ms | +200 % | 0,0028 | 1 |
+| `pr/loaf-cart-handler` | home | LCP | 648 ms | 960 ms | +48,1 % | 0,006 | 1 |
+| `pr/noop-refactor` | home | LCP | 648 ms | 644 ms | -0,6 % | 0,3691 | 0 |
+| `pr/noop-refactor` | add-to-cart | INP | 40 ms | 40 ms | 0 % | 0,5596 | 0 |
 
-A `pr/noop-refactor`, l'INP baixa 8 ms amb p = 0,0416: la diferència és significativa, però no supera el llindar absolut, així que el veredicte és `unchanged`. El gate combina les dues condicions per no donar per bona ni per dolenta una diferència de soroll.
+A `pr/cls-promo-banner`, l'LCP de la home puja un 1,9 % amb p = 0,0063: la diferència és significativa, però no supera el llindar, així que el veredicte és `unchanged`. El gate combina les dues condicions per no donar per bona ni per dolenta una diferència de soroll. En les vuit mesures d'aquesta execució la CLI va mesurar 5 execucions per costat, i cap no va arribar a 7.
 
 Dues branques empitjoren més d'una mètrica, com passa en una PR real:
 
@@ -65,4 +65,4 @@ El Judge ha d'atribuir cada mètrica a la seva causa, no només donar el veredic
 
 ## Versions
 
-`webperf-snippets` 1.15.0 i `playwright` 1.63.0, fixades a [`package.json`](package.json). La CLI fa servir el Chromium complet quan està instal·lat, el mateix binari que Chrome DevTools MCP; amb només el headless shell (`npx playwright install --only-shell chromium`), les xifres poden ser una mica diferents.
+`webperf-snippets` 1.17.0 i `playwright` 1.63.0, fixades a [`package.json`](package.json). La CLI fa servir el Chromium complet quan està instal·lat, el mateix binari que Chrome DevTools MCP; amb només el headless shell (`npx playwright install --only-shell chromium`), les xifres poden ser una mica diferents.

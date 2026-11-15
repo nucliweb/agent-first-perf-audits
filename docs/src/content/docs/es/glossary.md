@@ -40,10 +40,11 @@ Los términos que aparecen en las guías, por orden alfabético. Los de las mét
 | Exit code | El número con el que termina un comando. El del gate es el veredicto: 0 si pasa, 1 si falla y 2 si no ha podido medir |
 | Gate | El control que decide si una pull request puede seguir. El del taller compara la rama con `main` y falla si alguna métrica empeora |
 | Mann-Whitney U | El test estadístico del gate. Mira el orden de las ejecuciones de los dos lados, no sus milisegundos, y dice si la diferencia puede ser ruido |
+| No concluyente (`inconclusive`) | Un cambio que supera su umbral mientras p no baja de 0,05. El gate mide más ejecuciones y, si sigue igual, no falla y el informe dice que hay que lanzarlo de nuevo |
 | p | La probabilidad de ver una diferencia así si las dos versiones fueran igual de rápidas. Por debajo de 0,05, el gate la da por real |
 | Regresión | Un cambio que empeora una métrica más que su umbral y que no es ruido |
 | Umbral | Lo mínimo que tiene que empeorar una métrica para contar. No es el umbral de "good" de Google, sino el del gate frente al baseline |
-| Veredicto | El resultado del gate: `pass` o `fail` |
+| Veredicto | El resultado del gate (`pass` o `fail`) y el de cada métrica (`regressed`, `inconclusive` o `unchanged`) |
 
 ## Agentes
 

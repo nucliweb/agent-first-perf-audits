@@ -107,4 +107,4 @@ Una medida interrumpida conserva sus rondas: el mismo comando con `--resume` sig
 
 ## Versiones
 
-`webperf-snippets` 1.15.0, fijada en [`package.json`](package.json). Las condiciones y los escenarios son los del gate, de [`agents/src/judge/gate.ts`](../../agents/src/judge/gate.ts).
+`webperf-snippets` 1.15.0, fijada en [`package.json`](package.json) a propósito: es la medida que llevó a la política del gate. La CLI implementa esa política desde la 1.17.0 (`--baseline` con una URL y `--max-runs`), que es la que usa el gate. Las condiciones y los escenarios son los del gate, de [`agents/src/judge/gate.ts`](../../agents/src/judge/gate.ts).

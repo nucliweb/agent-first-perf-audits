@@ -128,3 +128,24 @@ test("with ollama generating, the machine runs at about half its speed", () => {
   assert.deepEqual([index("idle"), index("loaded")], [2154, 1059]);
   for (const lang of LANGS) for (const figure of ["2154", "1059"]) assert.ok(read(READMES[lang]).includes(figure), `${lang}: ${figure}`);
 });
+
+// What the page of concepts tells of the two nights, as each language writes it
+const TIMES = {
+  es: (count, rounds) => `${count} veces de ${rounds}`,
+  ca: (count, rounds) => `${count} vegades de ${rounds}`,
+  en: (count, rounds) => `${count} times out of ${rounds}`,
+};
+
+for (const lang of LANGS) {
+  test(`the page of concepts in ${lang} gives the misses and the false failures of the loaded night`, () => {
+    const text = read(`../../docs/src/content/docs/${lang}/concepts.md`);
+    const hero = NIGHTS.loaded.records.filter((r) => r.branch === "pr/lcp-hero-lazy" && r.order === "adjacent");
+    const missed = hero.filter((r) => !policiesOf("5")[0].decide(r.baseline, r.candidate).regressed.includes("LCP")).length;
+    const control = pick("loaded", "adjacent", "5").control;
+    assert.equal(pick("loaded", "interleaved", "5").control.failed, 0);
+    for (const phrase of [TIMES[lang](missed, hero.length), TIMES[lang](control.failed, control.rounds)]) assert.ok(text.includes(phrase), `${lang}: ${phrase}`);
+    // The gate measures up to 7 runs a side when inconclusive, where one slow run of the baseline no longer hides a regression
+    assert.ok(text.includes("--max-runs 7"), `${lang}: --max-runs 7`);
+    assert.ok(text.includes(p(7, 1, lang)), `${lang}: ${p(7, 1, lang)}`);
+  });
+}

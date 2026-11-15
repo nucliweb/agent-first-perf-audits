@@ -70,7 +70,7 @@ To read more: [Interaction to Next Paint](https://web.dev/articles/inp) and [Lon
 | When it arrives | Days after publishing | Before the merge |
 | What it is for | Knowing what really happens | Comparing two versions of the code |
 
-A pull request gate needs the lab. The conditions of the workshop are always the same: CPU 4x (four times slower), the DevTools Fast 4G network (8.1 Mbps down, 1.35 Mbps up and 165 ms of latency) and several runs of each measurement, `--runs 5` in the gate.
+A pull request gate needs the lab. The conditions of the workshop are always the same: CPU 4x (four times slower), the DevTools Fast 4G network (8.1 Mbps down, 1.35 Mbps up and 165 ms of latency) and several runs of each measurement: `--runs 5` per shop in the gate, alternating one of `main` and one of the branch.
 
 Network throttling is not decoration: without it, the download priority of an image barely matters and the regression of `pr/lcp-hero-lazy` cannot be seen. The data is in [Why this stack](../stack/).
 
@@ -80,18 +80,26 @@ To read more: [Why lab and field data can be different](https://web.dev/articles
 
 The three regressions of the workshop leave their metrics inside "good". A gate that only looked at Google's thresholds would let all three pass, and the page would get worse merge after merge until it crossed the threshold with no single change to blame.
 
-That is why the gate compares each branch with its base version: the shop of `main` (the baseline) and the shop of the branch (the candidate), measured on the same machine in the same run. This way the difference between laptops does not count: a slow laptop measures both shops equally slow.
+That is why the gate compares each branch with its base version: the shop of `main` (the baseline) and the shop of the branch (the candidate), measured on the same machine in the same call, alternating one run of each. This way the difference between laptops does not count: a slow laptop measures both shops equally slow. Neither does whatever happens to the laptop halfway through the measurement, because it happens to both.
 
 ## How the gate decides
 
-A metric gets worse when two conditions hold at the same time:
+The gate looks at two things for each metric:
 
-1. **The change is big.** The median of the branch exceeds the median of the baseline by more than its threshold: the larger of 10% and 100 ms for LCP, the larger of 10% and 50 ms for INP, and 0.05 for CLS.
-2. **The change is not noise.** A statistical test, Mann-Whitney U, gives p < 0.05.
+1. **Whether the change is big.** The median of the branch exceeds the median of the baseline by more than its threshold: the larger of 10% and 100 ms for LCP, the larger of 10% and 50 ms for INP, and 0.05 for CLS.
+2. **Whether the change is not noise.** A statistical test, Mann-Whitney U, gives p < 0.05.
 
-If any metric of any scenario gets worse, the CLI exits with 1 and the gate fails. No model takes part in that decision.
+With those two answers, each metric ends up in one of three verdicts:
 
-<img src="/diagrams/gate.svg" alt="The gate measures the baseline and the branch; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; otherwise it exits with 0" width="1040" height="340" loading="lazy" decoding="async">
+| Verdict | When | What the gate does |
+|---|---|---|
+| `regressed`, gets worse | The change beats its threshold and p < 0.05 | Fails: the CLI exits with 1 |
+| `inconclusive` | The change beats its threshold, but p is not under 0.05 | Measures two more runs per shop and decides once more. If it is still the same, it does not fail, and the report says to run it again |
+| `unchanged`, no change | The change does not beat its threshold | Passes |
+
+No model takes part in that decision.
+
+<img src="/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" width="1120" height="340" loading="lazy" decoding="async">
 
 ### What p is, without formulas
 
@@ -109,9 +117,15 @@ With few runs, the order has few possible combinations and a single run out of p
 | 7 | 0.0003 | 0.0131 | 0.1043 |
 | 9 | < 0.0001 | 0.002 | 0.0252 |
 
-With 5 runs per side, a single slow run of the baseline leaves p at 0.0754, above 0.05, and the gate passes the branch even though its LCP went up 50%. It is not a hypothesis: it happened once with `pr/lcp-hero-lazy` while we were preparing the workshop.
+With 5 runs per side, a single slow run of the baseline leaves p at 0.0754, above 0.05. A gate that stopped there would pass the branch even though its LCP went up 50%. It is not a hypothesis: measuring with the laptop busy, it happened to `pr/lcp-hero-lazy` 3 times out of 20.
 
-The lesson holds for any gate: the rules are deterministic, but the samples are not. If your gate gives you a pass you do not expect, read the report before trusting it: a big change with a p that does not get there is not "no change", it is "inconclusive", and what to do is measure again or measure more. The [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.md) experiment measures how often the gate gets it right with each number of runs.
+That is why the gate of the workshop does not stop there. When a change beats its threshold and p does not get there, it calls it inconclusive and measures up to 7 runs per shop (`--max-runs 7`), where that same slow run leaves p at 0.0131. It decides twice at most, with 5 and with 7 runs per shop, never after each added run: looking at p again and again until it drops below 0.05 would end up finding a change by chance.
+
+### Why the order matters
+
+Measuring all the runs of `main` first and then all those of the branch looks harmless. But about half a minute passes between one block and the other, and a laptop is not always equally fast: a backup starts, a video call comes in. If it slows down just during the block of the branch, all its runs come out slower and the test sees a regression where there is none. With the laptop busy, a branch that changes nothing failed the gate 3 times out of 40 when measured by blocks, and never when the runs of the two shops were alternated.
+
+The lesson holds for any gate: the rules are deterministic, but the samples are not. Alternate the measurements of the two versions and, when the data is not enough to decide, let the gate say so instead of giving a pass. The figures come from the two nights of measurement of the [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.md) experiment.
 
 To read more: [Mann-Whitney U test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test) and the [variability of lab measurements](https://github.com/GoogleChrome/lighthouse/blob/main/docs/variability.md), in the Lighthouse documentation.
 

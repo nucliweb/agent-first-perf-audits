@@ -70,7 +70,7 @@ Para leer más: [Interaction to Next Paint](https://web.dev/articles/inp) y [Lon
 | Cuándo llega | Días después de publicar | Antes del merge |
 | Para qué sirve | Saber qué pasa de verdad | Comparar dos versiones del código |
 
-Un gate de pull request necesita laboratorio. Las condiciones del taller son siempre las mismas: CPU 4x (cuatro veces más lenta), la red Fast 4G de DevTools (8,1 Mbps de bajada, 1,35 Mbps de subida y 165 ms de latencia) y varias ejecuciones de cada medida, `--runs 5` en el gate.
+Un gate de pull request necesita laboratorio. Las condiciones del taller son siempre las mismas: CPU 4x (cuatro veces más lenta), la red Fast 4G de DevTools (8,1 Mbps de bajada, 1,35 Mbps de subida y 165 ms de latencia) y varias ejecuciones de cada medida: `--runs 5` por tienda en el gate, alternando una de `main` y una de la rama.
 
 El throttling de red no es un adorno: sin él, la prioridad de descarga de una imagen apenas pesa y la regresión de `pr/lcp-hero-lazy` no se ve. Los datos están en [Por qué este stack](../stack/).
 
@@ -80,18 +80,26 @@ Para leer más: [Why lab and field data can be different](https://web.dev/articl
 
 Las tres regresiones del taller dejan sus métricas dentro de "good". Un gate que solo mirase los umbrales de Google las dejaría pasar las tres, y la página iría empeorando merge a merge hasta cruzar el umbral sin que ningún cambio concreto tuviera la culpa.
 
-Por eso el gate compara cada rama con su versión base: la tienda de `main` (el baseline) y la de la rama (el candidate), medidas en la misma máquina y en la misma ejecución. Así la diferencia entre portátiles no cuenta: un portátil lento mide las dos tiendas igual de lentas.
+Por eso el gate compara cada rama con su versión base: la tienda de `main` (el baseline) y la de la rama (el candidate), medidas en la misma máquina y en la misma llamada, alternando una ejecución de cada una. Así la diferencia entre portátiles no cuenta: un portátil lento mide las dos tiendas igual de lentas. Y tampoco cuenta lo que le pase al portátil a mitad de la medida, porque les pasa a las dos.
 
 ## Cómo decide el gate
 
-Una métrica empeora cuando cumple dos condiciones a la vez:
+El gate mira dos cosas de cada métrica:
 
-1. **El cambio es grande.** La mediana de la rama supera a la del baseline en más que su umbral: el mayor entre el 10 % y 100 ms para el LCP, el mayor entre el 10 % y 50 ms para el INP, y 0,05 para el CLS.
-2. **El cambio no es ruido.** Un test estadístico, Mann-Whitney U, da p < 0,05.
+1. **Si el cambio es grande.** La mediana de la rama supera a la del baseline en más que su umbral: el mayor entre el 10 % y 100 ms para el LCP, el mayor entre el 10 % y 50 ms para el INP, y 0,05 para el CLS.
+2. **Si el cambio no es ruido.** Un test estadístico, Mann-Whitney U, da p < 0,05.
 
-Si alguna métrica de algún escenario empeora, la CLI sale con 1 y el gate falla. Ningún modelo interviene en esa decisión.
+Con esas dos respuestas, cada métrica acaba en uno de tres veredictos:
 
-<img src="/diagrams/gate.svg" alt="El gate mide el baseline y la rama; si el cambio supera el umbral y p es menor que 0,05, sale con 1, trace-engine-cli atribuye el cambio y el LLM lo explica; si no, sale con 0" width="1040" height="340" loading="lazy" decoding="async">
+| Veredicto | Cuándo | Qué hace el gate |
+|---|---|---|
+| `regressed`, empeora | El cambio supera su umbral y p < 0,05 | Falla: la CLI sale con 1 |
+| `inconclusive`, no concluyente | El cambio supera su umbral, pero p no baja de 0,05 | Mide dos ejecuciones más por tienda y decide otra vez. Si sigue igual, no falla, y el informe dice que hay que lanzarlo de nuevo |
+| `unchanged`, sin cambios | El cambio no supera su umbral | Pasa |
+
+Ningún modelo interviene en esa decisión.
+
+<img src="/diagrams/gate.svg" alt="El gate mide el baseline y la rama alternando sus ejecuciones; si el cambio supera el umbral y p es menor que 0,05, sale con 1, trace-engine-cli atribuye el cambio y el LLM lo explica; si supera el umbral y p no llega, mide dos ejecuciones más por lado y decide otra vez; si no, sale con 0" width="1120" height="340" loading="lazy" decoding="async">
 
 ### Qué es p, sin fórmulas
 
@@ -109,9 +117,15 @@ Con pocas ejecuciones, el orden tiene pocas combinaciones posibles y una sola ej
 | 7 | 0,0003 | 0,0131 | 0,1043 |
 | 9 | < 0,0001 | 0,002 | 0,0252 |
 
-Con 5 ejecuciones por lado, una sola ejecución lenta del baseline deja p en 0,0754, por encima de 0,05, y el gate da la rama por buena aunque su LCP haya subido un 50 %. No es una hipótesis: pasó una vez con `pr/lcp-hero-lazy` mientras preparábamos el taller.
+Con 5 ejecuciones por lado, una sola ejecución lenta del baseline deja p en 0,0754, por encima de 0,05. Un gate que parase ahí daría la rama por buena aunque su LCP hubiera subido un 50 %. No es una hipótesis: midiendo con el portátil ocupado, a `pr/lcp-hero-lazy` le pasó 3 veces de 20.
 
-La lección vale para cualquier gate: las reglas son deterministas, pero las muestras no. Si tu gate te da un pass que no esperas, mira el informe antes de fiarte: un cambio grande con un p que no llega no es "sin cambios", es "no concluyente", y lo que toca es medir otra vez o medir más. El experimento [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.es.md) mide cuántas veces acierta el gate con cada número de ejecuciones.
+Por eso el gate del taller no para ahí. Cuando un cambio supera su umbral y p no llega, lo llama no concluyente y mide hasta 7 ejecuciones por tienda (`--max-runs 7`), donde esa misma ejecución lenta deja p en 0,0131. Decide como mucho dos veces, con 5 y con 7 ejecuciones por tienda, nunca después de cada ejecución añadida: mirar p una y otra vez hasta que baje de 0,05 acabaría encontrando un cambio por casualidad.
+
+### Por qué importa el orden
+
+Medir primero todas las ejecuciones de `main` y después todas las de la rama parece inocente. Pero entre un bloque y el otro pasa cerca de medio minuto, y un portátil no va siempre igual de rápido: arranca una copia de seguridad, entra una videollamada. Si se frena justo durante el bloque de la rama, todas sus ejecuciones salen más lentas y el test ve una regresión donde no la hay. Con el portátil ocupado, una rama que no cambia nada falló el gate 3 veces de 40 midiendo por bloques, y ninguna alternando las ejecuciones de las dos tiendas.
+
+La lección vale para cualquier gate: las reglas son deterministas, pero las muestras no. Alterna las medidas de las dos versiones y, cuando los datos no alcancen para decidir, que el gate lo diga en lugar de dar un pass. Las cifras salen de las dos noches de medida del experimento [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.es.md).
 
 Para leer más: [Mann-Whitney U test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test) y la [variabilidad de las medidas de laboratorio](https://github.com/GoogleChrome/lighthouse/blob/main/docs/variability.md), en la documentación de Lighthouse.
 

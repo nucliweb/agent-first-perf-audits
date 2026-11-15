@@ -41,9 +41,10 @@ Els termes que apareixen a les guies, per ordre alfabètic. Els de les mètrique
 | Gate | El control que decideix si una pull request pot continuar. El del taller compara la branca amb `main` i falla si alguna mètrica empitjora |
 | Llindar | El mínim que ha d'empitjorar una mètrica per comptar. No és el llindar de "good" de Google, sinó el del gate davant del baseline |
 | Mann-Whitney U | El test estadístic del gate. Mira l'ordre de les execucions dels dos costats, no els seus mil·lisegons, i diu si la diferència pot ser soroll |
+| No concloent (`inconclusive`) | Un canvi que supera el seu llindar mentre p no baixa de 0,05. El gate mesura més execucions i, si continua igual, no falla i l'informe diu que cal tornar-ho a llançar |
 | p | La probabilitat de veure una diferència així si les dues versions fossin igual de ràpides. Per sota de 0,05, el gate la dona per real |
 | Regressió | Un canvi que empitjora una mètrica més que el seu llindar i que no és soroll |
-| Veredicte | El resultat del gate: `pass` o `fail` |
+| Veredicte | El resultat del gate (`pass` o `fail`) i el de cada mètrica (`regressed`, `inconclusive` o `unchanged`) |
 
 ## Agents
 

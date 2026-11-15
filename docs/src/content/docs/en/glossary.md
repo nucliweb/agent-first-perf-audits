@@ -39,11 +39,12 @@ The terms that appear in the guides, in alphabetical order. The metrics are expl
 |---|---|
 | Exit code | The number a command ends with. The gate's is the verdict: 0 if it passes, 1 if it fails and 2 if it could not measure |
 | Gate | The check that decides whether a pull request can go on. The workshop's compares the branch with `main` and fails if any metric gets worse |
+| Inconclusive (`inconclusive`) | A change that beats its threshold while p is not under 0.05. The gate measures more runs and, if it is still the same, it does not fail and the report says to run it again |
 | Mann-Whitney U | The statistical test of the gate. It looks at the order of the runs of both sides, not their milliseconds, and says whether the difference can be noise |
 | p | The probability of seeing a difference like this if the two versions were equally fast. Below 0.05, the gate takes it as real |
 | Regression | A change that makes a metric worse by more than its threshold and that is not noise |
 | Threshold | The minimum a metric has to get worse to count. It is not Google's "good" threshold, but the gate's against the baseline |
-| Verdict | The result of the gate: `pass` or `fail` |
+| Verdict | The result of the gate (`pass` or `fail`) and that of each metric (`regressed`, `inconclusive` or `unchanged`) |
 
 ## Agents
 

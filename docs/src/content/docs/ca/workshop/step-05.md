@@ -37,7 +37,7 @@ Les quatre branques també estan desplegades a Vercel, per veure-les al navegado
    done
    ```
 
-   `docker compose run` arrenca la botiga de cada branca abans de mesurar-la. Cada branca triga uns minuts, perquè el gate mesura cinc vegades cada escenari a cada costat. En acabar cadascuna, n'escriu l'exit code:
+   `docker compose run` arrenca la botiga de cada branca abans de mesurar-la. Cada branca triga uns minuts, perquè el gate mesura cinc vegades cada escenari a cada costat, alternant les dues botigues. En acabar cadascuna, n'escriu l'exit code:
 
    ```text
    pr-lcp-hero-lazy: exit 1
@@ -46,11 +46,12 @@ Les quatre branques també estan desplegades a Vercel, per veure-les al navegado
    pr-noop-refactor: exit 0
    ```
 
-2. Mentre corre la següent, llegeix el `report.md` de l'anterior, a `out/ci/<branca>/`. Fixa't en quatre coses:
+2. Mentre corre la següent, llegeix el `report.md` de l'anterior, a `out/ci/<branca>/`. Fixa't en cinc coses:
 
    - `pr/loaf-cart-handler` empitjora dues mètriques per dues causes diferents, i el Judge demana una explicació per a cadascuna.
    - `pr/noop-refactor` passa i l'LLM no arriba a ser consultat: sense regressió, les regles responen soles, i no hi ha ocasió d'inventar-se'n una.
    - A `pr/lcp-hero-lazy`, l'explicació de l'LLM anomena `loading="lazy"`, i els fets de les regles, al final de l'informe, afegeixen el que no diu: el `fetchPriority` i el preload que perd el hero.
+   - Si una mètrica supera el seu llindar i p no baixa de 0,05, l'informe ho diu a dalt, en un bloc "Inconclusive: run the gate again." amb la mètrica, el seu canvi i la seva p, i quantes execucions per costat va mesurar la CLI. El gate no falla per aquesta mètrica.
    - Amb el perfil `lite`, cada carpeta té un `handoff.md` en lloc de l'explicació. Enviar-lo a un servei extern és una decisió de cada equip per al seu propi codi.
 
 3. Passa la comprovació del pas:
@@ -60,3 +61,5 @@ Les quatre branques també estan desplegades a Vercel, per veure-les al navegado
    ```
 
    Dona un `OK` per branca quan el seu informe té el veredicte esperat, i acaba amb `step-05 is done.`
+
+   Si una branca que hauria de fallar passa amb una mètrica no concloent cap a pitjor, la comprovació diu que la llancis una altra vegada.

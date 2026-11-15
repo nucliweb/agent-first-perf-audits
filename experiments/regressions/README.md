@@ -11,7 +11,7 @@ Reproduces the figures of the four regression branches of the workshop: the WebP
 3. Measures two scenarios, one after the other so that two Chromium instances do not share the CPU:
    - `home`: the load of `/`, with LCP and CLS.
    - `add-to-cart`: the load of `/product/kenya-aa` and a click on "Add to cart" ([`agents/journeys/add-to-cart.json`](../../agents/journeys/add-to-cart.json)), with `--workflow interaction` to get the INP.
-4. In each scenario, it measures `main` and saves its JSON as the baseline. Then it runs the gate on each branch: `--baseline` and `--fail-on-regression`, with `--cpu 4 --network fast-4g --runs 5`.
+4. It runs the gate on each branch and scenario with a single CLI call: `--baseline` with the URL of the shop of `main`, `--cpu 4 --network fast-4g --runs 5 --max-runs 7` and `--fail-on-regression`. The CLI measures both shops in that call, alternating one run of each, 5 a side, and up to 7 if a metric is left inconclusive. `main` is measured again with each branch.
 5. Writes `out/results.json` and prints a table.
 
 ## Requirements
@@ -25,7 +25,7 @@ Reproduces the figures of the four regression branches of the workshop: the WebP
 
 ```bash
 npm install
-npm run measure     # measures main and the four branches, about 5 minutes
+npm run measure     # measures main and the four branches, about 7 minutes (one run took 7 min 16 s)
 npm test            # measures again and checks the verdicts
 ```
 
@@ -46,15 +46,15 @@ One run of `npm test` on a 16 GB Apple Silicon, with the full Chromium of Playwr
 
 | Branch | Scenario | Metric | `main` | Branch | Change | p | Exit |
 |---|---|---|---|---|---|---|---|
-| `pr/lcp-hero-lazy` | home | LCP | 656 ms | 1056 ms | +61 % | 0.0055 | 1 |
+| `pr/lcp-hero-lazy` | home | LCP | 648 ms | 1064 ms | +64.2 % | 0.004 | 1 |
 | `pr/cls-promo-banner` | home | CLS | 0 | 0.070 | | 0.002 | 1 |
 | `pr/cls-promo-banner` | add-to-cart | CLS | 0 | 0.055 | | 0.002 | 1 |
-| `pr/loaf-cart-handler` | add-to-cart | INP | 48 ms | 120 ms | +150 % | 0.005 | 1 |
-| `pr/loaf-cart-handler` | home | LCP | 656 ms | 972 ms | +48.2 % | 0.0055 | 1 |
-| `pr/noop-refactor` | home | LCP | 656 ms | 648 ms | -1.2 % | 0.0987 | 0 |
-| `pr/noop-refactor` | add-to-cart | INP | 48 ms | 40 ms | -16.7 % | 0.0416 | 0 |
+| `pr/loaf-cart-handler` | add-to-cart | INP | 40 ms | 120 ms | +200 % | 0.0028 | 1 |
+| `pr/loaf-cart-handler` | home | LCP | 648 ms | 960 ms | +48.1 % | 0.006 | 1 |
+| `pr/noop-refactor` | home | LCP | 648 ms | 644 ms | -0.6 % | 0.3691 | 0 |
+| `pr/noop-refactor` | add-to-cart | INP | 40 ms | 40 ms | 0 % | 0.5596 | 0 |
 
-On `pr/noop-refactor`, the INP drops 8 ms with p = 0.0416: the difference is significant, but it does not exceed the absolute threshold, so the verdict is `unchanged`. The gate combines both conditions so that a noise difference is counted neither as good nor as bad.
+On `pr/cls-promo-banner`, the LCP of the home grows 1.9 % with p = 0.0063: the difference is significant, but it does not exceed the threshold, so the verdict is `unchanged`. The gate combines both conditions so that a noise difference is counted neither as good nor as bad. In the eight measurements of this run the CLI measured 5 runs a side, and none reached 7.
 
 Two branches regress more than one metric, as happens in a real PR:
 
@@ -65,4 +65,4 @@ The Judge has to attribute each metric to its cause, not only give the verdict.
 
 ## Versions
 
-`webperf-snippets` 1.15.0 and `playwright` 1.63.0, pinned in [`package.json`](package.json). The CLI uses the full Chromium when it is installed, the same binary as Chrome DevTools MCP; with only the headless shell (`npx playwright install --only-shell chromium`), the figures can be somewhat different.
+`webperf-snippets` 1.17.0 and `playwright` 1.63.0, pinned in [`package.json`](package.json). The CLI uses the full Chromium when it is installed, the same binary as Chrome DevTools MCP; with only the headless shell (`npx playwright install --only-shell chromium`), the figures can be somewhat different.

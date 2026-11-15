@@ -19,7 +19,7 @@ The workshop stack did not come from a diagram: each piece is the answer to some
 
 | Decision | Discarded | Why | Check it |
 |---|---|---|---|
-| The gate measures with 4x CPU, fast-4g network and 5 runs | Measuring without network throttling | With an instant local network, the fetch priority of the LCP image barely matters, and the LCP regression cannot be told apart from the noise: on `pr/lcp-hero-lazy`, the LCP grows 63 % with fast-4g and 3-4 % without network throttling, below the threshold | [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/discarded) |
+| The gate measures with 4x CPU, fast-4g network and 5 runs per shop, alternating those of `main` and those of the branch, and 7 if the result is inconclusive | Measuring without network throttling | With an instant local network, the fetch priority of the LCP image barely matters, and the LCP regression cannot be told apart from the noise: on `pr/lcp-hero-lazy`, the LCP grows 63.6 % with fast-4g and 1.7 % without network throttling, below the threshold | [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/discarded) |
 | INP is measured with `--workflow interaction` and a journey | The default workflow | The default workflow does not return INP | [`agents/journeys/add-to-cart.json`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/journeys/add-to-cart.json) |
 | A single Chromium, the full Playwright one, for WebPerf Snippets and Chrome DevTools MCP | The headless shell for the CLI and Chromium for DevTools | Both tools measure with the same binary and the same headless mode, and the image only carries one browser. WebPerf Snippets launches the full Chromium when it is installed and records which one it used in its conditions | [A single Chromium for both MCPs](../learnings/#a-single-chromium-for-both-mcps), `docker compose run --rm agents` |
 
@@ -36,7 +36,7 @@ The workshop stack did not come from a diagram: each piece is the answer to some
 
 | Decision | Discarded | Why | Check it |
 |---|---|---|---|
-| The shop is a React SPA, and its server preloads the LCP image of each route | An SPA without preload | In an SPA, the LCP image is not discovered until the JavaScript runs. Without preload in the baseline, removing `fetchpriority` and adding `loading="lazy"` does not change the LCP enough for the gate to see it: without preload, the LCP of `main` is already around 1030 ms and the branch only adds 3-4 % | [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/discarded) |
+| The shop is a React SPA, and its server preloads the LCP image of each route | An SPA without preload | In an SPA, the LCP image is not discovered until the JavaScript runs. Without preload in the baseline, removing `fetchpriority` and adding `loading="lazy"` does not change the LCP enough for the gate to see it: without preload, the LCP of `main` is already 1028 ms and the branch only adds 2.7 % | [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/tree/main/experiments/discarded) |
 | Each regression branch updates the app tests that its change breaks | Letting classic CI detect the regression | It is what the PR author would do, and it shows what the workshop argues for: classic CI passes on all four branches and only the performance gate detects the three regressions | `npm test` in `apps/shop` of each branch |
 
 ## The lab
