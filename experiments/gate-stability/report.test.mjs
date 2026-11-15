@@ -2,7 +2,7 @@
 // a small results object written by hand.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { expectedOf, formatTable, policiesOf, reportRows } from "./report.mjs";
+import { expectedOf, formatTable, policiesOf, reportRows, summaryOf } from "./report.mjs";
 
 const run = (values) => ({
   timestamp: "2026-11-14T01:00:00.000Z",
@@ -97,4 +97,21 @@ test("the table of the report, in Markdown", () => {
   );
   const missing = reportRows({ ...RESULTS, records: [RESULTS.records[5]] }, { branches: BRANCHES, policies: policiesOf("10") });
   assert.equal(formatTable(missing).split("\n")[2], "| `pr/loaf-cart-handler` | home | adjacent | not set | 10 runs | 1 | - | - | - | - |");
+});
+
+test("the summary: per order and policy, the regressions missed and the times the control fails", () => {
+  const summary = summaryOf(RESULTS, { branches: BRANCHES, policies: policiesOf("5,5-9") });
+  assert.deepEqual(
+    summary.map((s) => [s.order, s.policy, s.regressions, s.control]),
+    [
+      // Two rounds of the hero, one hidden by a slow run of the baseline; the control fails once of two
+      ["adjacent", "5 runs", { rounds: 2, missed: 1 }, { rounds: 2, failed: 1 }],
+      ["adjacent", "5 runs, 9 when inconclusive", { rounds: 2, missed: 0 }, { rounds: 2, failed: 1 }],
+      ["interleaved", "5 runs", { rounds: 1, missed: 0 }, { rounds: 0, failed: 0 }],
+      ["interleaved", "5 runs, 9 when inconclusive", { rounds: 1, missed: 0 }, { rounds: 0, failed: 0 }],
+    ],
+  );
+  // The rounds of a branch in a scenario with no expected verdict do not count: loaf on home
+  assert.equal(summary[0].runs, 5);
+  assert.equal(summary[1].runs, 6);
 });

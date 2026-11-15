@@ -36,6 +36,50 @@ Escrita antes de medir. Se queda la política más barata que cumpla las cuatro 
 3. No falla en ninguna ronda de `pr/noop-refactor`, en reposo ni con carga.
 4. El paso 5 del taller, con el gate en las ramas que se lanzan en directo, cabe en su hueco de la agenda.
 
+## Resultados en el Mac de referencia
+
+Dos noches de medida en un Apple Silicon de 16 GB, con 8 GB para la máquina virtual de Docker: 25 rondas con la máquina en reposo (4.500 ejecuciones) y 20 con `ollama` generando (3.600). Las regresiones son las rondas de `pr/lcp-hero-lazy`, `pr/cls-promo-banner` y `pr/loaf-cart-handler` en el escenario de su métrica; el control, las de `pr/noop-refactor` en los dos escenarios.
+
+### En reposo
+
+| Orden | Ejecuciones por lado | Regresiones que se escapan | Veces que falla el control | Ejecuciones de media |
+|---|---|---|---|---|
+| Adyacente | 5 | 1 de 75 | 0 de 50 | 5,00 |
+| Adyacente | 7 | 0 de 75 | 0 de 50 | 7,00 |
+| Adyacente | 9 | 0 de 75 | 0 de 50 | 9,00 |
+| Adyacente | 5, y 7 si no es concluyente | 0 de 75 | 0 de 50 | 5,03 |
+| Adyacente | 5, y 9 si no es concluyente | 0 de 75 | 0 de 50 | 5,06 |
+| Intercalado | 5 | 1 de 75 | 0 de 50 | 5,00 |
+| Intercalado | 7 | 0 de 75 | 0 de 50 | 7,00 |
+| Intercalado | 9 | 0 de 75 | 0 de 50 | 9,00 |
+| Intercalado | 5, y 7 si no es concluyente | 0 de 75 | 0 de 50 | 5,03 |
+| Intercalado | 5, y 9 si no es concluyente | 0 de 75 | 0 de 50 | 5,06 |
+
+### Con ollama generando
+
+| Orden | Ejecuciones por lado | Regresiones que se escapan | Veces que falla el control | Ejecuciones de media |
+|---|---|---|---|---|
+| Adyacente | 5 | 4 de 60 | 3 de 40 | 5,00 |
+| Adyacente | 7 | 1 de 60 | 3 de 40 | 7,00 |
+| Adyacente | 9 | 0 de 60 | 4 de 40 | 9,00 |
+| Adyacente | 5, y 7 si no es concluyente | 1 de 60 | 3 de 40 | 5,10 |
+| Adyacente | 5, y 9 si no es concluyente | 0 de 60 | 3 de 40 | 5,20 |
+| Intercalado | 5 | 2 de 60 | 0 de 40 | 5,00 |
+| Intercalado | 7 | 2 de 60 | 0 de 40 | 7,00 |
+| Intercalado | 9 | 0 de 60 | 1 de 40 | 9,00 |
+| Intercalado | 5, y 7 si no es concluyente | 2 de 60 | 0 de 40 | 5,08 |
+| Intercalado | 5, y 9 si no es concluyente | 0 de 60 | 1 de 40 | 5,16 |
+
+Con `ollama` generando, la mediana del `benchmarkIndex` de las ejecuciones baja de 2154 a 1059: la máquina va a la mitad de velocidad.
+
+## Qué dicen los datos
+
+- **El gate de 5 ejecuciones por lado deja escapar regresiones.** En reposo, 1 de 75, el INP de `pr/loaf-cart-handler`. Con carga, 4 de 60, y 3 de ellas son el LCP de `pr/lcp-hero-lazy`: 3 de sus 20 rondas, el pass que nos encontramos preparando el taller.
+- **Ampliar solo cuando no es concluyente las recupera casi gratis.** Con 5 ejecuciones y hasta 7 o 9 cuando el cambio supera el umbral y p no llega, en reposo no se escapa ninguna, y la media no pasa de 5,2 ejecuciones por lado.
+- **Con carga, medir primero todo el baseline hace fallar al control**, 3 o 4 veces de 40 con cualquier política. Más ejecuciones no lo arreglan, porque no es ruido de muestreo: la máquina cambia de velocidad entre el bloque del baseline y el de la rama, y el test lo ve como un cambio real. Intercalando las ejecuciones de los dos lados, el control falla 0 o 1 veces de 40.
+- **La política que cumple la regla es intercalar, con 5 ejecuciones por lado y 7 cuando no es concluyente.** Es la más barata sin ningún fallo en reposo, con menos de un 10 % de regresiones escapadas con carga y sin ningún fallo del control.
+- **Lo que estos datos no separan.** Con 20 o 25 rondas, 0 de 40 y 1 de 40 son indistinguibles: los datos separan bien el orden adyacente del intercalado y las 5 ejecuciones fijas de ampliar, pero no ampliar hasta 7 de ampliar hasta 9.
+
 ## Requisitos
 
 - Node 22.18 o superior, y Docker con las imágenes del taller ya descargadas (`scripts/preflight.sh`).
@@ -50,6 +94,7 @@ npm test                                              # las políticas, el plan 
 node collect.mjs --label idle --rounds 25             # unos 18 minutos por ronda
 node collect.mjs --label loaded --rounds 20 --load    # con ollama generando mientras mide
 node report.mjs idle                                  # la tabla de cada política
+node report.mjs idle --policies 5,7,9,5-7,5-9 --summary # el resumen de la noche, por orden y política
 ```
 
 Una medida interrumpida conserva sus rondas: el mismo comando con `--resume` sigue donde se quedó.

@@ -1,7 +1,8 @@
 // What each policy of the gate gives on the runs of a night: for each branch, scenario and order,
 // how many rounds fail, how many stay inconclusive, how many get the expected verdict of BRANCHES
 // right, and how many runs a side the policy spends on average.
-// Usage: node report.mjs <label> [--policies 5,7,9,5-9]
+// Usage: node report.mjs <label> [--policies 5,7,9,5-9] [--summary]
+//   --summary prints one row per order and policy instead of one per branch and scenario
 //   a number is that many runs a side; a range a-b takes a runs, and b when a leaves a metric inconclusive
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -66,6 +67,33 @@ export function reportRows(results, { branches = BRANCHES, policies = policiesOf
   });
 }
 
+// The night in one row per order and policy: over the rounds of the branches with a regression in
+// the scenario of their metric, how many the policy misses; over the rounds of the control, how many
+// it fails; and the runs a side it spends on average. The rounds with no expected verdict do not count.
+export function summaryOf(results, options = {}) {
+  const groups = new Map();
+  for (const row of reportRows(results, options).filter((r) => r.expected && r.right !== null)) {
+    const key = `${row.order}\u0000${row.policy}`;
+    if (!groups.has(key)) groups.set(key, { order: row.order, policy: row.policy, regressions: { rounds: 0, missed: 0 }, control: { rounds: 0, failed: 0 }, spent: 0 });
+    const group = groups.get(key);
+    const side = row.expected.verdict === "fail" ? group.regressions : group.control;
+    side.rounds += row.rounds;
+    side[row.expected.verdict === "fail" ? "missed" : "failed"] += row.rounds - row.right;
+    group.spent += row.runs * row.rounds;
+  }
+  return [...groups.values()]
+    .sort((a, b) => ORDERS.indexOf(a.order) - ORDERS.indexOf(b.order))
+    .map(({ spent, ...group }) => ({ ...group, runs: spent / (group.regressions.rounds + group.control.rounds) }));
+}
+
+export function formatSummary(summary) {
+  return [
+    "| Order | Policy | Regressions missed | Control failed | Runs a side |",
+    "|---|---|---|---|---|",
+    ...summary.map((s) => `| ${s.order} | ${s.policy} | ${s.regressions.missed} of ${s.regressions.rounds} | ${s.control.failed} of ${s.control.rounds} | ${s.runs.toFixed(2)} |`),
+  ].join("\n");
+}
+
 const describeExpected = (expected) => (!expected ? "not set" : expected.verdict === "fail" ? `fail (${expected.metric})` : "pass");
 const cell = (value, format = String) => (value === null ? "-" : format(value));
 
@@ -81,14 +109,15 @@ export function formatTable(rows) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const { values, positionals } = parseArgs({ allowPositionals: true, options: { policies: { type: "string", default: "5,7,9,5-9" } } });
+  const { values, positionals } = parseArgs({ allowPositionals: true, options: { policies: { type: "string", default: "5,7,9,5-9" }, summary: { type: "boolean", default: false } } });
   const [label] = positionals;
   if (!label) {
-    console.error("Usage: node report.mjs <label> [--policies 5,7,9,5-9]");
+    console.error("Usage: node report.mjs <label> [--policies 5,7,9,5-9] [--summary]");
     process.exit(2);
   }
   const results = JSON.parse(await readFile(join(HERE, "results", `${label}.json`), "utf8"));
-  console.log(formatTable(reportRows(results, { policies: policiesOf(values.policies) })));
+  const policies = policiesOf(values.policies);
+  console.log(values.summary ? formatSummary(summaryOf(results, { policies })) : formatTable(reportRows(results, { policies })));
   const c = results.conditions;
   if (c) {
     console.log(

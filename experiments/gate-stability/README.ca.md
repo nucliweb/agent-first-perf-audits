@@ -36,6 +36,50 @@ Escrita abans de mesurar. Es queda la política més barata que compleixi les qu
 3. No falla a cap ronda de `pr/noop-refactor`, en repòs ni amb càrrega.
 4. El pas 5 del taller, amb el gate a les branques que es llancen en directe, cap al seu espai de l'agenda.
 
+## Resultats al Mac de referència
+
+Dues nits de mesura en un Apple Silicon de 16 GB, amb 8 GB per a la màquina virtual de Docker: 25 rondes amb la màquina en repòs (4.500 execucions) i 20 amb `ollama` generant (3.600). Les regressions són les rondes de `pr/lcp-hero-lazy`, `pr/cls-promo-banner` i `pr/loaf-cart-handler` a l'escenari de la seva mètrica; el control, les de `pr/noop-refactor` als dos escenaris.
+
+### En repòs
+
+| Ordre | Execucions per costat | Regressions que s'escapen | Vegades que falla el control | Execucions de mitjana |
+|---|---|---|---|---|
+| Adjacent | 5 | 1 de 75 | 0 de 50 | 5,00 |
+| Adjacent | 7 | 0 de 75 | 0 de 50 | 7,00 |
+| Adjacent | 9 | 0 de 75 | 0 de 50 | 9,00 |
+| Adjacent | 5, i 7 si no és concloent | 0 de 75 | 0 de 50 | 5,03 |
+| Adjacent | 5, i 9 si no és concloent | 0 de 75 | 0 de 50 | 5,06 |
+| Intercalat | 5 | 1 de 75 | 0 de 50 | 5,00 |
+| Intercalat | 7 | 0 de 75 | 0 de 50 | 7,00 |
+| Intercalat | 9 | 0 de 75 | 0 de 50 | 9,00 |
+| Intercalat | 5, i 7 si no és concloent | 0 de 75 | 0 de 50 | 5,03 |
+| Intercalat | 5, i 9 si no és concloent | 0 de 75 | 0 de 50 | 5,06 |
+
+### Amb ollama generant
+
+| Ordre | Execucions per costat | Regressions que s'escapen | Vegades que falla el control | Execucions de mitjana |
+|---|---|---|---|---|
+| Adjacent | 5 | 4 de 60 | 3 de 40 | 5,00 |
+| Adjacent | 7 | 1 de 60 | 3 de 40 | 7,00 |
+| Adjacent | 9 | 0 de 60 | 4 de 40 | 9,00 |
+| Adjacent | 5, i 7 si no és concloent | 1 de 60 | 3 de 40 | 5,10 |
+| Adjacent | 5, i 9 si no és concloent | 0 de 60 | 3 de 40 | 5,20 |
+| Intercalat | 5 | 2 de 60 | 0 de 40 | 5,00 |
+| Intercalat | 7 | 2 de 60 | 0 de 40 | 7,00 |
+| Intercalat | 9 | 0 de 60 | 1 de 40 | 9,00 |
+| Intercalat | 5, i 7 si no és concloent | 2 de 60 | 0 de 40 | 5,08 |
+| Intercalat | 5, i 9 si no és concloent | 0 de 60 | 1 de 40 | 5,16 |
+
+Amb `ollama` generant, la mediana del `benchmarkIndex` de les execucions baixa de 2154 a 1059: la màquina va a la meitat de velocitat.
+
+## Què diuen les dades
+
+- **El gate de 5 execucions per costat deixa escapar regressions.** En repòs, 1 de 75, l'INP de `pr/loaf-cart-handler`. Amb càrrega, 4 de 60, i 3 d'elles són l'LCP de `pr/lcp-hero-lazy`: 3 de les seves 20 rondes, el pass que ens vam trobar preparant el taller.
+- **Ampliar només quan no és concloent les recupera gairebé gratis.** Amb 5 execucions i fins a 7 o 9 quan el canvi supera el llindar i p no hi arriba, en repòs no se n'escapa cap, i la mitjana no passa de 5,2 execucions per costat.
+- **Amb càrrega, mesurar primer tot el baseline fa fallar el control**, 3 o 4 vegades de 40 amb qualsevol política. Més execucions no ho arreglen, perquè no és soroll de mostreig: la màquina canvia de velocitat entre el bloc del baseline i el de la branca, i el test ho veu com un canvi real. Intercalant les execucions dels dos costats, el control falla 0 o 1 vegades de 40.
+- **La política que compleix la regla és intercalar, amb 5 execucions per costat i 7 quan no és concloent.** És la més barata sense cap fallada en repòs, amb menys d'un 10 % de regressions escapades amb càrrega i sense cap fallada del control.
+- **El que aquestes dades no separen.** Amb 20 o 25 rondes, 0 de 40 i 1 de 40 són indistingibles: les dades separen bé l'ordre adjacent de l'intercalat i les 5 execucions fixes d'ampliar, però no ampliar fins a 7 d'ampliar fins a 9.
+
 ## Requisits
 
 - Node 22.18 o superior, i Docker amb les imatges del taller ja descarregades (`scripts/preflight.sh`).
@@ -50,6 +94,7 @@ npm test                                              # les polítiques, el pla 
 node collect.mjs --label idle --rounds 25             # uns 18 minuts per ronda
 node collect.mjs --label loaded --rounds 20 --load    # amb ollama generant mentre mesura
 node report.mjs idle                                  # la taula de cada política
+node report.mjs idle --policies 5,7,9,5-7,5-9 --summary # el resum de la nit, per ordre i política
 ```
 
 Una mesura interrompuda conserva les seves rondes: la mateixa ordre amb `--resume` continua on es va quedar.
