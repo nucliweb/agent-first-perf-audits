@@ -8,14 +8,11 @@ Construimos un gate de rendimiento para pull requests con agentes: miden una tie
 
 La idea que recorre el taller: **las reglas deciden, el LLM explica**. El veredicto lo da la estadística de la CLI de WebPerf Snippets (Mann-Whitney U, umbrales y exit code). Un modelo local solo redacta la causa a partir de datos ya medidos, con una salida JSON validada por un schema. Si contradice a las reglas, ganan las reglas.
 
+<img src="docs/public/diagrams/gate.svg" alt="El gate mide el baseline y la rama alternando sus ejecuciones; si el cambio supera el umbral y p es menor que 0,05, sale con 1, trace-engine-cli atribuye el cambio y el LLM lo explica; si supera el umbral y p no llega, mide dos ejecuciones más por lado y decide otra vez; si no, sale con 0" width="1120">
+
 ## Cómo funciona
 
-```
-shop-baseline ─┐                         ┌─ veredicto: CLI de WebPerf Snippets (exit code)
-               ├─ agents / ci ── Chromium ┤─ atribución: trace-engine-cli (función, URL, línea)
-shop-candidate ┘        │                 └─ explicación: llama3.2:3b en Ollama, o handoff
-                    thirdparty
-```
+<img src="docs/public/diagrams/lab.svg" alt="Los servicios del laboratorio: agents y ci miden shop-baseline y shop-candidate, que cargan los scripts de thirdparty; agents pide la explicación a ollama y escribe los informes en out/" width="960">
 
 | Servicio | Qué hace |
 |---|---|

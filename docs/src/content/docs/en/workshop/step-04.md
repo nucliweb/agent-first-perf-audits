@@ -9,6 +9,8 @@ sidebar:
 
 Bring everything together into a verdict that can be defended. The Judge runs the same gate as `ci`: the WebPerf Snippets CLI decides whether the branch regresses (Mann-Whitney U, thresholds and exit code), trace-engine-cli attributes and the local LLM explains the cause of each metric that regresses. The findings of the subagents, the facts the rules pick from what they measured, go into the report next to the explanation. In this step you go from the evidence to the cause and to a proposed fix, with the `pr/lcp-hero-lazy` branch.
 
+<img src="/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" width="1120" height="340" loading="lazy" decoding="async">
+
 ## Before you start
 
 You are still on your `taller` branch, with the lab running. If you did not finish the previous steps, that is fine: the solution of this step also brings the previous ones.

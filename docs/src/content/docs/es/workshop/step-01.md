@@ -11,6 +11,8 @@ Ver cómo un agente "mira" una página: un programa abre la home de la tienda co
 
 ## Antes de empezar
 
+<img src="/diagrams/lab.svg" alt="Los servicios del laboratorio: agents y ci miden shop-baseline y shop-candidate, que cargan los scripts de thirdparty; agents pide la explicación a ollama y escribe los informes en out/" width="960" height="420" loading="lazy" decoding="async">
+
 Con las imágenes descargadas y el preflight en verde, crea tu rama desde el inicio del taller y levanta el laboratorio:
 
 ```bash

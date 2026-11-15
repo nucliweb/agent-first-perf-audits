@@ -377,19 +377,17 @@
         <p class="lead">Sin regresión, el LLM ni siquiera se consulta</p>
       </section>
 
-      <section class="slide" data-title="El laboratorio">
+      <section class="slide evidence" data-title="Cómo decide el gate">
+        <p class="eyebrow">Agent-First Design</p>
+        <h2>Cómo decide el gate</h2>
+        <img class="evidence diagram" src="/diagrams/gate.svg" alt="El gate mide el baseline y la rama alternando sus ejecuciones; si el cambio supera el umbral y p es menor que 0,05, sale con 1, trace-engine-cli atribuye el cambio y el LLM lo explica; si supera el umbral y p no llega, mide dos ejecuciones más por lado y decide otra vez; si no, sale con 0" />
+        <p class="lead">Si los datos no alcanzan, mide más. Si siguen sin alcanzar, lo dice</p>
+      </section>
+
+      <section class="slide evidence" data-title="El laboratorio">
         <p class="eyebrow">Arquitectura</p>
         <h2>Todo en tu portátil, sin salida a internet</h2>
-        <div class="flow">
-          <div class="box"><b>shop-baseline</b>La tienda de main</div>
-          <div class="box"><b>shop-candidate</b>La tienda de la rama</div>
-          <span class="arrow" aria-hidden="true">→</span>
-          <div class="box">
-            <b>agents · ci</b>Chromium, Chrome DevTools MCP, WebPerf Snippets y trace-engine-cli
-          </div>
-          <span class="arrow" aria-hidden="true">→</span>
-          <div class="box"><b>ollama</b>llama3.2:3b, o un handoff con el perfil lite</div>
-        </div>
+        <img class="evidence diagram" src="/diagrams/lab.svg" alt="Los servicios del laboratorio: agents y ci miden shop-baseline y shop-candidate, que cargan los scripts de thirdparty; agents pide la explicación a ollama y escribe los informes en out/" />
         <p class="lead">
           <code>thirdparty</code> sirve los scripts de terceros: analytics, chat, un banner de promo
           y A/B testing

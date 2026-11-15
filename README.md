@@ -8,14 +8,11 @@ We build a performance gate for pull requests with agents: they measure a sample
 
 The idea that runs through the workshop: **the rules decide, the LLM explains**. The verdict comes from the statistics of the WebPerf Snippets CLI (Mann-Whitney U, thresholds and exit code). A local model only writes up the cause from data that is already measured, with JSON output validated by a schema. If it contradicts the rules, the rules win.
 
+<img src="docs/public/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" width="1120">
+
 ## How it works
 
-```
-shop-baseline ─┐                         ┌─ verdict: WebPerf Snippets CLI (exit code)
-               ├─ agents / ci ── Chromium ┤─ attribution: trace-engine-cli (function, URL, line)
-shop-candidate ┘        │                 └─ explanation: llama3.2:3b in Ollama, or handoff
-                    thirdparty
-```
+<img src="docs/public/diagrams/lab.svg" alt="The services of the lab: agents and ci measure shop-baseline and shop-candidate, which load the scripts of thirdparty; agents asks ollama for the explanation and writes the reports in out/" width="960">
 
 | Service | What it does |
 |---|---|

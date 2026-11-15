@@ -177,17 +177,17 @@
   <p class="lead">Without a regression, the LLM is not even asked</p>
 </section>
 
-<section class="slide" data-title="The lab">
+<section class="slide evidence" data-title="How the gate decides">
+  <p class="eyebrow">Agent-First Design</p>
+  <h2>How the gate decides</h2>
+  <img class="evidence diagram" src="/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" />
+  <p class="lead">When the data is not enough, it measures more. When it still is not, it says so</p>
+</section>
+
+<section class="slide evidence" data-title="The lab">
   <p class="eyebrow">Architecture</p>
   <h2>All on your laptop, with no internet access</h2>
-  <div class="flow">
-    <div class="box"><b>shop-baseline</b>The shop of main</div>
-    <div class="box"><b>shop-candidate</b>The shop of the branch</div>
-    <span class="arrow" aria-hidden="true">→</span>
-    <div class="box"><b>agents · ci</b>Chromium, Chrome DevTools MCP, WebPerf Snippets and trace-engine-cli</div>
-    <span class="arrow" aria-hidden="true">→</span>
-    <div class="box"><b>ollama</b>llama3.2:3b, or a handoff with the lite profile</div>
-  </div>
+  <img class="evidence diagram" src="/diagrams/lab.svg" alt="The services of the lab: agents and ci measure shop-baseline and shop-candidate, which load the scripts of thirdparty; agents asks ollama for the explanation and writes the reports in out/" />
   <p class="lead"><code>thirdparty</code> serves the third-party scripts: analytics, chat, a promo banner and A/B testing</p>
 </section>
 

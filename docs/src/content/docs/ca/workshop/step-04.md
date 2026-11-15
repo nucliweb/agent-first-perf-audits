@@ -9,6 +9,8 @@ sidebar:
 
 Ajuntar-ho tot en un veredicte que es pugui defensar. El Judge executa el mateix gate que `ci`: la CLI de WebPerf Snippets decideix si la branca empitjora (Mann-Whitney U, llindars i exit code), trace-engine-cli atribueix i l'LLM local explica la causa de cada mètrica que empitjora. Les troballes dels subagents, els fets que les regles trien del que han mesurat, van a l'informe al costat de l'explicació. En aquest pas passes de l'evidència a la causa i a la proposta de solució, amb la branca `pr/lcp-hero-lazy`.
 
+<img src="/diagrams/gate.svg" alt="El gate mesura el baseline i la branca alternant les seves execucions; si el canvi supera el llindar i p és menor que 0,05, surt amb 1, trace-engine-cli atribueix el canvi i l'LLM l'explica; si supera el llindar i p no hi arriba, mesura dues execucions més per costat i decideix una altra vegada; si no, surt amb 0" width="1120" height="340" loading="lazy" decoding="async">
+
 ## Abans de començar
 
 Continues a la teva branca `taller`, amb el laboratori aixecat. Si no has acabat els passos anteriors, no passa res: la solució d'aquest pas porta també la dels anteriors.

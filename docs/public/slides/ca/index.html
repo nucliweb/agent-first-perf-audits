@@ -377,19 +377,17 @@
         <p class="lead">Sense regressió, ni tan sols es consulta l’LLM</p>
       </section>
 
-      <section class="slide" data-title="El laboratori">
+      <section class="slide evidence" data-title="Com decideix el gate">
+        <p class="eyebrow">Agent-First Design</p>
+        <h2>Com decideix el gate</h2>
+        <img class="evidence diagram" src="/diagrams/gate.svg" alt="El gate mesura el baseline i la branca alternant les seves execucions; si el canvi supera el llindar i p és menor que 0,05, surt amb 1, trace-engine-cli atribueix el canvi i l'LLM l'explica; si supera el llindar i p no hi arriba, mesura dues execucions més per costat i decideix una altra vegada; si no, surt amb 0" />
+        <p class="lead">Si les dades no arriben, mesura més. Si continuen sense arribar, ho diu</p>
+      </section>
+
+      <section class="slide evidence" data-title="El laboratori">
         <p class="eyebrow">Arquitectura</p>
         <h2>Tot al teu portàtil, sense sortida a internet</h2>
-        <div class="flow">
-          <div class="box"><b>shop-baseline</b>La botiga de main</div>
-          <div class="box"><b>shop-candidate</b>La botiga de la branca</div>
-          <span class="arrow" aria-hidden="true">→</span>
-          <div class="box">
-            <b>agents · ci</b>Chromium, Chrome DevTools MCP, WebPerf Snippets i trace-engine-cli
-          </div>
-          <span class="arrow" aria-hidden="true">→</span>
-          <div class="box"><b>ollama</b>llama3.2:3b, o un handoff amb el perfil lite</div>
-        </div>
+        <img class="evidence diagram" src="/diagrams/lab.svg" alt="Els serveis del laboratori: agents i ci mesuren shop-baseline i shop-candidate, que carreguen els scripts de thirdparty; agents demana l'explicació a ollama i escriu els informes a out/" />
         <p class="lead">
           <code>thirdparty</code> serveix els scripts de tercers: analytics, xat, un bàner de promo
           i A/B testing
