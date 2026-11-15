@@ -1,5 +1,6 @@
 // Builds main and every regression branch of the shop, serves them side by side and runs the gate
-// of the workshop on each branch: the WebPerf Snippets CLI against a baseline measured on main.
+// of the workshop on each branch: the WebPerf Snippets CLI measures the branch against main in one
+// call per scenario, their runs alternating, as agents/src/judge/gate.ts does.
 // The measurements run one after the other, so two Chromium never share the CPU.
 // Usage: node measure.mjs   (writes out/results.json and prints a table)
 import { spawn, execFileSync } from "node:child_process";
@@ -8,7 +9,7 @@ import { mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CONDITIONS, measureWithCli, SCENARIOS } from "../../agents/src/judge/gate.ts";
+import { CONDITIONS, MAX_RUNS, measureWithCli, resultOf, SCENARIOS } from "../../agents/src/judge/gate.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, "../..");
@@ -96,8 +97,6 @@ export function serve(script, cwd, env) {
   return child;
 }
 
-const gate = (url, scenario, baselineFile) => measureWithCli(CLI, url, scenario, baselineFile);
-
 export async function measure() {
   await mkdir(OUT, { recursive: true });
   const refs = [BASELINE, ...BRANCHES.map((b) => b.ref)].map((ref) => ({ ref, resolved: resolveRef(ref) }));
@@ -122,13 +121,10 @@ export async function measure() {
 
     const results = [];
     for (const scenario of SCENARIOS) {
-      const baselineFile = join(OUT, `baseline-${scenario.id}.json`);
-      const { report } = await gate(origins[BASELINE] + scenario.path, scenario);
-      await writeFile(baselineFile, JSON.stringify(report));
-
       for (const { ref } of BRANCHES) {
-        const { exitCode, report: candidate } = await gate(origins[ref] + scenario.path, scenario, baselineFile);
-        results.push({ ref, scenario: scenario.id, exitCode, metrics: candidate.baseline?.metrics ?? {} });
+        const pages = { baseline: origins[BASELINE] + scenario.path, candidate: origins[ref] + scenario.path };
+        const { exitCode, report } = await measureWithCli(CLI, pages, scenario);
+        results.push({ ref, ...resultOf(scenario.id, exitCode, report) });
       }
     }
     await writeFile(join(OUT, "results.json"), JSON.stringify(results, null, 2));
@@ -143,15 +139,15 @@ const formatValue = (metric, value) =>
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const results = await measure();
-  console.log("| Rama | Escenario | Métrica | main | Rama | Cambio | p | Veredicto | Exit |\n|---|---|---|---|---|---|---|---|---|");
-  for (const { ref, scenario, exitCode, metrics } of results) {
+  console.log("| Rama | Escenario | Métrica | main | Rama | Cambio | p | Veredicto | Exit | Ejecuciones |\n|---|---|---|---|---|---|---|---|---|---|");
+  for (const { ref, scenario, exitCode, metrics, runs, extended } of results) {
     for (const [metric, m] of Object.entries(metrics)) {
       const change = m.deltaPercent == null ? "" : `${m.deltaPercent > 0 ? "+" : ""}${String(m.deltaPercent).replace(".", ",")} %`;
       const p = m.stats?.p == null ? "" : String(m.stats.p).replace(".", ",");
       console.log(
-        `| \`${ref}\` | ${scenario} | ${metric} | ${formatValue(metric, m.baseline)} | ${formatValue(metric, m.current)} | ${change} | ${p} | ${m.verdict} | ${exitCode} |`,
+        `| \`${ref}\` | ${scenario} | ${metric} | ${formatValue(metric, m.baseline)} | ${formatValue(metric, m.current)} | ${change} | ${p} | ${m.verdict} | ${exitCode} | ${runs}${extended ? ` (${extended.after} y más)` : ""} |`,
       );
     }
   }
-  console.log(`\nCondiciones: ${CONDITIONS.join(" ")}. Resultados en ${join(OUT, "results.json")}`);
+  console.log(`\nCondiciones: ${[...CONDITIONS, ...MAX_RUNS].join(" ")}. Resultados en ${join(OUT, "results.json")}`);
 }

@@ -3,7 +3,7 @@
 // prompt per metric.
 import { readFileSync } from "node:fs";
 import { matchSuspects } from "./match.ts";
-import { regressedMetrics } from "./rules.ts";
+import { inconclusiveMetrics, regressedMetrics } from "./rules.ts";
 import { suspectsFor } from "./suspects.ts";
 import type { Explanation, JudgeInput, Match, MetricResult, Suspect, Target } from "./types.ts";
 
@@ -68,12 +68,19 @@ export function userPrompt(input: JudgeInput, target: Target | null, suspects?: 
 }
 
 // What the Judge returns without asking the LLM, when nothing regressed: there is nothing to
-// explain, and a question would only give a model the chance to invent a regression
+// explain, and a question would only give a model the chance to invent a regression. A metric over its
+// threshold without the evidence of the runs is inconclusive, not unchanged, and the answer says so.
+function nothingRegressed(input: JudgeInput): string {
+  const inconclusive = inconclusiveMetrics(input.gate.scenarios).map((m) => `${m.metric} in ${m.scenario}`);
+  if (!inconclusive.length) return "Nothing regressed: no metric of the gate went beyond its threshold.";
+  return `Nothing regressed, but ${inconclusive.join(", ")} went beyond the threshold without the evidence of the runs, which is inconclusive: run the gate again.`;
+}
+
 export function rulesAnswer(input: JudgeInput): Explanation {
   return {
     verdict: input.gate.verdict,
     metric: "none",
-    suspected_cause: "Nothing regressed: no metric of the gate went beyond its threshold.",
+    suspected_cause: nothingRegressed(input),
     evidence: input.gate.scenarios.map((s) => `${s.scenario}: ${Object.entries(s.metrics).map(([name, m]) => `${name} ${m.verdict}`).join(", ")}`).slice(0, 3),
     confidence: "high",
   };

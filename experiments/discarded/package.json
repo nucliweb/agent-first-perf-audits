@@ -10,7 +10,7 @@
   "dependencies": {
     "playwright": "1.63.0",
     "trace-engine-cli": "0.2.0",
-    "webperf-snippets": "1.15.0"
+    "webperf-snippets": "1.17.0"
   },
   "engines": {
     "node": ">=22.18"

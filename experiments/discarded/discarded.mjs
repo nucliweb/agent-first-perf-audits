@@ -10,7 +10,8 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
-import { build, CONDITIONS, freePort, resolveRef, run, SCENARIOS, serve, waitFor } from "../regressions/measure.mjs";
+import { build, CONDITIONS, freePort, resolveRef, SCENARIOS, serve, waitFor } from "../regressions/measure.mjs";
+import { measureWithCli } from "../../agents/src/judge/gate.ts";
 import { record, summarize } from "../../agents/src/judge/traces.ts";
 import { suspectsFor } from "../../agents/src/judge/suspects.ts";
 import { matchSuspects } from "../../agents/src/judge/match.ts";
@@ -63,23 +64,14 @@ function withoutKeepNames(dir) {
   return edit(join(dir, "apps/shop/vite.config.ts"), "keepNames: true", "keepNames: false");
 }
 
-// One measurement with the CLI, like the gate (agents/src/judge/gate.ts) but with the given conditions
-async function gate(url, scenario, conditions, baselineFile) {
-  const args = [url, ...scenario.cli, ...conditions, "--json"];
-  if (baselineFile) args.push("--baseline", baselineFile, "--fail-on-regression");
-  const { code, stdout, stderr } = await run(CLI, args);
-  if (code > 1) throw new Error(`The CLI exited with ${code} on ${url}:\n${stderr}`);
-  return { exitCode: code, report: JSON.parse(stdout) };
-}
-
+// The gate of the home with the call of the CLI of agents/src/judge/gate.ts, under the conditions of
+// each case
 async function measureLcp(origins) {
   const results = [];
   for (const { id, baseline, conditions } of LCP_CASES) {
-    const baselineFile = join(OUT, `baseline-${id.replaceAll(" ", "-")}.json`);
-    const { report } = await gate(origins[baseline] + HOME.path, HOME, conditions);
-    await writeFile(baselineFile, JSON.stringify(report));
-    const { exitCode, report: candidate } = await gate(origins["pr/lcp-hero-lazy"] + HOME.path, HOME, conditions, baselineFile);
-    results.push({ id, baseline, conditions, exitCode, LCP: candidate.baseline?.metrics?.LCP ?? null });
+    const pages = { baseline: origins[baseline] + HOME.path, candidate: origins["pr/lcp-hero-lazy"] + HOME.path };
+    const { exitCode, report } = await measureWithCli(CLI, pages, HOME, conditions);
+    results.push({ id, baseline, conditions, exitCode, runs: report.runs?.count, LCP: report.baseline?.metrics?.LCP ?? null });
   }
   return results;
 }

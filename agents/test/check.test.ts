@@ -83,3 +83,30 @@ test("in a fresh clone the branches exist only on the remote, and the reports na
   const ci = { "ci/pr-noop-refactor/report.json": { branch: "origin/pr/noop-refactor", verdict: "pass" } };
   assert.ok(!failing(outputsOf("step-05", out(ci))).includes("out/ci/pr-noop-refactor/report.json"));
 });
+
+// The gate passes with a metric inconclusive for the worse: the runs did not back the change. For a
+// branch that should fail, the check says so and says to run that branch again.
+const inconclusiveLcp = { metric: "LCP", scenario: "home", baseline: 784, candidate: 1200, deltaPercent: 53.1, threshold: 100, p: 0.0754, verdict: "inconclusive", worse: true };
+
+test("step 5 says to run a branch again when it passed with a metric inconclusive for the worse", () => {
+  const files = { "ci/pr-lcp-hero-lazy/report.json": { branch: "pr/lcp-hero-lazy", verdict: "pass", inconclusive: [inconclusiveLcp] } };
+  const result = outputsOf("step-05", out(files)).find((r) => r.what === "out/ci/pr-lcp-hero-lazy/report.json")!;
+  assert.equal(result.ok, false);
+  assert.match(result.detail!, /passed with LCP in home inconclusive for the worse \(p = 0\.0754\)/);
+  assert.match(result.detail!, /run this branch again: CANDIDATE=pr-lcp-hero-lazy docker compose run --rm -e OUT=\/out\/ci\/pr-lcp-hero-lazy ci$/);
+});
+
+test("step 4 says to run the Judge again when it passed with a metric inconclusive for the worse", () => {
+  const report = { branch: "pr/lcp-hero-lazy", verdict: "pass", inconclusive: [inconclusiveLcp], findings: [] };
+  const [result] = outputsOf("step-04", out({ "agents/judge/report.json": report }));
+  assert.equal(result.ok, false);
+  assert.match(result.detail!, /passed with LCP in home inconclusive for the worse/);
+  assert.match(result.detail!, /run this branch again: CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src\/orchestrator\.ts lcp judge$/);
+});
+
+test("a branch that should fail and passed without an inconclusive metric keeps the bare detail", () => {
+  const better = { ...inconclusiveLcp, candidate: 600, worse: false };
+  const files = { "ci/pr-lcp-hero-lazy/report.json": { branch: "pr/lcp-hero-lazy", verdict: "pass", inconclusive: [better] } };
+  const result = outputsOf("step-05", out(files)).find((r) => r.what === "out/ci/pr-lcp-hero-lazy/report.json")!;
+  assert.equal(result.detail, "the report of pr/lcp-hero-lazy: fail");
+});

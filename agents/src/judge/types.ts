@@ -9,7 +9,25 @@ export interface MetricResult {
   deltaPercent: number | null;
   threshold: number;
   p?: number;
+  // regressed, improved, unchanged, inconclusive (over its threshold without the evidence of the
+  // runs) or not measured, as the CLI decides it
   verdict: string;
+}
+
+// A metric whose change beat its threshold while the runs do not back it (p not under 0.05): neither a
+// regression nor its absence. worse when it changed for the worse.
+export interface Inconclusive extends MetricResult {
+  metric: string;
+  scenario: string;
+  worse: boolean;
+}
+
+// The runs a side that the CLI measured in a scenario, and when it measured more than the gate asks
+// for: after how many runs, and for which metrics inconclusive for the worse
+export interface ScenarioRuns {
+  scenario: string;
+  runs: number;
+  extended?: { after: number; metrics: string[] };
 }
 
 export interface Scenario {

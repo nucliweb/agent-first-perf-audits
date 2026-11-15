@@ -1,0 +1,118 @@
+{
+  "url": "http://127.0.0.1:4555/candidate/",
+  "runs": {
+    "count": 7,
+    "failed": 0,
+    "medianRun": 6,
+    "medianBy": "LCP",
+    "summary": {
+      "LCP": {
+        "median": 380,
+        "min": 20,
+        "max": 396,
+        "values": [
+          20,
+          396,
+          384,
+          380,
+          384,
+          380,
+          32
+        ],
+        "unit": "ms",
+        "cv": 62.1,
+        "agreement": "noisy"
+      },
+      "CLS": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "values": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "unit": "score"
+      }
+    }
+  },
+  "conditions": {
+    "viewport": "mobile",
+    "workflow": "core-web-vitals",
+    "waitMs": 3000,
+    "browser": {
+      "build": "chromium",
+      "mode": "headless",
+      "version": "153.0.8010.12"
+    },
+    "cliVersion": "1.17.0",
+    "machine": {
+      "cpu": "Apple M4",
+      "cores": 10,
+      "arch": "arm64",
+      "memoryGB": 16,
+      "benchmarkIndex": 2363
+    }
+  },
+  "baseline": {
+    "live": true,
+    "url": "http://127.0.0.1:4555/baseline/",
+    "runs": {
+      "count": 7,
+      "medianBy": "LCP"
+    },
+    "extended": {
+      "after": 5,
+      "metrics": [
+        "LCP"
+      ]
+    },
+    "metrics": {
+      "LCP": {
+        "baseline": 32,
+        "current": 380,
+        "delta": 348,
+        "deltaPercent": 1087.5,
+        "threshold": 100,
+        "verdict": "regressed",
+        "stats": {
+          "p": 0.0454,
+          "shift": 348,
+          "ci": [
+            0,
+            364
+          ],
+          "method": "normal"
+        }
+      },
+      "CLS": {
+        "baseline": 0,
+        "current": 0,
+        "delta": 0,
+        "deltaPercent": null,
+        "threshold": 0.05,
+        "verdict": "unchanged",
+        "stats": {
+          "p": 1,
+          "shift": 0,
+          "ci": [
+            0,
+            0
+          ],
+          "method": "normal"
+        }
+      }
+    },
+    "errors": {
+      "new": [],
+      "fixed": []
+    },
+    "warnings": [
+      "the baseline measured /baseline/ and this run /candidate/"
+    ]
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "url": "http://127.0.0.1:4555/candidate/",
+  "runs": {
+    "count": 5,
+    "failed": 0,
+    "medianRun": 5,
+    "medianBy": "LCP",
+    "summary": {
+      "LCP": {
+        "median": 28,
+        "min": 24,
+        "max": 392,
+        "values": [
+          28,
+          392,
+          24,
+          380,
+          28
+        ],
+        "unit": "ms",
+        "cv": 115.5,
+        "agreement": "noisy"
+      },
+      "CLS": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "values": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "unit": "score"
+      }
+    }
+  },
+  "conditions": {
+    "viewport": "mobile",
+    "workflow": "core-web-vitals",
+    "waitMs": 3000,
+    "browser": {
+      "build": "chromium",
+      "mode": "headless",
+      "version": "153.0.8010.12"
+    },
+    "cliVersion": "1.17.0",
+    "machine": {
+      "cpu": "Apple M4",
+      "cores": 10,
+      "arch": "arm64",
+      "memoryGB": 16,
+      "benchmarkIndex": 2403
+    }
+  },
+  "baseline": {
+    "live": true,
+    "url": "http://127.0.0.1:4555/baseline/",
+    "runs": {
+      "count": 5,
+      "medianBy": "LCP"
+    },
+    "metrics": {
+      "LCP": {
+        "baseline": 376,
+        "current": 28,
+        "delta": -348,
+        "deltaPercent": -92.6,
+        "threshold": 100,
+        "verdict": "inconclusive",
+        "stats": {
+          "p": 0.3357,
+          "shift": -4,
+          "ci": [
+            -352,
+            344
+          ],
+          "method": "normal"
+        }
+      },
+      "CLS": {
+        "baseline": 0,
+        "current": 0,
+        "delta": 0,
+        "deltaPercent": null,
+        "threshold": 0.05,
+        "verdict": "unchanged",
+        "stats": {
+          "p": 1,
+          "shift": 0,
+          "ci": [
+            0,
+            0
+          ],
+          "method": "normal"
+        }
+      }
+    },
+    "errors": {
+      "new": [],
+      "fixed": []
+    },
+    "warnings": [
+      "the baseline measured /baseline/ and this run /candidate/"
+    ]
+  }
+}
