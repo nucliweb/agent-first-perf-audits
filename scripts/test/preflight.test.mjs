@@ -7,7 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -80,6 +80,28 @@ const DESKTOP = {
   FAKE_SMOKE_OUTPUT: smokeOutput(1),
 };
 
+const SYSTEM = ["/usr/bin", "/bin"];
+let systemWithoutDocker;
+
+// The tools of the system without docker, for the case of a machine with no runtime: where Docker is
+// installed in /usr/bin, as on a runner of GitHub, the script would find the real one
+function withoutDocker() {
+  if (!SYSTEM.some((dir) => existsSync(join(dir, "docker")))) return SYSTEM.join(":");
+  if (!systemWithoutDocker) {
+    systemWithoutDocker = mkdtempSync(join(tmpdir(), "preflight-system-"));
+    for (const dir of SYSTEM) {
+      for (const name of readdirSync(dir).filter((name) => name !== "docker")) {
+        try {
+          symlinkSync(join(dir, name), join(systemWithoutDocker, name));
+        } catch {
+          // Already linked from the other directory: /bin is /usr/bin on many systems
+        }
+      }
+    }
+  }
+  return systemWithoutDocker;
+}
+
 function run(shell, env = {}, { docker = true } = {}) {
   const bin = mkdtempSync(join(tmpdir(), "preflight-bin-"));
   const log = join(bin, "calls.log");
@@ -90,7 +112,7 @@ function run(shell, env = {}, { docker = true } = {}) {
   chmodSync(join(bin, "df"), 0o755);
   const result = spawnSync(shell.command, shell.args, {
     encoding: "utf8",
-    env: { PATH: `${bin}:/usr/bin:/bin`, HOME: process.env.HOME, FAKE_LOG: log, ...DESKTOP, ...env },
+    env: { PATH: `${bin}:${docker ? SYSTEM.join(":") : withoutDocker()}`, HOME: process.env.HOME, FAKE_LOG: log, ...DESKTOP, ...env },
   });
   return { ...result, output: result.stdout + result.stderr, calls: readFileSync(log, "utf8") };
 }
