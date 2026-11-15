@@ -11,6 +11,8 @@ See how an agent "looks" at a page: a program opens the home of the shop with Ch
 
 ## Before you start
 
+<img src="/diagrams/lab.svg" alt="The services of the lab: agents and ci measure shop-baseline and shop-candidate, which load the scripts of thirdparty; agents asks ollama for the explanation and writes the reports in out/" width="960" height="420" loading="lazy" decoding="async">
+
 With the images pulled and the preflight green, create your branch from the start of the workshop and start the lab:
 
 ```bash

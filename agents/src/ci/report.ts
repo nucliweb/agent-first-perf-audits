@@ -1,10 +1,11 @@
 // The report of the ci service, in Markdown and in HTML. The verdict comes first and comes from the
-// rules; the explanation of the LLM follows, with any discrepancy with the rules in sight, and then
+// rules, with the metrics that the runs left inconclusive and when the CLI measured more runs; the
+// explanation of the LLM follows, with any discrepancy with the rules in sight, and then
 // the facts of the rules: the lines of the diff they relate to each regressed metric. When the
 // orchestrator runs the Judge, the findings of the subagents close the report.
 import type { Finding } from "../judge/findings.ts";
 import { SCHEMA } from "../judge/prompt.ts";
-import type { Gate } from "../judge/types.ts";
+import type { Gate, Inconclusive, ScenarioRuns } from "../judge/types.ts";
 import type { MetricExplanation } from "../subagents/judge.ts";
 
 export interface Report {
@@ -13,6 +14,11 @@ export interface Report {
   profile: "llm" | "lite";
   conditions: string;
   verdict: "pass" | "fail";
+  // The metrics over their threshold without the evidence of the runs: the gate does not fail on them,
+  // and the summary says to run the gate again (rules.ts)
+  inconclusive?: Inconclusive[];
+  // The runs a side of each scenario, and when the CLI measured more
+  runs?: ScenarioRuns[];
   gate: Gate;
   // null in the lite profile: the explanation comes from the handoff
   explanations: MetricExplanation[] | null;
@@ -47,6 +53,42 @@ function metricRows(gate: Gate) {
   );
 }
 
+const INCONCLUSIVE = "Inconclusive: run the gate again.";
+const INCONCLUSIVE_WHY =
+  "These metrics went beyond their threshold, but the runs do not back the change (p not under 0.05), so the gate neither fails nor clears them:";
+
+const runsIn = (report: Report, scenario: string) => report.runs?.find((r) => r.scenario === scenario);
+
+function inconclusiveLine(report: Report, m: Inconclusive) {
+  const runs = runsIn(report, m.scenario)?.runs;
+  const delta = m.deltaPercent == null ? "" : ` (${change(m.deltaPercent)})`;
+  return `${m.metric} in ${m.scenario}, ${m.worse ? "worse" : "better"}: ${value(m.metric, m.baseline)} to ${value(m.metric, m.candidate)}${delta}, p = ${m.p}${runs ? ` with ${runs} runs a side` : ""}`;
+}
+
+const extendedLines = (report: Report) =>
+  (report.runs ?? [])
+    .filter((r) => r.extended)
+    .map((r) => `The CLI measured ${r.runs} runs a side in ${r.scenario} instead of ${r.extended!.after}, because ${r.extended!.metrics.join(" and ")} ${r.extended!.metrics.length > 1 ? "were" : "was"} inconclusive for the worse after ${r.extended!.after}.`);
+
+function summaryMarkdown(report: Report): string[] {
+  const lines: string[] = [];
+  if (report.inconclusive?.length) lines.push(`**${INCONCLUSIVE}** ${INCONCLUSIVE_WHY}`, "", ...report.inconclusive.map((m) => `- ${inconclusiveLine(report, m)}`), "");
+  for (const line of extendedLines(report)) lines.push(line, "");
+  return lines;
+}
+
+function summaryHtml(report: Report): string {
+  const parts: string[] = [];
+  if (report.inconclusive?.length) {
+    parts.push(
+      `<p class="inconclusive"><strong>${INCONCLUSIVE}</strong> ${escape(INCONCLUSIVE_WHY)}</p>`,
+      `<ul>${report.inconclusive.map((m) => `<li>${escape(inconclusiveLine(report, m))}</li>`).join("")}</ul>`,
+    );
+  }
+  for (const line of extendedLines(report)) parts.push(`<p class="meta">${escape(line)}</p>`);
+  return parts.length ? parts.join("\n") + "\n" : "";
+}
+
 const LITE =
   "The lite profile has no local LLM. To get the explanation, pass handoff.md (to paste into a chat) or handoff.json (for a script) to an agent. They carry the diff of the branch: sending it to an external service is a decision of each team for its own code.";
 
@@ -79,6 +121,7 @@ export function reportMarkdown(report: Report): string {
     "",
     `Verdict of the rules: **${report.verdict}**. Compared with ${report.baseline}, with ${report.conditions}.`,
     "",
+    ...summaryMarkdown(report),
     "## Metrics",
     "",
     "| Scenario | Metric | Baseline | Branch | Change | p | Verdict |",
@@ -148,19 +191,20 @@ export function reportHtml(report: Report): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(title)}</title>
 <style>
-  :root { color-scheme: light dark; --fail: #b42318; --pass: #067647; }
+  :root { color-scheme: light dark; --fail: #b42318; --pass: #067647; --inconclusive: #b54708; }
   body { font: 16px/1.5 system-ui, sans-serif; max-width: 60rem; margin: 2rem auto; padding: 0 1rem; }
   table { border-collapse: collapse; width: 100%; }
   th, td { border-bottom: 1px solid #8884; padding: .4rem .6rem; text-align: left; }
   .verdict { font-weight: 700; color: var(--${report.verdict}); }
   .meta { opacity: .75; }
   .discrepancy { border-left: 3px solid var(--fail); padding-left: .6rem; }
+  .inconclusive { border-left: 3px solid var(--inconclusive); padding-left: .6rem; }
 </style>
 </head>
 <body>
 <h1>${escape(title)}</h1>
 <p>Verdict of the rules: <span class="verdict">${report.verdict}</span>. Compared with ${escape(report.baseline)}, with ${escape(report.conditions)}.</p>
-<h2>Metrics</h2>
+${summaryHtml(report)}<h2>Metrics</h2>
 <table>
 <thead><tr><th>Scenario</th><th>Metric</th><th>Baseline</th><th>Branch</th><th>Change</th><th>p</th><th>Verdict</th></tr></thead>
 <tbody>

@@ -167,3 +167,69 @@ test("names the model that wrote the explanation", () => {
   assert.match(reportHtml({ ...base, explainedBy: "claude-sonnet-5-5" }), /<p class="meta">Model: claude-sonnet-5-5\.<\/p>/);
   assert.doesNotMatch(reportMarkdown(base), /Model:/);
 });
+
+// A metric over its threshold without the evidence of the runs is inconclusive: the gate passes, and
+// the summary says which metric, its figures and what to do, before the table
+const inconclusive: Report = {
+  ...base,
+  conditions: "--cpu 4 --network fast-4g --runs 5 --max-runs 7, chromium 153.0.8010.12",
+  verdict: "pass",
+  gate: {
+    verdict: "pass",
+    scenarios: [
+      {
+        scenario: "home",
+        exitCode: 0,
+        metrics: {
+          LCP: { baseline: 784, candidate: 1200, deltaPercent: 53.1, threshold: 100, p: 0.0754, verdict: "inconclusive" },
+          CLS: { baseline: 0, candidate: 0, deltaPercent: null, threshold: 0.05, p: 1, verdict: "unchanged" },
+        },
+      },
+      { scenario: "add-to-cart", exitCode: 0, metrics: { INP: { baseline: 120, candidate: 48, deltaPercent: -60, threshold: 50, p: 0.0754, verdict: "inconclusive" } } },
+    ],
+  },
+  inconclusive: [
+    { metric: "LCP", scenario: "home", baseline: 784, candidate: 1200, deltaPercent: 53.1, threshold: 100, p: 0.0754, verdict: "inconclusive", worse: true },
+    { metric: "INP", scenario: "add-to-cart", baseline: 120, candidate: 48, deltaPercent: -60, threshold: 50, p: 0.0754, verdict: "inconclusive", worse: false },
+  ],
+  runs: [
+    { scenario: "home", runs: 7, extended: { after: 5, metrics: ["LCP"] } },
+    { scenario: "add-to-cart", runs: 5 },
+  ],
+  explanations: [{ metric: "none", scenario: null, source: "rules", answer: { verdict: "pass", metric: "none", suspected_cause: "Nothing regressed.", evidence: ["home: LCP inconclusive"], confidence: "high" }, discrepancies: [] }],
+};
+
+test("says in the summary which metrics are inconclusive, with their figures, and to run the gate again", () => {
+  const md = reportMarkdown(inconclusive);
+  const summary = md.slice(0, md.indexOf("## Metrics"));
+  assert.match(summary, /\*\*pass\*\*/);
+  assert.match(summary, /Inconclusive: run the gate again\./);
+  assert.match(summary, /^- LCP in home, worse: 784 ms to 1200 ms \(\+53\.1 %\), p = 0\.0754 with 7 runs a side$/m);
+  assert.match(summary, /^- INP in add-to-cart, better: 120 ms to 48 ms \(-60 %\), p = 0\.0754 with 5 runs a side$/m);
+  assert.match(md, /\| home \| LCP \| 784 ms \| 1200 ms \| \+53\.1 % \| 0\.0754 \| inconclusive \|/);
+});
+
+test("says when the CLI measured more runs, in which scenario and for which metrics", () => {
+  const md = reportMarkdown(inconclusive);
+  const summary = md.slice(0, md.indexOf("## Metrics"));
+  assert.match(summary, /The CLI measured 7 runs a side in home instead of 5, because LCP was inconclusive for the worse after 5\./);
+  assert.doesNotMatch(summary, /in add-to-cart instead of/);
+});
+
+test("the HTML shows the inconclusive metrics and the extension in the summary", () => {
+  const html = reportHtml(inconclusive);
+  const summary = html.slice(0, html.indexOf("<h2>Metrics</h2>"));
+  assert.match(summary, /<p class="inconclusive"><strong>Inconclusive: run the gate again\.<\/strong>/);
+  assert.match(summary, /<li>LCP in home, worse: 784 ms to 1200 ms \(\+53\.1 %\), p = 0\.0754 with 7 runs a side<\/li>/);
+  assert.match(summary, /The CLI measured 7 runs a side in home instead of 5, because LCP was inconclusive for the worse after 5\./);
+});
+
+test("without inconclusive metrics or more runs, the summary has neither", () => {
+  for (const text of [reportMarkdown(base), reportHtml(base)]) {
+    assert.doesNotMatch(text, /Inconclusive/);
+    assert.doesNotMatch(text, /The CLI measured/);
+  }
+  const extendedOnly = reportMarkdown({ ...base, runs: [{ scenario: "home", runs: 7, extended: { after: 5, metrics: ["LCP"] } }] });
+  assert.doesNotMatch(extendedOnly, /Inconclusive/);
+  assert.match(extendedOnly, /The CLI measured 7 runs a side in home instead of 5, because LCP was inconclusive for the worse after 5\./);
+});

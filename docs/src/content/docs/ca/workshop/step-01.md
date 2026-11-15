@@ -11,6 +11,8 @@ Veure com un agent "mira" una pàgina: un programa obre la home de la botiga amb
 
 ## Abans de començar
 
+<img src="/diagrams/lab.svg" alt="Els serveis del laboratori: agents i ci mesuren shop-baseline i shop-candidate, que carreguen els scripts de thirdparty; agents demana l'explicació a ollama i escriu els informes a out/" width="960" height="420" loading="lazy" decoding="async">
+
 Amb les imatges descarregades i el preflight en verd, crea la teva branca des de l'inici del taller i aixeca el laboratori:
 
 ```bash

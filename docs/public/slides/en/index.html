@@ -16,7 +16,7 @@
   <p class="eyebrow">PerfReviews · Workshop</p>
   <div style="display:flex;flex-direction:column;gap:32px">
     <h1>Multi-Agent Performance Audits</h1>
-    <p class="lead">Automatizando Core Web Vitals en tu plataforma interna con MCP</p>
+    <p class="lead">Automating Core Web Vitals on your internal platform with MCP</p>
   </div>
   <p class="lead" style="font-size:28px">The rules decide, the LLM explains</p>
 </section>
@@ -92,8 +92,8 @@
   <p class="lead">To fix it, the number is not enough: you need to know which nodes move</p>
 </section>
 
-<section class="slide" data-title="INP y LoAF">
-  <p class="eyebrow">INP y LoAF</p>
+<section class="slide" data-title="INP and LoAF">
+  <p class="eyebrow">INP and LoAF</p>
   <h2>An interaction has three phases</h2>
   <div class="grid three">
     <div class="card"><h3>Input delay</h3><p>The main thread is busy and the event waits</p></div>
@@ -177,17 +177,17 @@
   <p class="lead">Without a regression, the LLM is not even asked</p>
 </section>
 
-<section class="slide" data-title="The lab">
+<section class="slide evidence" data-title="How the gate decides">
+  <p class="eyebrow">Agent-First Design</p>
+  <h2>How the gate decides</h2>
+  <img class="evidence diagram" src="/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" />
+  <p class="lead">When the data is not enough, it measures more. When it still is not, it says so</p>
+</section>
+
+<section class="slide evidence" data-title="The lab">
   <p class="eyebrow">Architecture</p>
   <h2>All on your laptop, with no internet access</h2>
-  <div class="flow">
-    <div class="box"><b>shop-baseline</b>The shop of main</div>
-    <div class="box"><b>shop-candidate</b>The shop of the branch</div>
-    <span class="arrow" aria-hidden="true">→</span>
-    <div class="box"><b>agents · ci</b>Chromium, Chrome DevTools MCP, WebPerf Snippets and trace-engine-cli</div>
-    <span class="arrow" aria-hidden="true">→</span>
-    <div class="box"><b>ollama</b>llama3.2:3b, or a handoff with the lite profile</div>
-  </div>
+  <img class="evidence diagram" src="/diagrams/lab.svg" alt="The services of the lab: agents and ci measure shop-baseline and shop-candidate, which load the scripts of thirdparty; agents asks ollama for the explanation and writes the reports in out/" />
   <p class="lead"><code>thirdparty</code> serves the third-party scripts: analytics, chat, a promo banner and A/B testing</p>
 </section>
 
@@ -261,7 +261,7 @@ docker compose run --rm agents npm run check -- step-03</pre>
 
 <section class="slide" data-title="Step 4">
   <p class="eyebrow">Step 4</p>
-  <h2>El Judge</h2>
+  <h2>The Judge</h2>
   <div class="columns">
     <div><h3>The code of the step</h3><ul class="list"><li><code>lcpFacts</code>, <code>clsFacts</code> and <code>inpFacts</code> in <code>findings.ts</code></li><li>The facts that back the explanation</li></ul></div>
     <div><h3>No MCP</h3><ul class="list"><li>Rules over the JSON of the subagents</li><li>The LLM does not see these facts: its prompt is the benchmarked one</li></ul></div>

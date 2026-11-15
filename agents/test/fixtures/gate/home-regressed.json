@@ -1,0 +1,108 @@
+{
+  "url": "http://shop-candidate:3000/",
+  "runs": {
+    "count": 5,
+    "failed": 0,
+    "medianRun": 5,
+    "medianBy": "LCP",
+    "summary": {
+      "LCP": {
+        "median": 1064,
+        "min": 1064,
+        "max": 1096,
+        "values": [
+          1064,
+          1076,
+          1096,
+          1064,
+          1064
+        ],
+        "unit": "ms",
+        "cv": 1.3,
+        "agreement": "consistent"
+      },
+      "CLS": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "values": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "unit": "score"
+      }
+    }
+  },
+  "conditions": {
+    "viewport": "mobile",
+    "workflow": "core-web-vitals",
+    "waitMs": 3000,
+    "cpu": 4,
+    "network": "fast-4g",
+    "browser": {
+      "build": "chromium",
+      "mode": "headless",
+      "version": "153.0.8010.12"
+    },
+    "cliVersion": "1.17.0",
+    "machine": {
+      "cpu": "unknown",
+      "cores": 10,
+      "arch": "arm64",
+      "memoryGB": 8,
+      "benchmarkIndex": 2008
+    }
+  },
+  "baseline": {
+    "live": true,
+    "url": "http://shop-baseline:3000/",
+    "runs": {
+      "count": 5,
+      "medianBy": "LCP"
+    },
+    "metrics": {
+      "LCP": {
+        "baseline": 652,
+        "current": 1064,
+        "delta": 412,
+        "deltaPercent": 63.2,
+        "threshold": 100,
+        "verdict": "regressed",
+        "stats": {
+          "p": 0.0056,
+          "shift": 416,
+          "ci": [
+            288,
+            440
+          ],
+          "method": "normal"
+        }
+      },
+      "CLS": {
+        "baseline": 0,
+        "current": 0,
+        "delta": 0,
+        "deltaPercent": null,
+        "threshold": 0.05,
+        "verdict": "unchanged",
+        "stats": {
+          "p": 1,
+          "shift": 0,
+          "ci": [
+            0,
+            0
+          ],
+          "method": "normal"
+        }
+      }
+    },
+    "errors": {
+      "new": [],
+      "fixed": []
+    },
+    "warnings": []
+  }
+}

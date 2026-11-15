@@ -19,6 +19,11 @@ export default defineConfig({
       customCss: ["./src/styles/perfreviews.css"],
       sidebar: [
         {
+          label: "Start here",
+          translations: { es: "Empezar", ca: "Comença" },
+          items: ["setup", "concepts"],
+        },
+        {
           label: "The workshop",
           translations: { es: "El taller", ca: "El taller" },
           items: [{ autogenerate: { directory: "workshop" } }],
@@ -26,7 +31,7 @@ export default defineConfig({
         {
           label: "Reference",
           translations: { es: "Referencia", ca: "Referència" },
-          items: ["previews", "stack", "learnings"],
+          items: ["previews", "stack", "learnings", "glossary", "references"],
         },
       ],
     }),

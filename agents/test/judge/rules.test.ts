@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { regressedMetrics } from "../../src/judge/rules.ts";
+import { inconclusiveMetrics, regressedMetrics } from "../../src/judge/rules.ts";
 
 const scenario = (id: string, metrics: Record<string, any>) => ({ scenario: id, exitCode: 1, metrics });
 
@@ -37,4 +37,25 @@ test("lists a metric once, in the scenario where it regressed the most", () => {
 test("ignores the metrics that did not regress, however much they moved", () => {
   const scenarios = [scenario("add-to-cart", { INP: { baseline: 48, candidate: 40, threshold: 50, verdict: "unchanged" } })];
   assert.deepEqual(regressedMetrics(scenarios), []);
+});
+
+// Over its threshold without the evidence of the runs: the CLI calls it inconclusive, and the gate does
+// not fail on it. The Judge does not explain it as a regression; the report says it and what to do.
+test("does not list an inconclusive metric as regressed", () => {
+  const scenarios = [scenario("home", { LCP: { baseline: 784, candidate: 1200, threshold: 100, p: 0.0754, verdict: "inconclusive" } })];
+  assert.deepEqual(regressedMetrics(scenarios), []);
+});
+
+test("lists the inconclusive metrics, with their values and whether they got worse", () => {
+  const scenarios = [
+    scenario("home", {
+      LCP: { baseline: 784, candidate: 1200, deltaPercent: 53.1, threshold: 100, p: 0.0754, verdict: "inconclusive" },
+      CLS: { baseline: 0, candidate: 0, deltaPercent: null, threshold: 0.05, p: 1, verdict: "unchanged" },
+    }),
+    scenario("add-to-cart", { INP: { baseline: 120, candidate: 48, deltaPercent: -60, threshold: 50, p: 0.0754, verdict: "inconclusive" } }),
+  ];
+  assert.deepEqual(inconclusiveMetrics(scenarios), [
+    { metric: "LCP", scenario: "home", baseline: 784, candidate: 1200, deltaPercent: 53.1, threshold: 100, p: 0.0754, verdict: "inconclusive", worse: true },
+    { metric: "INP", scenario: "add-to-cart", baseline: 120, candidate: 48, deltaPercent: -60, threshold: 50, p: 0.0754, verdict: "inconclusive", worse: false },
+  ]);
 });

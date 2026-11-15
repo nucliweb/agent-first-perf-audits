@@ -37,7 +37,7 @@ Las cuatro ramas también están desplegadas en Vercel, para verlas en el navega
    done
    ```
 
-   `docker compose run` arranca la tienda de cada rama antes de medirla. Cada rama tarda unos minutos, porque el gate mide cinco veces cada escenario en cada lado. Al terminar cada una, escribe su exit code:
+   `docker compose run` arranca la tienda de cada rama antes de medirla. Cada rama tarda unos minutos, porque el gate mide cinco veces cada escenario en cada lado, alternando las dos tiendas. Al terminar cada una, escribe su exit code:
 
    ```text
    pr-lcp-hero-lazy: exit 1
@@ -46,11 +46,12 @@ Las cuatro ramas también están desplegadas en Vercel, para verlas en el navega
    pr-noop-refactor: exit 0
    ```
 
-2. Mientras corre la siguiente, lee el `report.md` de la anterior, en `out/ci/<rama>/`. Fíjate en cuatro cosas:
+2. Mientras corre la siguiente, lee el `report.md` de la anterior, en `out/ci/<rama>/`. Fíjate en cinco cosas:
 
    - `pr/loaf-cart-handler` empeora dos métricas por dos causas distintas, y el Judge pide una explicación por cada una.
    - `pr/noop-refactor` pasa y el LLM no llega a ser consultado: sin regresión, las reglas responden solas, y no hay ocasión de inventarse una.
    - En `pr/lcp-hero-lazy`, la explicación del LLM nombra `loading="lazy"`, y los hechos de las reglas, al final del informe, añaden lo que no dice: el `fetchPriority` y el preload que pierde el hero.
+   - Si una métrica supera su umbral y p no baja de 0,05, el informe lo dice arriba, en un bloque "Inconclusive: run the gate again." con la métrica, su cambio y su p, y cuántas ejecuciones por lado midió la CLI. El gate no falla por esa métrica.
    - Con el perfil `lite`, cada carpeta tiene un `handoff.md` en lugar de la explicación. Enviarlo a un servicio externo es una decisión de cada equipo para su propio código.
 
 3. Pasa la comprobación del paso:
@@ -60,3 +61,5 @@ Las cuatro ramas también están desplegadas en Vercel, para verlas en el navega
    ```
 
    Da un `OK` por rama cuando su informe tiene el veredicto esperado, y termina con `step-05 is done.`
+
+   Si una rama que debería fallar pasa con una métrica no concluyente hacia peor, la comprobación dice que la lances otra vez.

@@ -8,21 +8,18 @@ Construimos un gate de rendimiento para pull requests con agentes: miden una tie
 
 La idea que recorre el taller: **las reglas deciden, el LLM explica**. El veredicto lo da la estadística de la CLI de WebPerf Snippets (Mann-Whitney U, umbrales y exit code). Un modelo local solo redacta la causa a partir de datos ya medidos, con una salida JSON validada por un schema. Si contradice a las reglas, ganan las reglas.
 
+<img src="docs/public/diagrams/gate.svg" alt="El gate mide el baseline y la rama alternando sus ejecuciones; si el cambio supera el umbral y p es menor que 0,05, sale con 1, trace-engine-cli atribuye el cambio y el LLM lo explica; si supera el umbral y p no llega, mide dos ejecuciones más por lado y decide otra vez; si no, sale con 0" width="1120">
+
 ## Cómo funciona
 
-```
-shop-baseline ─┐                         ┌─ veredicto: CLI de WebPerf Snippets (exit code)
-               ├─ agents / ci ── Chromium ┤─ atribución: trace-engine-cli (función, URL, línea)
-shop-candidate ┘        │                 └─ explicación: llama3.2:3b en Ollama, o handoff
-                    thirdparty
-```
+<img src="docs/public/diagrams/lab.svg" alt="Los servicios del laboratorio: agents y ci miden shop-baseline y shop-candidate, que cargan los scripts de thirdparty; agents pide la explicación a ollama y escribe los informes en out/" width="960">
 
 | Servicio | Qué hace |
 |---|---|
 | `shop-baseline` y `shop-candidate` | La tienda Perf Coffee construida desde dos refs git: `main` y la rama que se compara |
 | `thirdparty` | Mocks locales de scripts de terceros (analytics, chat, banner de promo, A/B testing) |
 | `agents` | Node 22, el Chromium de Playwright, Chrome DevTools MCP, WebPerf Snippets y trace-engine-cli |
-| `ci` | El gate de una PR: mide, atribuye, explica, escribe los informes y sale con 0 o 1 |
+| `ci` | El gate de una PR: mide, atribuye, explica, escribe los informes y sale con 0 si pasa, 1 si falla y 2 si no ha podido medir |
 | `ollama` | El LLM local del Judge, con `llama3.2:3b` dentro de la imagen |
 
 La comparación ocurre en la misma máquina y en la misma ejecución, así que la diferencia entre portátiles no afecta al veredicto.
@@ -86,7 +83,7 @@ CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
 |---|---|
 | `report.md`, `report.html` y `report.json` | El veredicto de las reglas, las métricas de cada escenario y la explicación de cada métrica que empeora |
 | `handoff.md` y `handoff.json` | La misma entrada que recibe el LLM local, con el prompt y el schema, para pasarla a otro agente |
-| `gate/` y `traces/` | Los informes de la CLI y los traces de Chromium |
+| `gate/` y `traces/` | `gate/` tiene un JSON por escenario (`home.json` y `add-to-cart.json`) con la comparación de la CLI, y `traces/` los traces de Chromium |
 
 El exit code de `ci` es el veredicto: 0 si pasa, 1 si alguna métrica empeora y 2 si el gate no ha podido ejecutarse.
 

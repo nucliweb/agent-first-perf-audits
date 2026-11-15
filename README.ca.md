@@ -2,27 +2,24 @@
 
 [English](README.md) · [Castellano](README.es.md) · Català
 
-Repositori del taller **Multi-Agent Performance Audits: Automatizando Core Web Vitals en tu plataforma interna con MCP**, de PerfReviews.
+Repositori del taller **Multi-Agent Performance Audits: Automatitzant Core Web Vitals a la teva plataforma interna amb MCP**, de PerfReviews.
 
 Construïm un gate de rendiment per a pull requests amb agents: mesuren una botiga d'exemple abans i després d'un canvi, decideixen si ha empitjorat i expliquen per què. Tot s'executa al teu portàtil amb Docker Compose, sense sortida a internet.
 
 La idea que recorre el taller: **les regles decideixen, l'LLM explica**. El veredicte el dona l'estadística de la CLI de WebPerf Snippets (Mann-Whitney U, llindars i exit code). Un model local només redacta la causa a partir de dades ja mesurades, amb una sortida JSON validada per un schema. Si contradiu les regles, guanyen les regles.
 
+<img src="docs/public/diagrams/gate.svg" alt="El gate mesura el baseline i la branca alternant les seves execucions; si el canvi supera el llindar i p és menor que 0,05, surt amb 1, trace-engine-cli atribueix el canvi i l'LLM l'explica; si supera el llindar i p no hi arriba, mesura dues execucions més per costat i decideix una altra vegada; si no, surt amb 0" width="1120">
+
 ## Com funciona
 
-```
-shop-baseline ─┐                         ┌─ veredicte: CLI de WebPerf Snippets (exit code)
-               ├─ agents / ci ── Chromium ┤─ atribució: trace-engine-cli (funció, URL, línia)
-shop-candidate ┘        │                 └─ explicació: llama3.2:3b a Ollama, o handoff
-                    thirdparty
-```
+<img src="docs/public/diagrams/lab.svg" alt="Els serveis del laboratori: agents i ci mesuren shop-baseline i shop-candidate, que carreguen els scripts de thirdparty; agents demana l'explicació a ollama i escriu els informes a out/" width="960">
 
 | Servei | Què fa |
 |---|---|
 | `shop-baseline` i `shop-candidate` | La botiga Perf Coffee construïda des de dues refs git: `main` i la branca que es compara |
 | `thirdparty` | Mocks locals d'scripts de tercers (analytics, xat, bàner de promoció, A/B testing) |
 | `agents` | Node 22, el Chromium de Playwright, Chrome DevTools MCP, WebPerf Snippets i trace-engine-cli |
-| `ci` | El gate d'una PR: mesura, atribueix, explica, escriu els informes i surt amb 0 o 1 |
+| `ci` | El gate d'una PR: mesura, atribueix, explica, escriu els informes i surt amb 0 si passa, 1 si falla i 2 si no ha pogut mesurar |
 | `ollama` | L'LLM local del Judge, amb `llama3.2:3b` dins de la imatge |
 
 La comparació es fa a la mateixa màquina i en la mateixa execució, així que la diferència entre portàtils no afecta el veredicte.
@@ -86,7 +83,7 @@ CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
 |---|---|
 | `report.md`, `report.html` i `report.json` | El veredicte de les regles, les mètriques de cada escenari i l'explicació de cada mètrica que empitjora |
 | `handoff.md` i `handoff.json` | La mateixa entrada que rep l'LLM local, amb el prompt i l'schema, per passar-la a un altre agent |
-| `gate/` i `traces/` | Els informes de la CLI i els traces de Chromium |
+| `gate/` i `traces/` | `gate/` té un JSON per escenari (`home.json` i `add-to-cart.json`) amb la comparació de la CLI, i `traces/` els traces de Chromium |
 
 L'exit code de `ci` és el veredicte: 0 si passa, 1 si alguna mètrica empitjora i 2 si el gate no s'ha pogut executar.
 

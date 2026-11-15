@@ -1,0 +1,107 @@
+# The tests that need neither Docker nor the lab: the scripts, the documentation checker, the claims
+# that tie the figures of the docs to the saved results, the pure tests of the agents, the docs
+# build with its internal links, and the suites that need a browser (the shop and the slides).
+# The suite of the agents image runs in images.yml, and the experiments that measure run by hand.
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22.23.4
+
+jobs:
+  fast:
+    name: Scripts, claims and agents
+    # The pr/* branches are the regressions of the workshop: their pull requests run perf-gate.yml
+    if: ${{ !startsWith(github.head_ref, 'pr/') }}
+    runs-on: ubuntu-24.04
+    steps:
+      # Every branch and tag: the checker looks for the workshop branch and the tags of each step
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Scripts and documentation checker
+        run: node --test scripts/test/preflight.test.mjs scripts/test/workshop.test.mjs scripts/test/check-docs.test.mjs
+
+      - name: Third-party mocks
+        working-directory: apps/thirdparty
+        run: npm test
+
+      - name: Claims of the previews
+        working-directory: experiments/previews
+        run: node --test claims.test.mjs
+
+      - name: Claims of the model benchmark
+        working-directory: experiments/models
+        run: |
+          npm ci
+          npm test
+
+      - name: Policies of the gate
+        working-directory: experiments/gate-stability
+        run: |
+          npm ci
+          npm test
+
+      - name: Agents, types and the tests that need no browser
+        working-directory: agents
+        run: |
+          npm ci
+          npm run typecheck
+          node --test "test/judge/*.test.ts" "test/ci/*.test.ts" test/check.test.ts
+
+  docs:
+    name: Docs build and links
+    if: ${{ !startsWith(github.head_ref, 'pr/') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Build
+        working-directory: docs
+        run: |
+          npm ci
+          npm run build
+      - name: Sources and internal links
+        run: node scripts/check-docs.mjs --dist docs/dist
+
+  browser:
+    name: Shop and slides
+    if: ${{ !startsWith(github.head_ref, 'pr/') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Shop
+        working-directory: apps/shop
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run build
+          npm test
+      # The same Playwright as the shop, so its Chromium is already installed
+      - name: Slides
+        working-directory: docs
+        run: |
+          npm ci
+          npm test

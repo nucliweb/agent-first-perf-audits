@@ -19,7 +19,7 @@ El stack del taller no salió de un diagrama: cada pieza es la respuesta a algo 
 
 | Decisión | Descartado | Por qué | Compruébalo |
 |---|---|---|---|
-| El gate mide con CPU 4x, red fast-4g y 5 ejecuciones | Medir sin throttling de red | Con la red local instantánea, la prioridad de descarga de la imagen LCP apenas pesa, y la regresión de LCP no se distingue del ruido: en `pr/lcp-hero-lazy`, el LCP sube un 63 % con fast-4g y un 3-4 % sin throttling de red, por debajo del umbral | [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/discarded/README.es.md) |
+| El gate mide con CPU 4x, red fast-4g y 5 ejecuciones por tienda, alternando las de `main` y las de la rama, y 7 si el resultado no es concluyente | Medir sin throttling de red | Con la red local instantánea, la prioridad de descarga de la imagen LCP apenas pesa, y la regresión de LCP no se distingue del ruido: en `pr/lcp-hero-lazy`, el LCP sube un 63,6 % con fast-4g y un 1,7 % sin throttling de red, por debajo del umbral | [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/discarded/README.es.md) |
 | El INP se mide con `--workflow interaction` y un journey | El workflow por defecto | El workflow por defecto no devuelve el INP | [`agents/journeys/add-to-cart.json`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/agents/journeys/add-to-cart.json) |
 | Un solo Chromium, el completo de Playwright, para WebPerf Snippets y Chrome DevTools MCP | El headless shell para la CLI y Chromium para DevTools | Las dos herramientas miden con el mismo binario y el mismo modo headless, y la imagen solo lleva un navegador. WebPerf Snippets lanza el Chromium completo cuando está instalado y registra en sus condiciones cuál usó | [Un solo Chromium para los dos MCP](../learnings/#un-solo-chromium-para-los-dos-mcp), `docker compose run --rm agents` |
 
@@ -36,7 +36,7 @@ El stack del taller no salió de un diagrama: cada pieza es la respuesta a algo 
 
 | Decisión | Descartado | Por qué | Compruébalo |
 |---|---|---|---|
-| La tienda es una SPA de React, y su servidor hace preload de la imagen LCP de cada ruta | Una SPA sin preload | En una SPA, la imagen LCP no se descubre hasta que se ejecuta el JavaScript. Sin preload en la versión base, quitar `fetchpriority` y añadir `loading="lazy"` no cambia el LCP lo bastante como para que el gate lo vea: sin preload, el LCP de `main` ya ronda los 1030 ms y la rama solo suma un 3-4 % | [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/discarded/README.es.md) |
+| La tienda es una SPA de React, y su servidor hace preload de la imagen LCP de cada ruta | Una SPA sin preload | En una SPA, la imagen LCP no se descubre hasta que se ejecuta el JavaScript. Sin preload en la versión base, quitar `fetchpriority` y añadir `loading="lazy"` no cambia el LCP lo bastante como para que el gate lo vea: sin preload, el LCP de `main` ya es de 1028 ms y la rama solo suma un 2,7 % | [`experiments/discarded`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/discarded/README.es.md) |
 | Cada rama de regresión actualiza los tests de la app que su cambio rompe | Dejar que el CI clásico detecte la regresión | Es lo que haría el autor de la PR, y muestra lo que el taller defiende: el CI clásico pasa en las cuatro ramas y solo el gate de rendimiento detecta las tres regresiones | `npm test` en `apps/shop` de cada rama |
 
 ## El laboratorio

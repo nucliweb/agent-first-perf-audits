@@ -1,0 +1,15 @@
+{
+  "name": "experiment-gate-stability",
+  "private": true,
+  "type": "module",
+  "description": "Mide cuántas veces acierta el gate en cada rama según cuántas ejecuciones hace por lado, y con qué política se queda el taller",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "webperf-snippets": "1.15.0"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}

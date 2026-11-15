@@ -2,27 +2,24 @@
 
 English · [Castellano](README.es.md) · [Català](README.ca.md)
 
-Repository of the workshop **Multi-Agent Performance Audits: Automatizando Core Web Vitals en tu plataforma interna con MCP**, by PerfReviews.
+Repository of the workshop **Multi-Agent Performance Audits: Automating Core Web Vitals on your internal platform with MCP**, by PerfReviews.
 
 We build a performance gate for pull requests with agents: they measure a sample shop before and after a change, decide whether it has regressed and explain why. Everything runs on your laptop with Docker Compose, with no internet access.
 
 The idea that runs through the workshop: **the rules decide, the LLM explains**. The verdict comes from the statistics of the WebPerf Snippets CLI (Mann-Whitney U, thresholds and exit code). A local model only writes up the cause from data that is already measured, with JSON output validated by a schema. If it contradicts the rules, the rules win.
 
+<img src="docs/public/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" width="1120">
+
 ## How it works
 
-```
-shop-baseline ─┐                         ┌─ verdict: WebPerf Snippets CLI (exit code)
-               ├─ agents / ci ── Chromium ┤─ attribution: trace-engine-cli (function, URL, line)
-shop-candidate ┘        │                 └─ explanation: llama3.2:3b in Ollama, or handoff
-                    thirdparty
-```
+<img src="docs/public/diagrams/lab.svg" alt="The services of the lab: agents and ci measure shop-baseline and shop-candidate, which load the scripts of thirdparty; agents asks ollama for the explanation and writes the reports in out/" width="960">
 
 | Service | What it does |
 |---|---|
 | `shop-baseline` and `shop-candidate` | The Perf Coffee shop built from two git refs: `main` and the branch being compared |
 | `thirdparty` | Local mocks of third-party scripts (analytics, chat, promo banner, A/B testing) |
 | `agents` | Node 22, the Playwright Chromium, Chrome DevTools MCP, WebPerf Snippets and trace-engine-cli |
-| `ci` | The gate for a PR: it measures, attributes, explains, writes the reports and exits with 0 or 1 |
+| `ci` | The gate for a PR: it measures, attributes, explains, writes the reports and exits with 0 when it passes, 1 when it fails and 2 when it could not measure |
 | `ollama` | The local LLM of the Judge, with `llama3.2:3b` inside the image |
 
 The comparison happens on the same machine and in the same run, so the difference between laptops does not affect the verdict.
@@ -86,7 +83,7 @@ CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
 |---|---|
 | `report.md`, `report.html` and `report.json` | The verdict of the rules, the metrics of each scenario and the explanation of each metric that regresses |
 | `handoff.md` and `handoff.json` | The same input the local LLM receives, with the prompt and the schema, to pass it to another agent |
-| `gate/` and `traces/` | The CLI reports and the Chromium traces |
+| `gate/` and `traces/` | `gate/` has one JSON per scenario (`home.json` and `add-to-cart.json`) with the comparison of the CLI, and `traces/` the Chromium traces |
 
 The exit code of `ci` is the verdict: 0 if it passes, 1 if any metric regresses and 2 if the gate could not run.
 

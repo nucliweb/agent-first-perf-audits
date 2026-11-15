@@ -149,6 +149,9 @@ table.compact td, table.compact th { padding-top: 10px; padding-bottom: 10px; }
 .slide.evidence h2 { font-size: 44px; }
 .slide.evidence .lead { font-size: 28px; }
 img.evidence { display: block; flex: 1 1 0; min-height: 0; width: 100%; object-fit: contain; object-position: left center; }
+/* A diagram of docs/public/diagrams: it has its own light and dark colors, and takes the ones of its slide */
+img.diagram { object-position: center; color-scheme: light; }
+.dark img.diagram { color-scheme: dark; }
 
 /* The four phases of the LCP as one bar */
 .phases { display: flex; height: 96px; border-radius: 12px; overflow: hidden; }

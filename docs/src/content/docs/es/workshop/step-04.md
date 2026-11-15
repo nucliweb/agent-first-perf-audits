@@ -9,6 +9,8 @@ sidebar:
 
 Juntar todo en un veredicto que se pueda defender. El Judge corre el mismo gate que `ci`: la CLI de WebPerf Snippets decide si la rama empeora (Mann-Whitney U, umbrales y exit code), trace-engine-cli atribuye y el LLM local explica la causa de cada métrica que empeora. Los hallazgos de los subagentes, los hechos que las reglas escogen de lo que han medido, van al informe junto a la explicación. En este paso pasas de la evidencia a la causa y a la propuesta de solución, con la rama `pr/lcp-hero-lazy`.
 
+<img src="/diagrams/gate.svg" alt="El gate mide el baseline y la rama alternando sus ejecuciones; si el cambio supera el umbral y p es menor que 0,05, sale con 1, trace-engine-cli atribuye el cambio y el LLM lo explica; si supera el umbral y p no llega, mide dos ejecuciones más por lado y decide otra vez; si no, sale con 0" width="1120" height="340" loading="lazy" decoding="async">
+
 ## Antes de empezar
 
 Sigues en tu rama `taller`, con el laboratorio levantado. Si no has terminado los pasos anteriores, no pasa nada: la solución de este paso trae también la de los anteriores.

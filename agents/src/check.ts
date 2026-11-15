@@ -24,22 +24,37 @@ export function testsOf(step: number): string[] {
   return [...new Set(regionsIn(join(AGENTS, "src")).filter((r) => r.step === step).map((r) => r.tests))].sort();
 }
 
-// A file of out/ that passes when valid returns true for its parsed JSON
-function file(out: string, path: string, valid: (json: any) => boolean, detail: string): Result {
+// A file of out/ that passes when valid returns true for its parsed JSON. detail says what it needs,
+// or is a function of the JSON that says why it fails.
+function file(out: string, path: string, valid: (json: any) => boolean, detail: string | ((json: any) => string)): Result {
   const what = `out/${path}`;
   if (!existsSync(join(out, path))) return { what, ok: false, detail: "missing" };
+  let json;
   try {
-    return valid(JSON.parse(readFileSync(join(out, path), "utf8"))) ? { what, ok: true } : { what, ok: false, detail };
+    json = JSON.parse(readFileSync(join(out, path), "utf8"));
   } catch {
     return { what, ok: false, detail: "not JSON" };
   }
+  return valid(json) ? { what, ok: true } : { what, ok: false, detail: typeof detail === "string" ? detail : detail(json) };
 }
+
+// A report that should fail and passed with a metric inconclusive for the worse: the runs did not back
+// the change, so the gate did not fail on it. Another run of the branch decides.
+const runAgainWhenInconclusive = (detail: string, again: string) => (report: any) => {
+  const worse = report.verdict === "pass" ? (report.inconclusive ?? []).filter((m: any) => m.worse) : [];
+  if (!worse.length) return detail;
+  const metrics = worse.map((m: any) => `${m.metric} in ${m.scenario} inconclusive for the worse (p = ${m.p})`).join(", ");
+  return `${detail}, but it passed with ${metrics}; run this branch again: ${again}`;
+};
 
 // A branch of a fresh clone exists only on the remote, and the reports name it origin/pr/...
 const branchOf = (report: any) => String(report.branch ?? "").replace(/^origin\//, "");
 const events = (trace: any): Array<{ name?: string }> => (Array.isArray(trace) ? trace : (trace.traceEvents ?? []));
 const journeys = (report: any, valid: (journey: any) => boolean) =>
   JSON.stringify(report.journeys?.map((j: any) => j.name)) === JSON.stringify(JOURNEYS) && report.journeys.every(valid);
+
+const JUDGE = "CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp judge";
+const ciOf = (branch: string) => `CANDIDATE=${branch.replace("/", "-")} docker compose run --rm -e OUT=/out/ci/${branch.replace("/", "-")} ci`;
 
 export const STEPS: Record<string, { title: string; run: string[]; outputs: (out: string) => Result[] }> = {
   "step-01": {
@@ -74,22 +89,27 @@ export const STEPS: Record<string, { title: string; run: string[]; outputs: (out
   },
   "step-04": {
     title: "The Judge",
-    run: ["CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp judge"],
+    run: [JUDGE],
     outputs: (out) => [
       file(
         out,
         "agents/judge/report.json",
         (r) => branchOf(r) === "pr/lcp-hero-lazy" && r.verdict === "fail" && r.findings?.some((f: any) => f.metric === "LCP" && f.facts.length),
-        "the report of pr/lcp-hero-lazy: fail, with the findings of the LCP",
+        runAgainWhenInconclusive("the report of pr/lcp-hero-lazy: fail, with the findings of the LCP", JUDGE),
       ),
     ],
   },
   "step-05": {
     title: "The gate in ci against the four branches",
-    run: Object.keys(BRANCHES).map((b) => `CANDIDATE=${b.replace("/", "-")} docker compose run --rm -e OUT=/out/ci/${b.replace("/", "-")} ci`),
+    run: Object.keys(BRANCHES).map(ciOf),
     outputs: (out) =>
       Object.entries(BRANCHES).map(([branch, verdict]) =>
-        file(out, `ci/${branch.replace("/", "-")}/report.json`, (r) => branchOf(r) === branch && r.verdict === verdict, `the report of ${branch}: ${verdict}`),
+        file(
+          out,
+          `ci/${branch.replace("/", "-")}/report.json`,
+          (r) => branchOf(r) === branch && r.verdict === verdict,
+          runAgainWhenInconclusive(`the report of ${branch}: ${verdict}`, ciOf(branch)),
+        ),
       ),
   },
 };

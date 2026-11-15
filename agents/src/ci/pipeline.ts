@@ -1,24 +1,25 @@
 // The performance gate of a pull request and its explanation, as ci runs it and as the orchestrator
 // runs it after the subagents:
-//   1. The gate: the WebPerf Snippets CLI measures the baseline shop, then the candidate against it.
-//      Its exit code is the decision.
+//   1. The gate: the WebPerf Snippets CLI measures the candidate shop against the baseline shop, one
+//      call per scenario with the runs of both alternating, and more runs when a metric is
+//      inconclusive for the worse. Its exit code is the decision.
 //   2. The attribution: one trace per scenario and side, summarized by trace-engine-cli.
 //   3. The explanation: the Judge with the local LLM (llm profile). With the lite profile there is
 //      no local LLM, and the handoff files carry the same input for an external agent.
 //   4. The facts of the rules: the lines of the diff they relate to each regressed metric.
 //   5. From the orchestrator, the findings of the subagents for each regressed metric.
-// It writes gate/, traces/, input.json (what the Judge gets), report.json, report.md, report.html,
+// It writes gate/ (the JSON of the CLI for each scenario), traces/, input.json (what the Judge gets), report.json, report.md, report.html,
 // handoff.json and handoff.md to out. explain.ts reads input.json to explain the run with another model.
 // One Chromium at a time: the measurements and the traces run one after the other.
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { branchOf, diffOf, refOfTag, refsOf } from "../judge/diff.ts";
 import { findingsFor, type Found } from "../judge/findings.ts";
-import { CONDITIONS, gateOf, measureWithCli, SCENARIOS, type ScenarioResult } from "../judge/gate.ts";
+import { CONDITIONS, gateOf, MAX_RUNS, measureWithCli, resultOf, runsOf, SCENARIOS, type ScenarioResult } from "../judge/gate.ts";
 import { handoffMarkdown, handoffOf } from "../judge/handoff.ts";
 import { lcpLoadingFacts } from "../judge/lcp-loading.ts";
-import { regressedMetrics } from "../judge/rules.ts";
+import { inconclusiveMetrics, regressedMetrics } from "../judge/rules.ts";
 import { record, summarize } from "../judge/traces.ts";
 import type { JudgeInput, TraceSummaries } from "../judge/types.ts";
 import { explain, ollama } from "../subagents/judge.ts";
@@ -68,6 +69,8 @@ export async function runGate(run: GateRun, found?: Found): Promise<Report> {
   const { urls, repo, out, profile, baselineRef, candidateRef, log } = run;
   log(`${branchOf(candidateRef)} against ${branchOf(baselineRef)}, ${profile} profile`);
 
+  // Only the files of this run: the gate of an earlier version wrote a baseline and a candidate file
+  await rm(join(out, "gate"), { recursive: true, force: true });
   await mkdir(join(out, "gate"), { recursive: true });
   await mkdir(join(out, "traces"), { recursive: true });
 
@@ -75,19 +78,19 @@ export async function runGate(run: GateRun, found?: Found): Promise<Report> {
   const results: ScenarioResult[] = [];
   let browserBuild = "";
   for (const scenario of SCENARIOS) {
-    const baselineFile = join(out, "gate", `baseline-${scenario.id}.json`);
-    log(`gate, ${scenario.id}: baseline`);
-    const { report: baseline } = await measureWithCli(join(BIN, "webperf-snippets"), urls.baseline + scenario.path, scenario);
-    await writeFile(baselineFile, JSON.stringify(baseline, null, 2));
-    log(`gate, ${scenario.id}: candidate`);
-    const { exitCode, report } = await measureWithCli(join(BIN, "webperf-snippets"), urls.candidate + scenario.path, scenario, baselineFile);
-    await writeFile(join(out, "gate", `candidate-${scenario.id}.json`), JSON.stringify(report, null, 2));
-    results.push({ scenario: scenario.id, exitCode, metrics: report.baseline?.metrics ?? {} });
+    log(`gate, ${scenario.id}: candidate against baseline, their runs alternating`);
+    const pages = { baseline: urls.baseline + scenario.path, candidate: urls.candidate + scenario.path };
+    const { exitCode, report } = await measureWithCli(join(BIN, "webperf-snippets"), pages, scenario);
+    await writeFile(join(out, "gate", `${scenario.id}.json`), JSON.stringify(report, null, 2));
+    const result = resultOf(scenario.id, exitCode, report);
+    if (result.extended) log(`gate, ${scenario.id}: ${result.extended.metrics.join(", ")} inconclusive after ${result.extended.after} runs, measured ${result.runs}`);
+    results.push(result);
     const browser = report.conditions?.browser;
     if (browser) browserBuild = `${browser.build} ${browser.version}`;
   }
   const gate = gateOf(results);
-  log(`gate: ${gate.verdict}`);
+  const inconclusive = inconclusiveMetrics(gate.scenarios);
+  log(`gate: ${gate.verdict}${inconclusive.length ? `, inconclusive: ${inconclusive.map((m) => `${m.metric} in ${m.scenario}`).join(", ")}` : ""}`);
 
   // 2. The traces, recorded with the same Chromium as the CLI
   const traces: TraceSummaries = {};
@@ -129,8 +132,10 @@ export async function runGate(run: GateRun, found?: Found): Promise<Report> {
     branch: branchOf(candidateRef),
     baseline: branchOf(baselineRef),
     profile,
-    conditions: [CONDITIONS.join(" "), browserBuild].filter(Boolean).join(", "),
+    conditions: [[...CONDITIONS, ...MAX_RUNS].join(" "), browserBuild].filter(Boolean).join(", "),
     verdict: gate.verdict,
+    inconclusive,
+    runs: runsOf(results),
     gate,
     explanations,
     ...(explanations && run.ollama && handoff.requests.length ? { explainedBy: run.ollama.model } : {}),
