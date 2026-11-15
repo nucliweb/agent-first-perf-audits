@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { branchOf, diffOf, refOfTag } from "../../src/judge/diff.ts";
+import { branchOf, diffOf, refOfTag, refsOf } from "../../src/judge/diff.ts";
 
 const REFS = ["main", "pr/lcp-hero-lazy", "origin/pr/cls-promo-banner", "origin/main"];
 
@@ -27,9 +27,11 @@ test("fails with the tag when no ref matches it", () => {
 // The repo of the workshop: the working tree on the host, /repo inside the ci service
 const REPO = [process.env.REPO, new URL("../../..", import.meta.url).pathname].find((dir) => dir && existsSync(`${dir}/.git`));
 
-// pr/lcp-hero-lazy adjusts server.test.mjs, as the author of the change would
+// pr/lcp-hero-lazy adjusts server.test.mjs, as the author of the change would. The refs come from the
+// tags of the images, as in the pipeline: in the checkout of GitHub Actions they are only remote.
 test("the diff of a regression branch leaves out the tests of the shop", { skip: !REPO && "needs the git repo" }, () => {
-  const diff = diffOf(REPO!, "main", "pr/lcp-hero-lazy");
+  const refs = refsOf(REPO!);
+  const diff = diffOf(REPO!, refOfTag("main", refs), refOfTag("pr-lcp-hero-lazy", refs));
   assert.match(diff, /^\+\+\+ b\/apps\/shop\//m);
   assert.doesNotMatch(diff, /\.test\.(ts|mjs)/);
 });
