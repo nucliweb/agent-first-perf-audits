@@ -149,3 +149,29 @@ for (const lang of LANGS) {
     assert.ok(text.includes(p(7, 1, lang)), `${lang}: ${p(7, 1, lang)}`);
   });
 }
+
+// What the learning about the samples tells of the two nights: the gate that measured the whole baseline
+// first with 5 runs a side, and the one that alternates and measures up to 7, idle and loaded
+const LEARNING = [
+  ["idle", "adjacent", "5"],
+  ["idle", "interleaved", "5-7"],
+  ["loaded", "adjacent", "5"],
+  ["loaded", "interleaved", "5-7"],
+];
+
+for (const lang of LANGS) {
+  test(`the learning about the samples in ${lang} gives the misses and the false failures of the two gates`, () => {
+    const text = read(`../../docs/src/content/docs/${lang}/learnings.md`);
+    const w = WORDS[lang];
+    const rows = LEARNING.map(([night, order, spec]) => {
+      const s = pick(night, order, spec);
+      return `\\| [^|\\n]+ \\| [^|\\n]+ \\| ${s.regressions.missed} ${w.of} ${s.regressions.rounds} \\| ${s.control.failed} ${w.of} ${s.control.rounds} \\|`;
+    });
+    assert.match(text, new RegExp(rows.join("\\n")), `${lang}: the table of the two gates, idle and loaded`);
+    // One slow run of the baseline hides a regression with 5 runs a side and not with 7
+    for (const figure of [p(5, 1, lang), p(7, 1, lang), "--max-runs 7"]) assert.ok(text.includes(figure), `${lang}: ${figure}`);
+    // More runs do not fix the order: the control fails with every policy that measures the baseline first
+    const control = pick("loaded", "adjacent", "5").control;
+    assert.ok(text.includes(TIMES[lang](control.failed, control.rounds)), `${lang}: ${TIMES[lang](control.failed, control.rounds)}`);
+  });
+}

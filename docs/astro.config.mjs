@@ -21,17 +21,17 @@ export default defineConfig({
         {
           label: "Start here",
           translations: { es: "Empezar", ca: "Comença" },
-          items: ["setup", "concepts"],
+          items: ["workshop", "setup", "concepts"],
         },
         {
           label: "The workshop",
           translations: { es: "El taller", ca: "El taller" },
-          items: [{ autogenerate: { directory: "workshop" } }],
+          items: ["workshop/step-01", "workshop/step-02", "workshop/step-03", "workshop/step-04", "workshop/step-05", "workshop/step-06", "challenges"],
         },
         {
           label: "Reference",
           translations: { es: "Referencia", ca: "Referència" },
-          items: ["previews", "stack", "learnings", "glossary", "references"],
+          items: ["previews", "stack", "learnings", "glossary", "troubleshooting", "references", "facilitator"],
         },
       ],
     }),

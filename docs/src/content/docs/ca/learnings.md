@@ -333,3 +333,65 @@ Els mil·lisegons canvien d'una màquina a una altra; el test comprova que amb `
 2. Conserva els noms en aquest build: `keepNames` a Rolldown i esbuild, `keep_fnames` a Terser.
 3. Si no els pots conservar, resol els source maps abans de passar el trace a l'agent, no després.
 4. Comprova en un test que el bundle conserva els noms. Una actualització del bundler pot canviar el valor per defecte sense avisar.
+
+## Les regles són deterministes, les mostres no
+
+### Context
+
+El veredicte del gate el donen unes regles: la mediana de la branca supera la del baseline en més que el seu llindar, i un test estadístic dona p < 0,05. Amb les mateixes mesures decideixen sempre el mateix, i per això el taller diu que les regles decideixen.
+
+Preparant el taller, el gate va donar per bona `pr/lcp-hero-lazy`, la branca que endarrereix l'LCP de la home. Les regles no van fallar. Van rebre una mostra en què una execució del baseline va sortir lenta, i amb 5 execucions per costat això basta per deixar p en 0,0754. Un gate que dona per bona una regressió clara, encara que sigui una vegada de cada tantes, ensenya a no refiar-se'n.
+
+Hi havia una segona sospita. El gate mesurava primer totes les execucions de `main` i després totes les de la branca, i als informes apareixien diferències d'INP en branques que no toquen l'INP.
+
+### Què vam provar
+
+Dues nits de mesura al Mac de referència, una amb la màquina en repòs i una altra amb el model local generant text al costat. Cada ronda mesura execucions soltes de `main` i de les quatre branques en dos ordres: primer totes les del baseline, o alternant-ne una de cada botiga. Després, el codi de la mateixa CLI decideix sobre aquestes mateixes execucions amb cada política, així que totes es comparen amb les mateixes dades i no amb la sort de cada nit.
+
+La regla per triar es va escriure abans de mesurar: la política més barata que no deixi escapar cap regressió en repòs, que en deixi escapar com a molt un 10 % amb càrrega i que no faci fallar mai `pr/noop-refactor`, la branca de control.
+
+| Màquina | Gate | Regressions que s'escapen | Vegades que falla el control |
+|---|---|---|---|
+| En repòs | 5 execucions per costat, primer totes les del baseline | 1 de 75 | 0 de 50 |
+| En repòs | 5 per costat i 7 si no és concloent, alternant | 0 de 75 | 0 de 50 |
+| Amb `ollama` generant | 5 execucions per costat, primer totes les del baseline | 4 de 60 | 3 de 40 |
+| Amb `ollama` generant | 5 per costat i 7 si no és concloent, alternant | 2 de 60 | 0 de 40 |
+
+Les dades separen dos problemes que semblaven un:
+
+- **Poques execucions.** Amb 5 per costat, una sola execució lenta del baseline deixa p en 0,0754. Amb 7, la mateixa execució lenta el deixa en 0,0131. Mesurar sempre 7 ho arregla i encareix totes les execucions del gate; mesurar 7 només quan el canvi supera el seu llindar i p no arriba ho arregla quasi de franc.
+- **L'ordre.** Amb la màquina ocupada, mesurar primer tot el baseline fa fallar el control 3 vegades de 40, i cap política amb més execucions ho evita. No és soroll de mostreig: la màquina canvia de velocitat entre el bloc del baseline i el de la branca, i el test ho veu com un canvi real. Alternant les execucions, el que li passi a la màquina els passa a les dues botigues.
+
+### Decisió
+
+- **El gate alterna les execucions de les dues botigues**, en una sola crida a la CLI.
+- **Amplia una vegada, amb un màxim.** Mesura 5 execucions per botiga i, quan un canvi supera el seu llindar i p no arriba, fins a 7 (`--max-runs 7`). Decideix com a molt dues vegades: mirar p després de cada execució afegida acabaria trobant un canvi per casualitat.
+- **Diu quan no pot decidir.** Si després d'ampliar continua igual, la mètrica queda com a `inconclusive`. El gate no falla per ella, l'informe ho posa a dalt i demana llançar-lo una altra vegada, i la comprovació del pas 5 fa el mateix en lloc de donar un pass.
+- **Viu a l'eina.** La comparació amb un baseline viu, l'ampliació i el veredicte no concloent són de la CLI de WebPerf Snippets, no del taller: és el learning d'[arreglar l'eina](#arreglar-leina-abans-que-apedaçar-el-taller).
+
+### Què no arregla
+
+Amb la màquina ocupada encara s'escapen 2 regressions de 60. Alternar i ampliar fan el gate més difícil d'enganyar, no immune: mesurar amb la màquina sola, i amb un sol Chromium alhora, continua sent part del mètode.
+
+### Comprova-ho
+
+L'experiment és a [`experiments/gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.ca.md), amb les execucions de les dues nits desades:
+
+```bash
+cd experiments/gate-stability
+npm install
+npm test                                                    # les polítiques decideixen com la CLI, i les xifres dels docs surten dels resultats
+node report.mjs idle --policies 5,7,9,5-7,5-9 --summary     # la nit en repòs, per ordre i política
+node report.mjs loaded --policies 5,7,9,5-7,5-9 --summary   # la nit amb ollama generant
+```
+
+[Conceptes](../concepts/#com-decideix-el-gate) explica el test estadístic i la taula de quantes execucions lentes tolera cada nombre d'execucions.
+
+### Com aplicar-ho a la teva plataforma
+
+1. Mesura el baseline i la branca a la mateixa màquina i alternant-ne les execucions, no un bloc darrere l'altre.
+2. Tria quantes execucions amb la taula de tolerància, no a ull: amb 5 per costat, una execució lenta amaga una regressió.
+3. Amplia una sola vegada i fins a un màxim. No miris p després de cada execució.
+4. Dona al gate una tercera sortida. "No ho sé, llança-ho una altra vegada" és millor resposta que un pass que no se sosté.
+5. Tingues una branca de control que no canvia res, i compta quantes vegades falla. És l'única manera de saber quants falsos positius dona el teu gate.
+6. Escriu la regla per triar abans de mesurar. Després de veure les dades, qualsevol política sembla raonable.

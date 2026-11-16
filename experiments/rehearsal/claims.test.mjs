@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { agendaOf, pointOf } from "./guide.mjs";
+import { agendaOf, agendaRowsOf, pointOf } from "./guide.mjs";
 import { planOf, stepTimesOf } from "./rehearse.mjs";
 
 const REPO = resolve(import.meta.dirname, "../..");
@@ -90,6 +90,32 @@ test("the table of times of each step guide is the one of the two rehearsals, in
         if (!row.test(text)) missing.push(`${file}: | ${words.point} ${point}, ... | ${min(command.durationMs)} | ${min(lite.durationMs)} |`);
       }
     }
+  }
+  assert.deepEqual(missing, []);
+});
+
+// The agenda of the page that says how to follow the workshop, in the three languages: a row for each
+// row of the agenda of PLAN.md, with when it starts, its minutes and the machine time of its step with
+// each profile, and a last row with the two totals
+const INDEX = { es: ",", ca: ",", en: "." };
+
+test("the agenda of the page that says how to follow the workshop is the one of PLAN.md, with the times of the two rehearsals", { skip: !bothFull && "it needs a finished rehearsal of each profile" }, () => {
+  const times = { llm: stepTimesOf(full.llm.commands), lite: stepTimesOf(full.lite.commands) };
+  const rows = agendaRowsOf(readFileSync(join(REPO, "PLAN.md"), "utf8"));
+  const sum = (profile) => rows.reduce((total, row) => total + (times[profile][row.step] ?? 0), 0);
+  const missing = [];
+  for (const [language, mark] of Object.entries(INDEX)) {
+    const file = `docs/src/content/docs/${language}/workshop/index.md`;
+    const text = readFileSync(join(REPO, file), "utf8");
+    const min = (ms) => (ms === undefined ? "" : `${minutes(ms).replace(".", mark)} min`);
+    const cells = (...values) => values.map((value) => (value ? ` ${escaped(value)} ` : " ?")).join("\\|");
+    for (const row of rows) {
+      const name = row.step ? `\\[${Number(row.step.slice(5))}\\. [^|]*` : "[^|[]*";
+      const line = new RegExp(`^\\| ${row.start} \\| ${name}\\|${cells(`${row.slot} min`, min(times.llm[row.step]), min(times.lite[row.step]))}\\|$`, "m");
+      if (!line.test(text)) missing.push(`${file}: | ${row.start} | ${row.step ?? "no step"} | ${row.slot} min | ${min(times.llm[row.step])} | ${min(times.lite[row.step])} |`);
+    }
+    const total = new RegExp(`^\\| +\\| [^|]*\\|${cells(`${rows.reduce((all, row) => all + row.slot, 0)} min`, min(sum("llm")), min(sum("lite")))}\\|$`, "m");
+    if (!total.test(text)) missing.push(`${file}: the row of the totals, ${min(sum("llm"))} and ${min(sum("lite"))}`);
   }
   assert.deepEqual(missing, []);
 });
