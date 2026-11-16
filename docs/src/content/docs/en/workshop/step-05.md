@@ -17,8 +17,8 @@ This step has 20 minutes in the agenda. The machine time is measured on the refe
 
 | | `llm` | `lite` |
 |---|---|---|
-| Machine time of the step | 11.2 min | 9.3 min |
-| Point 1, the gate on the four branches | 11.2 min | 9.3 min |
+| Machine time of the step | 11.3 min | 9.5 min |
+| Point 1, the gate on the four branches | 11.2 min | 9.5 min |
 
 ## The idea in a minute
 

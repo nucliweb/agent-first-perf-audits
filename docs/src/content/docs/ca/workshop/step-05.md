@@ -17,8 +17,8 @@ Aquest pas té 20 minuts a l'agenda. El temps de màquina està mesurat al Mac d
 
 | | `llm` | `lite` |
 |---|---|---|
-| Temps de màquina del pas | 11,2 min | 9,3 min |
-| Punt 1, el gate per les quatre branques | 11,2 min | 9,3 min |
+| Temps de màquina del pas | 11,3 min | 9,5 min |
+| Punt 1, el gate per les quatre branques | 11,2 min | 9,5 min |
 
 ## La idea en un minut
 

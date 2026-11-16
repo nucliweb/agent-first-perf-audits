@@ -17,8 +17,8 @@ Aquest pas té 20 minuts a l'agenda. El temps de màquina està mesurat al Mac d
 
 | | `llm` | `lite` |
 |---|---|---|
-| Temps de màquina del pas | 4,5 min | 4,0 min |
-| Punt 5, mesurar l'LCP i passar el Judge | 3,8 min | 3,3 min |
+| Temps de màquina del pas | 4,6 min | 4,0 min |
+| Punt 5, mesurar l'LCP i passar el Judge | 3,9 min | 3,3 min |
 
 ## La idea en un minut
 

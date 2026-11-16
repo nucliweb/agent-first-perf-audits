@@ -17,7 +17,7 @@ Este paso tiene 15 minutos en la agenda. El tiempo de máquina está medido en e
 
 | | `llm` | `lite` |
 |---|---|---|
-| Tiempo de máquina del paso | 0,9 min | 0,8 min |
+| Tiempo de máquina del paso | 0,8 min | 0,8 min |
 
 Ningún comando de este paso llega al minuto.
 

@@ -17,8 +17,8 @@ Este paso tiene 20 minutos en la agenda. El tiempo de máquina está medido en e
 
 | | `llm` | `lite` |
 |---|---|---|
-| Tiempo de máquina del paso | 4,5 min | 4,0 min |
-| Punto 5, medir el LCP y pasar el Judge | 3,8 min | 3,3 min |
+| Tiempo de máquina del paso | 4,6 min | 4,0 min |
+| Punto 5, medir el LCP y pasar el Judge | 3,9 min | 3,3 min |
 
 ## La idea en un minuto
 

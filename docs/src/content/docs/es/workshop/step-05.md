@@ -17,8 +17,8 @@ Este paso tiene 20 minutos en la agenda. El tiempo de máquina está medido en e
 
 | | `llm` | `lite` |
 |---|---|---|
-| Tiempo de máquina del paso | 11,2 min | 9,3 min |
-| Punto 1, el gate por las cuatro ramas | 11,2 min | 9,3 min |
+| Tiempo de máquina del paso | 11,3 min | 9,5 min |
+| Punto 1, el gate por las cuatro ramas | 11,2 min | 9,5 min |
 
 ## La idea en un minuto
 

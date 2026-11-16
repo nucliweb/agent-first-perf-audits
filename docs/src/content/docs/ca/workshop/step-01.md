@@ -17,7 +17,7 @@ Aquest pas té 15 minuts a l'agenda. El temps de màquina està mesurat al Mac d
 
 | | `llm` | `lite` |
 |---|---|---|
-| Temps de màquina del pas | 0,9 min | 0,8 min |
+| Temps de màquina del pas | 0,8 min | 0,8 min |
 
 Cap ordre d'aquest pas arriba al minut.
 

@@ -17,7 +17,7 @@ This step has 15 minutes in the agenda. The machine time is measured on the refe
 
 | | `llm` | `lite` |
 |---|---|---|
-| Machine time of the step | 0.9 min | 0.8 min |
+| Machine time of the step | 0.8 min | 0.8 min |
 
 No command in this step takes a minute.
 

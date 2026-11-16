@@ -17,8 +17,8 @@ This step has 20 minutes in the agenda. The machine time is measured on the refe
 
 | | `llm` | `lite` |
 |---|---|---|
-| Machine time of the step | 4.5 min | 4.0 min |
-| Point 5, measure the LCP and run the Judge | 3.8 min | 3.3 min |
+| Machine time of the step | 4.6 min | 4.0 min |
+| Point 5, measure the LCP and run the Judge | 3.9 min | 3.3 min |
 
 ## The idea in a minute
 

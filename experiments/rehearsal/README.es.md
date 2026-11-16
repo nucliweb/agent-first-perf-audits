@@ -61,11 +61,11 @@ Una pasada con cada perfil en un Apple Silicon de 16 GB, desde `main` y con las 
 
 | Paso | `llm` | `lite` | Hueco |
 |---|---|---|---|
-| 1 | 0,9 min | 0,8 min | 15 min |
+| 1 | 0,8 min | 0,8 min | 15 min |
 | 2 | 2,9 min | 2,9 min | 20 min |
 | 3 | 6,9 min | 6,9 min | 20 min |
-| 4 | 4,5 min | 4,0 min | 20 min |
-| 5 | 11,2 min | 9,3 min | 20 min |
-| Total | 26,3 min | 23,8 min | 95 min |
+| 4 | 4,6 min | 4,0 min | 20 min |
+| 5 | 11,3 min | 9,5 min | 20 min |
+| Total | 26,5 min | 24,0 min | 95 min |
 
 El paso 5 da 1, 1, 1 y 0 con los dos perfiles, y con `llm` la salida de cada comando tiene las líneas de su guía. Lo que queda de cada hueco es para explicar y para quien va más despacio que la máquina de referencia.
