@@ -32,6 +32,31 @@ if (!files.length) {
   test("the claims of the guides against a rehearsal", { skip: "no results/*.json yet: run node rehearse.mjs on the reference machine, one profile at a time" }, () => {});
 }
 
+// The table of the READMEs of the experiment: the machine time of each step with each profile, next
+// to its slot in the agenda, with the decimal mark of each language
+const READMES = { "README.md": ".", "README.es.md": ",", "README.ca.md": "," };
+const full = Object.fromEntries(
+  ["llm", "lite"].filter((profile) => files.includes(`${profile}.json`)).map((profile) => [profile, JSON.parse(readFileSync(join(RESULTS, `${profile}.json`), "utf8"))]),
+);
+const bothFull = full.llm?.complete && full.lite?.complete;
+
+test("the table of machine times of the three READMEs is the one of the two rehearsals", { skip: !bothFull && "it needs a finished rehearsal of each profile" }, () => {
+  const times = { llm: stepTimesOf(full.llm.commands), lite: stepTimesOf(full.lite.commands) };
+  const steps = Object.keys(slots).filter((step) => step in times.llm && step in times.lite);
+  const sum = (values) => values.reduce((total, value) => total + value, 0);
+  const missing = [];
+  for (const [name, mark] of Object.entries(READMES)) {
+    const text = readFileSync(join(import.meta.dirname, name), "utf8");
+    const min = (ms) => `${minutes(ms).replace(".", mark)} min`;
+    const rows = [
+      ...steps.map((step) => `| ${Number(step.slice(5))} | ${min(times.llm[step])} | ${min(times.lite[step])} | ${slots[step]} min |`),
+      `| Total | ${min(sum(steps.map((step) => times.llm[step])))} | ${min(sum(steps.map((step) => times.lite[step])))} | ${sum(steps.map((step) => slots[step]))} min |`,
+    ];
+    for (const row of rows) if (!text.includes(row)) missing.push(`${name}: ${row}`);
+  }
+  assert.deepEqual(missing, []);
+});
+
 for (const name of files) {
   const results = JSON.parse(readFileSync(join(RESULTS, name), "utf8"));
   const unfinished = !results.complete && `${name} is from a rehearsal that did not finish`;

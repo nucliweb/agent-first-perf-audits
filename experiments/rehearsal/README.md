@@ -53,3 +53,18 @@ npm test                                    # the tests of the rehearsal and the
 6. With the `llm` profile, the output of each command has the lines its guide shows. The guides show the output of that profile.
 
 Without files in `results/`, those checks are skipped and say so.
+
+## Results on the reference Mac
+
+One rehearsal with each profile on a 16 GB Apple Silicon, from `main` and with the images already downloaded. The machine time of a step is the sum of its commands, without the optional blocks, and the slot is the one of the agenda of [`PLAN.md`](../../PLAN.md):
+
+| Step | `llm` | `lite` | Slot |
+|---|---|---|---|
+| 1 | 0.9 min | 0.8 min | 15 min |
+| 2 | 2.9 min | 2.9 min | 20 min |
+| 3 | 6.9 min | 6.9 min | 20 min |
+| 4 | 4.5 min | 4.0 min | 20 min |
+| 5 | 11.2 min | 9.3 min | 20 min |
+| Total | 26.3 min | 23.8 min | 95 min |
+
+Step 5 gives 1, 1, 1 and 0 with both profiles, and with `llm` the output of each command has the lines of its guide. What is left of each slot is for explaining and for those who go slower than the reference machine.

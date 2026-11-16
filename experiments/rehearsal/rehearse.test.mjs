@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describePlan, planOf, profileOf, rehearse, runCommand } from "./rehearse.mjs";
@@ -130,7 +130,7 @@ function sourceRepo() {
       "",
       "   <!-- rehearsal: optional -->",
       "   ```bash",
-      "   echo optional; exit 4",
+      "   echo \"optional in $PWD\"; exit 4",
       "   ```",
       "",
     ].join("\n"),
@@ -188,7 +188,9 @@ test("a rehearsal clones the ref, runs each command from the root of the clone a
       "the file that only the ref has, read from the root of the clone",
     );
     assert.deepEqual({ marker: optional.marker, exitCode: optional.exitCode, expected: optional.expected, matched: optional.matched }, { marker: "optional", exitCode: 4, expected: false, matched: null });
-    assert.deepEqual(optional.tail, ["optional"]);
+    assert.deepEqual(optional.tail, ["optional in <clone>"], "the paths of this machine stay out of the results file");
+    const text = readFileSync(file, "utf8");
+    for (const path of [source.root, dir, realpathSync(source.root), realpathSync(dir)]) assert.ok(!text.includes(path), `the results file has the path ${path}`);
   } finally {
     for (const path of [source.root, dir, results]) rmSync(path, { recursive: true, force: true });
   }

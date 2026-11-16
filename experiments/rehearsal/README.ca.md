@@ -53,3 +53,18 @@ npm test                                    # els tests de l'assaig i les compro
 6. Amb el perfil `llm`, la sortida de cada ordre té les línies que ensenya la seva guia. Les guies ensenyen la sortida d'aquest perfil.
 
 Sense fitxers a `results/`, aquestes comprovacions se salten i ho diuen.
+
+## Resultats al Mac de referència
+
+Una passada amb cada perfil en un Apple Silicon de 16 GB, des de `main` i amb les imatges ja descarregades. El temps de màquina d'un pas és la suma de les seves ordres, sense els blocs opcionals, i el forat és el de l'agenda de [`PLAN.md`](../../PLAN.md):
+
+| Pas | `llm` | `lite` | Forat |
+|---|---|---|---|
+| 1 | 0,9 min | 0,8 min | 15 min |
+| 2 | 2,9 min | 2,9 min | 20 min |
+| 3 | 6,9 min | 6,9 min | 20 min |
+| 4 | 4,5 min | 4,0 min | 20 min |
+| 5 | 11,2 min | 9,3 min | 20 min |
+| Total | 26,3 min | 23,8 min | 95 min |
+
+El pas 5 dona 1, 1, 1 i 0 amb els dos perfils, i amb `llm` la sortida de cada ordre té les línies de la seva guia. El que queda de cada forat és per explicar i per a qui va més a poc a poc que la màquina de referència.

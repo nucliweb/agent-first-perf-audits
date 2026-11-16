@@ -16,7 +16,7 @@
 // It measures: on the reference machine, nothing else runs at the same time. The lab it leaves up
 // belongs to the Compose project of the clone, named after its folder like the one of an attendee.
 import { execFileSync, spawn } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { availableParallelism, tmpdir, totalmem } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -103,16 +103,24 @@ export function runCommand(command, { cwd, env, timeoutMs = 0, echo = true, sign
   });
 }
 
-// The last lines of an output that are not blank, without colours
-const tailOf = (output) =>
+// The paths of this machine that an output may print, each with the name the results file gives it:
+// the longest first, and each one also as the system resolves it (/var is /private/var on macOS)
+export function hiddenPathsOf(named) {
+  return Object.entries(named)
+    .flatMap(([name, path]) => [...new Set([path, existsSync(path) ? realpathSync(path) : path])].map((p) => [p, `<${name}>`]))
+    .sort((a, b) => b[0].length - a[0].length);
+}
+
+// The last lines of an output that are not blank, without colours and without the paths of this machine
+const tailOf = (output, hidden) =>
   stripAnsi(output)
     .split(/\r\n|\r|\n/)
-    .map((line) => line.trimEnd())
+    .map((line) => hidden.reduce((text, [path, name]) => text.replaceAll(path, name), line.trimEnd()))
     .filter(Boolean)
     .slice(-TAIL);
 
 // What the results file keeps of a command: what the guide says and, when it ran, what happened
-export function recordOf(planned, run) {
+export function recordOf(planned, run, hidden = []) {
   const { step, file, index, line, command, marker, note } = planned;
   const expected = planned.expected != null;
   if (!run) return { step, file, index, line, command, marker, note, status: "skipped", exitCode: null, durationMs: null, counts: null, expected, matched: null, missing: [] };
@@ -135,7 +143,7 @@ export function recordOf(planned, run) {
     matched,
     missing,
     ...(branchExits.length ? { branchExits } : {}),
-    tail: tailOf(run.output),
+    tail: tailOf(run.output, hidden),
   };
 }
 
@@ -182,10 +190,12 @@ export async function rehearse({
   mkdirSync(folder, { recursive: true });
   git(["clone", "--quiet", source, clone]);
   git(["-C", clone, "checkout", "--quiet", ref]);
+  const remote = /^(https?:|ssh:|git@)/.test(source);
+  const hidden = hiddenPathsOf({ clone, dir: folder, ...(remote ? {} : { source: resolve(source) }) });
   const results = {
     profile,
     date: new Date().toISOString(),
-    source: /^(https?:|ssh:|git@)/.test(source) ? source : "local",
+    source: remote ? source : "local",
     ref,
     commit: git(["-C", clone, "rev-parse", "HEAD"]),
     only: only ?? null,
@@ -216,7 +226,7 @@ export async function rehearse({
       log(`[rehearsal] ${n + 1}/${plan.length} ${planned.step}, ${where}${planned.marker ? ` (${planned.marker})` : ""}\n$ ${command.replaceAll("\n", "\n$ ")}`);
       const run = await runCommand(command, { cwd: clone, env: runEnv, timeoutMs, echo, signal: abort.signal });
       appendFileSync(transcript, `### ${planned.step}, ${where}\n$ ${command}\n${run.output}\n[exit ${run.exitCode}${run.timedOut ? ", timed out" : ""}, ${run.durationMs} ms]\n\n`);
-      const record = recordOf(planned, run);
+      const record = recordOf(planned, run, hidden);
       results.commands.push(record);
       save(file, results);
       const match = record.matched === null ? "" : record.matched ? ", output as in the guide" : `, ${record.missing.length} expected line(s) missing`;

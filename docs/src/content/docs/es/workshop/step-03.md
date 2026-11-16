@@ -21,7 +21,7 @@ Sigues en tu rama `taller`, con el laboratorio levantado. Si no has terminado lo
    docker compose run --rm agents node --test test/subagents/navigator.test.ts test/subagents/cls.test.ts test/subagents/loaf.test.ts
    ```
 
-   De 19 tests, fallan 14 (`fail 14`) con mensajes como este:
+   De 22 tests, fallan 17 (`fail 17`) con mensajes como este:
 
    ```text
    Step 3 of the workshop: run the steps of a journey with open_page, interact and read_results. Its tests: test/subagents/navigator.test.ts
@@ -41,7 +41,7 @@ Sigues en tu rama `taller`, con el laboratorio levantado. Si no has terminado lo
    docker compose run --rm agents node --test test/subagents/navigator.test.ts test/subagents/cls.test.ts test/subagents/loaf.test.ts
    ```
 
-   Los 19 pasan (`pass 19`). Tardan algo más de medio minuto: los del Navigator abren una página local con el servidor real, y uno espera a que un paso falle.
+   Los 22 pasan (`pass 22`). Tardan algo más de medio minuto: los del Navigator abren una página local con el servidor real, y uno espera a que un paso falle.
 
 4. Cambia la tienda candidata por la rama del handler pesado:
 
