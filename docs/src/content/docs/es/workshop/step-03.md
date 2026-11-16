@@ -5,9 +5,30 @@ sidebar:
   order: 13
 ---
 
-## Objetivo
+## Qué vas a aprender
 
-Tres subagentes que trabajan sobre recorridos, no sobre una carga: el Navigator recorre la tienda paso a paso y comprueba que cada recorrido termina; CLS y LoAF/INP miden esos mismos recorridos. En este paso ves la evidencia de la segunda regresión, la rama `pr/loaf-cart-handler`, que hace pesado el click de añadir al carrito.
+- Describir un recorrido de usuario como datos, y reutilizarlo en varias medidas.
+- Leer el INP por sus tres fases, y encontrar el script que bloquea con los long animation frames.
+- Qué desplazamientos cuentan para el CLS y cuáles no.
+
+## Tiempo
+
+Este paso tiene 20 minutos en la agenda. El tiempo de máquina está medido en el Mac de referencia, con el [ensayo cronometrado](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.es.md):
+
+| | `llm` | `lite` |
+|---|---|---|
+| Tiempo de máquina del paso | 6,9 min | 6,9 min |
+| Punto 5, recorrer y medir las dos tiendas | 5,5 min | 5,5 min |
+
+## La idea en un minuto
+
+El LCP se mide en una carga. El CLS y el INP pasan mientras una persona usa la página, así que hace falta alguien que la use: un recorrido es una página y una lista de pasos (click, escribir, scroll), guardados como datos.
+
+<img src="/diagrams/flow.svg" alt="El flujo de los subagentes: navigator recorre la tienda y pasa sus recorridos a cls y a loaf; lcp mide la carga por su cuenta; los tres dejan un JSON por lado en out/agents, y judge decide y explica en su informe" width="1120" height="380" loading="lazy" decoding="async">
+
+Son tres subagentes sobre los mismos recorridos. El Navigator recorre la tienda paso a paso y comprueba que cada recorrido termina. CLS mide qué se mueve en cada uno, y LoAF/INP mide lo que tarda la página en responder a un click, con sus tres fases, y qué scripts ocupan el hilo principal. Las fases del INP están en el diagrama del paso 2, y las dos métricas en [Conceptos](../../concepts/#inp-y-los-long-animation-frames).
+
+Aquí ves la evidencia de la segunda regresión, la rama `pr/loaf-cart-handler`, que hace pesado el click de añadir al carrito.
 
 ## Antes de empezar
 
@@ -55,7 +76,7 @@ Sigues en tu rama `taller`, con el laboratorio levantado. Si no has terminado lo
    CANDIDATE=pr-loaf-cart-handler docker compose run --rm agents node src/orchestrator.ts cls loaf
    ```
 
-   Son unos 6 minutos: el Navigator va primero, porque CLS y LoAF/INP miden sus recorridos, y cada subagente mide cuatro recorridos por lado, tres veces cada uno. Escribe una línea por subagente y tienda, entre ellas estas (las cifras cambian en cada ejecución):
+   Es la espera larga del paso: el Navigator va primero, porque CLS y LoAF/INP miden sus recorridos, y cada subagente mide cuatro recorridos por lado, tres veces cada uno. Escribe una línea por subagente y tienda, entre ellas estas (las cifras cambian en cada ejecución):
 
    ```text
    [orchestrator] navigator, baseline: home 5 steps, shop 3 steps, product 3 steps, add-to-cart 3 steps; no page errors
@@ -94,6 +115,36 @@ Sigues en tu rama `taller`, con el laboratorio levantado. Si no has terminado lo
    ```
 
    En la línea `cls, candidate`, el CLS deja de ser 0 en los cuatro recorridos. En `out/agents/cls-candidate.json`, el nodo que más se mueve es `main.main`: el banner empuja la página hacia abajo.
+
+## Mientras esperas
+
+El punto 5 es la espera más larga de los cuatro primeros pasos. Mientras tanto:
+
+- Abre `agents/journeys/add-to-cart.json`: es el recorrido que se está midiendo, y el mismo fichero que usa el gate.
+- Los JSON aparecen en `out/agents/` según termina cada subagente. Abre `navigator-baseline.json`: ¿en qué URL deja la página cada paso?
+- Abre la tienda de la rama desde [Las ramas en el navegador](../../previews/) y añade un producto al carrito. Esa página explica cómo verlo en DevTools.
+- ¿Por qué la línea de LoAF dice `home no click`? ¿Y por qué el Navigator va antes que los otros dos?
+
+## Punto de control
+
+En pantalla, la línea `loaf, candidate` con `add-to-cart` como recorrido más lento y `DIV#root.onclick` como script, y `step-03 is done.`
+
+## Si algo falla
+
+| Qué ves | Por qué | Qué hacer |
+|---|---|---|
+| El INP de la rama no es el de los fixtures | El handler hace un trabajo fijo, así que tarda menos en una máquina más rápida | Compara con el baseline: lo que crece es `processing`, y el script es el handler |
+| La línea `cls, candidate` da 0 en los cuatro recorridos | Es lo esperado: la regresión de esta rama es otra | El CLS se ve en el punto 7, con la rama del banner |
+| El orquestador se para con un mensaje como `journey add-to-cart, step 2 (click ...)` | Un elemento del recorrido no apareció en 5 segundos | Comprueba con `docker compose ps` que las dos tiendas están en marcha y repite el punto 5 |
+| `KO` en un fichero de `out/agents/` en la comprobación | Falta el punto 5, o se paró a medias | La comprobación escribe el comando debajo de "To make the files of out/, run:" |
+
+## Qué te llevas
+
+- Un recorrido es un JSON que sirve al Navigator, a los subagentes y al gate.
+- El INP señala la interacción lenta; los long animation frames, el script que la bloquea; el trace del click, la función: `recommendFor`.
+- No todo desplazamiento es CLS: los que siguen a una interacción no cuentan.
+
+Para pensar: ¿qué tres recorridos de tu producto guardarías en `agents/journeys/`?
 
 ## Qué hace el código que has aplicado
 

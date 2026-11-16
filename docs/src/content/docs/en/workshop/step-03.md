@@ -5,9 +5,30 @@ sidebar:
   order: 13
 ---
 
-## Goal
+## What you will learn
 
-Three subagents that work on journeys, not on a page load: the Navigator walks through the shop step by step and checks that each journey finishes; CLS and LoAF/INP measure those same journeys. In this step you see the evidence of the second regression, the `pr/loaf-cart-handler` branch, which makes the add to cart click heavy.
+- How to describe a user journey as data, and reuse it in several measurements.
+- How to read the INP by its three phases, and find the script that blocks with the long animation frames.
+- Which shifts count for the CLS and which do not.
+
+## Time
+
+This step has 20 minutes in the agenda. The machine time is measured on the reference Mac, with the [timed rehearsal](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.md):
+
+| | `llm` | `lite` |
+|---|---|---|
+| Machine time of the step | 6.9 min | 6.9 min |
+| Point 5, walk through and measure both shops | 5.5 min | 5.5 min |
+
+## The idea in a minute
+
+The LCP is measured in a load. The CLS and the INP happen while a person uses the page, so someone has to use it: a journey is a page and a list of steps (click, type, scroll), saved as data.
+
+<img src="/diagrams/flow.svg" alt="The flow of the subagents: navigator walks through the shop and passes its journeys to cls and loaf; lcp measures the load on its own; the three leave one JSON per side in out/agents, and judge decides and explains in its report" width="1120" height="380" loading="lazy" decoding="async">
+
+They are three subagents on the same journeys. The Navigator walks through the shop step by step and checks that each journey finishes. CLS measures what moves in each one, and LoAF/INP measures how long the page takes to respond to a click, with its three phases, and which scripts occupy the main thread. The phases of the INP are in the diagram of step 2, and both metrics in [Concepts](../../concepts/#inp-and-long-animation-frames).
+
+Here you see the evidence of the second regression, the `pr/loaf-cart-handler` branch, which makes the add to cart click heavy.
 
 ## Before you start
 
@@ -55,7 +76,7 @@ You are still on your `taller` branch, with the lab running. If you did not fini
    CANDIDATE=pr-loaf-cart-handler docker compose run --rm agents node src/orchestrator.ts cls loaf
    ```
 
-   It takes about 6 minutes: the Navigator goes first, because CLS and LoAF/INP measure its journeys, and each subagent measures four journeys per side, three times each. It prints one line per subagent and shop, among them these (the figures change on every run):
+   It is the long wait of the step: the Navigator goes first, because CLS and LoAF/INP measure its journeys, and each subagent measures four journeys per side, three times each. It prints one line per subagent and shop, among them these (the figures change on every run):
 
    ```text
    [orchestrator] navigator, baseline: home 5 steps, shop 3 steps, product 3 steps, add-to-cart 3 steps; no page errors
@@ -93,6 +114,36 @@ You are still on your `taller` branch, with the lab running. If you did not fini
    ```
 
    In the `cls, candidate` line, the CLS is no longer 0 in the four journeys. In `out/agents/cls-candidate.json`, the node that moves the most is `main.main`: the banner pushes the page down.
+
+## While you wait
+
+Point 5 is the longest wait of the first four steps. Meanwhile:
+
+- Open `agents/journeys/add-to-cart.json`: it is the journey being measured, and the same file the gate uses.
+- The JSON files appear in `out/agents/` as each subagent finishes. Open `navigator-baseline.json`: which URL does each step leave the page on?
+- Open the shop of the branch from [The branches in the browser](../../previews/) and add a product to the cart. That page explains how to see it in DevTools.
+- Why does the LoAF line say `home no click`? And why does the Navigator go before the other two?
+
+## Checkpoint
+
+On screen, the `loaf, candidate` line with `add-to-cart` as the slowest journey and `DIV#root.onclick` as the script, and `step-03 is done.`
+
+## If something fails
+
+| What you see | Why | What to do |
+|---|---|---|
+| The INP of the branch is not the one in the fixtures | The handler does a fixed amount of work, so it takes less on a faster machine | Compare with the baseline: what grows is `processing`, and the script is the handler |
+| The `cls, candidate` line gives 0 in the four journeys | It is expected: the regression of this branch is a different one | The CLS shows in point 7, with the banner branch |
+| The orchestrator stops with a message like `journey add-to-cart, step 2 (click ...)` | An element of the journey did not show up in 5 seconds | Check with `docker compose ps` that both shops are running and repeat point 5 |
+| `KO` on a file of `out/agents/` in the check | Point 5 is missing, or it stopped halfway | The check prints the command below "To make the files of out/, run:" |
+
+## What you take away
+
+- A journey is a JSON that serves the Navigator, the subagents and the gate.
+- The INP points to the slow interaction; the long animation frames, to the script that blocks it; the trace of the click, to the function: `recommendFor`.
+- Not every shift is CLS: the ones that follow an interaction do not count.
+
+To think about: which three journeys of your product would you save in `agents/journeys/`?
 
 ## What the code you applied does
 

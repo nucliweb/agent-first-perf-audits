@@ -61,11 +61,11 @@ Una passada amb cada perfil en un Apple Silicon de 16 GB, des de `main` i amb le
 
 | Pas | `llm` | `lite` | Forat |
 |---|---|---|---|
-| 1 | 0,9 min | 0,8 min | 15 min |
+| 1 | 0,8 min | 0,8 min | 15 min |
 | 2 | 2,9 min | 2,9 min | 20 min |
 | 3 | 6,9 min | 6,9 min | 20 min |
-| 4 | 4,5 min | 4,0 min | 20 min |
-| 5 | 11,2 min | 9,3 min | 20 min |
-| Total | 26,3 min | 23,8 min | 95 min |
+| 4 | 4,6 min | 4,0 min | 20 min |
+| 5 | 11,3 min | 9,5 min | 20 min |
+| Total | 26,5 min | 24,0 min | 95 min |
 
 El pas 5 dona 1, 1, 1 i 0 amb els dos perfils, i amb `llm` la sortida de cada ordre té les línies de la seva guia. El que queda de cada forat és per explicar i per a qui va més a poc a poc que la màquina de referència.

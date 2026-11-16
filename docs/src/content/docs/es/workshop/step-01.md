@@ -5,13 +5,31 @@ sidebar:
   order: 11
 ---
 
-## Objetivo
+## Qué vas a aprender
 
-Ver cómo un agente "mira" una página: un programa abre la home de la tienda con Chrome DevTools MCP y graba el trace de su carga en un fichero, sin editor ni chat de por medio. Es lo que hará después el subagente de LCP.
+- Qué es una herramienta MCP y cómo la llama un programa, sin editor ni chat de por medio.
+- Cómo grabar el trace de la carga de una página desde un contenedor, con Chrome DevTools MCP.
+- El ritmo de cada paso del taller: tests en rojo, solución con `git`, tests en verde, medida y comprobación.
 
-## Antes de empezar
+## Tiempo
+
+Este paso tiene 15 minutos en la agenda. El tiempo de máquina está medido en el Mac de referencia, con el [ensayo cronometrado](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.es.md):
+
+| | `llm` | `lite` |
+|---|---|---|
+| Tiempo de máquina del paso | 0,8 min | 0,8 min |
+
+Ningún comando de este paso llega al minuto.
+
+## La idea en un minuto
+
+Un servidor MCP publica herramientas: acciones con un nombre y unos argumentos. Quien las llama es un cliente. En un editor, el cliente es el agente del chat; aquí es un programa, y eso es todo lo que hace falta para que "mire" una página: abrirla, grabar su carga y dejar el resultado en un fichero. Es lo que hará después el subagente de LCP.
 
 <img src="/diagrams/lab.svg" alt="Los servicios del laboratorio: agents y ci miden shop-baseline y shop-candidate, que cargan los scripts de thirdparty; agents pide la explicación a ollama y escribe los informes en out/" width="960" height="420" loading="lazy" decoding="async">
+
+Todo corre en el laboratorio de Docker Compose. El programa vive en el servicio `agents`, que arranca Chrome DevTools MCP como un proceso aparte y, a través de él, un Chrome headless. Las páginas que mira son las dos tiendas: `shop-baseline`, construida desde `main`, y `shop-candidate`, construida desde la rama que se compara. En este paso solo se usa la primera.
+
+## Antes de empezar
 
 Con las imágenes descargadas y el preflight en verde, crea tu rama desde el inicio del taller y levanta el laboratorio:
 
@@ -90,6 +108,29 @@ En cada paso, el código que hace el trabajo empieza como un `throw` que dice el
 
    Si una línea sale con `KO`, la comprobación dice qué comando falta.
 
+## Punto de control
+
+En pantalla, `step-01 is done.`, y en la carpeta `out/` un `first-trace.json` que se abre en el panel Performance de DevTools.
+
+## Si algo falla
+
+| Qué ves | Por qué | Qué hacer |
+|---|---|---|
+| `fatal: a branch named 'taller' already exists` | Ya creaste la rama en otra sesión | `git switch taller` |
+| Los tests del punto 1 pasan en lugar de fallar | `agents/src` ya tiene la solución, de una sesión anterior | Sigue desde el punto 4. Para empezar de cero, `git checkout workshop-start -- agents/src` |
+| `KO  out/first-trace.json: missing` en la comprobación | Falta el punto 4 | La comprobación escribe el comando debajo de "To make the files of out/, run:" |
+| Con 8 GB, Compose descarga y arranca `ollama` | Falta `COMPOSE_PROFILES=lite` delante del comando | `export COMPOSE_PROFILES=lite` en esa terminal, y vale para todos los comandos |
+
+Si el laboratorio no arranca, los fallos del runtime están en [Preparación](../../setup/#los-fallos-más-frecuentes).
+
+## Qué te llevas
+
+- Una herramienta MCP es una acción con nombre y argumentos. Un agente "mira" una página llamándolas, y un programa puede hacer lo mismo.
+- El trace de una carga pesa unos 2 MB: es evidencia para personas y para herramientas, no un prompt.
+- El ritmo de cada paso: rojo, solución, verde, medida y comprobación.
+
+Para pensar: de lo que hoy miras a mano en DevTools, ¿qué podría pedir un programa por su nombre?
+
 ## Qué hace el código que has aplicado
 
 Para verlo:
@@ -105,7 +146,7 @@ Todo pasa en ese código, dentro del contenedor: nadie abre Chrome ni la consola
 - `connect("devtools")` arranca el servidor por stdio y devuelve un cliente, que se cierra con `client.close()` también si algo falla.
 - `callTool(client, name, args)` pide al servidor que ejecute la herramienta `name` con `args`, y convierte un error del servidor en una excepción con su mensaje.
 
-Una herramienta MCP es una acción que el servidor publica con un nombre y unos argumentos; es lo que usa un agente cuando "mira" una página. Por ejemplo, abrir la página es `await callTool(client, "navigate_page", { type: "url", url })`. `recordTrace` usa tres:
+Por ejemplo, abrir la página es `await callTool(client, "navigate_page", { type: "url", url })`. `recordTrace` usa tres herramientas:
 
 | Herramienta (`name`) | Argumentos (`args`) | Para qué |
 |---|---|---|

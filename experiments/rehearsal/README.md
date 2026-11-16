@@ -61,11 +61,11 @@ One rehearsal with each profile on a 16 GB Apple Silicon, from `main` and with t
 
 | Step | `llm` | `lite` | Slot |
 |---|---|---|---|
-| 1 | 0.9 min | 0.8 min | 15 min |
+| 1 | 0.8 min | 0.8 min | 15 min |
 | 2 | 2.9 min | 2.9 min | 20 min |
 | 3 | 6.9 min | 6.9 min | 20 min |
-| 4 | 4.5 min | 4.0 min | 20 min |
-| 5 | 11.2 min | 9.3 min | 20 min |
-| Total | 26.3 min | 23.8 min | 95 min |
+| 4 | 4.6 min | 4.0 min | 20 min |
+| 5 | 11.3 min | 9.5 min | 20 min |
+| Total | 26.5 min | 24.0 min | 95 min |
 
 Step 5 gives 1, 1, 1 and 0 with both profiles, and with `llm` the output of each command has the lines of its guide. What is left of each slot is for explaining and for those who go slower than the reference machine.

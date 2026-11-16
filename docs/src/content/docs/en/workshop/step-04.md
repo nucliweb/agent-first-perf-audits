@@ -5,11 +5,33 @@ sidebar:
   order: 14
 ---
 
-## Goal
+## What you will learn
 
-Bring everything together into a verdict that can be defended. The Judge runs the same gate as `ci`: the WebPerf Snippets CLI decides whether the branch regresses (Mann-Whitney U, thresholds and exit code), trace-engine-cli attributes and the local LLM explains the cause of each metric that regresses. The findings of the subagents, the facts the rules pick from what they measured, go into the report next to the explanation. In this step you go from the evidence to the cause and to a proposed fix, with the `pr/lcp-hero-lazy` branch.
+- Who decides in a performance gate, the rules and their statistics, and what role is left for the LLM.
+- How to read a Judge report: the verdict, the cause and the findings that back it up.
+- How to go from the evidence to a proposed fix.
+
+## Time
+
+This step has 20 minutes in the agenda. The machine time is measured on the reference Mac, with the [timed rehearsal](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.md):
+
+| | `llm` | `lite` |
+|---|---|---|
+| Machine time of the step | 4.6 min | 4.0 min |
+| Point 5, measure the LCP and run the Judge | 3.9 min | 3.3 min |
+
+## The idea in a minute
+
+A verdict that can be defended cannot come from a language model. The Judge runs the same gate as `ci`, and each part has an owner:
 
 <img src="/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" width="1120" height="340" loading="lazy" decoding="async">
+
+- **The rules decide.** The WebPerf Snippets CLI measures both shops and says whether the branch regresses, with a statistical test (Mann-Whitney U), a threshold per metric and an exit code.
+- **trace-engine-cli attributes.** On the traces of both sides, it names the element, the script or the function that changes.
+- **The local LLM explains.** It receives what was already measured and writes up the cause of each metric that regresses. If it contradicts the rules, the rules win.
+- **The findings of the subagents back it up.** They are the facts the rules pick from what steps 2 and 3 measured, and they go into the report next to the explanation.
+
+How the gate decides, and what p is, is in [Concepts](../../concepts/#how-the-gate-decides). In this step you go from the evidence to the cause and to a proposed fix, with the `pr/lcp-hero-lazy` branch.
 
 ## Before you start
 
@@ -57,7 +79,7 @@ You are still on your `taller` branch, with the lab running. If you did not fini
    CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp judge
    ```
 
-   It takes about 7 minutes. After the two LCP lines, the Judge prints each phase; these are the ones that matter:
+   It is the wait of the step. After the two LCP lines, the Judge prints each phase; these are the ones that matter:
 
    ```text
    [orchestrator] judge: pr/lcp-hero-lazy against main, llm profile
@@ -96,6 +118,35 @@ You are still on your `taller` branch, with the lab running. If you did not fini
 
    step-04 is done.
    ```
+
+## While you wait
+
+Point 5 measures the whole gate: five runs a side in each scenario, alternating the two shops. Meanwhile:
+
+- Follow the `judge: gate`, `judge: trace` and `judge: explanation` lines: they are the three parts, in order. In which one is the verdict decided?
+- Open `agents/schemas/verdict.schema.json`: it is the shape the answer of the LLM has to have. What would happen with an answer that does not meet it?
+- If the LLM said the branch passes and the rules said it fails, what would show in the report?
+
+## Checkpoint
+
+On screen, `[orchestrator] judge: gate: fail` and `step-04 is done.`, and in `out/agents/judge/` a `report.md` with the verdict, the cause and the findings of the LCP.
+
+## If something fails
+
+| What you see | Why | What to do |
+|---|---|---|
+| `judge: gate: pass`, and the report carries the block "Inconclusive: run the gate again." at the top | The change beats the threshold, but the measurements are not enough to claim it | Repeat point 5. The check of point 7 says the same |
+| With `lite`, the first line says `lite profile` and the `explanation` one does not show | It is expected: there is no local LLM | The report points to `handoff.md`, with the same input for an agent of your choice |
+| The report has the verdict, and an error where the explanation would go | The local LLM did not answer, or answered something that does not meet the schema | The verdict does not depend on it. Check with `docker compose ps` that `ollama` is running and repeat point 5 |
+| The explanation only names `loading="lazy"` | The local model is small and keeps one change | The findings, at the end of the report, give the other two |
+
+## What you take away
+
+- The rules decide and the LLM explains. If they contradict each other, the rules win and the report says so.
+- A verdict is defended with the statistics, the attribution and the facts. The sentence of the LLM is the last thing to arrive, not the first.
+- With the `lite` profile, the verdict and the findings are the same, and the explanation can be asked for elsewhere with the handoff.
+
+To think about: in your team, who would read this report, and what do they need to see to trust it?
 
 ## What the code you applied does
 

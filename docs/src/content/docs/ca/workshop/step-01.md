@@ -5,13 +5,31 @@ sidebar:
   order: 11
 ---
 
-## Objectiu
+## Què aprendràs
 
-Veure com un agent "mira" una pàgina: un programa obre la home de la botiga amb Chrome DevTools MCP i enregistra el trace de la seva càrrega en un fitxer, sense editor ni xat pel mig. És el que farà després el subagent d'LCP.
+- Què és una eina MCP i com la crida un programa, sense editor ni xat pel mig.
+- Com enregistrar el trace de la càrrega d'una pàgina des d'un contenidor, amb Chrome DevTools MCP.
+- El ritme de cada pas del taller: tests en vermell, solució amb `git`, tests en verd, mesura i comprovació.
 
-## Abans de començar
+## Temps
+
+Aquest pas té 15 minuts a l'agenda. El temps de màquina està mesurat al Mac de referència, amb l'[assaig cronometrat](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.ca.md):
+
+| | `llm` | `lite` |
+|---|---|---|
+| Temps de màquina del pas | 0,8 min | 0,8 min |
+
+Cap ordre d'aquest pas arriba al minut.
+
+## La idea en un minut
+
+Un servidor MCP publica eines: accions amb un nom i uns arguments. Qui les crida és un client. En un editor, el client és l'agent del xat; aquí és un programa, i això és tot el que cal perquè "miri" una pàgina: obrir-la, enregistrar-ne la càrrega i deixar el resultat en un fitxer. És el que farà després el subagent d'LCP.
 
 <img src="/diagrams/lab.svg" alt="Els serveis del laboratori: agents i ci mesuren shop-baseline i shop-candidate, que carreguen els scripts de thirdparty; agents demana l'explicació a ollama i escriu els informes a out/" width="960" height="420" loading="lazy" decoding="async">
+
+Tot corre al laboratori de Docker Compose. El programa viu al servei `agents`, que arrenca Chrome DevTools MCP com un procés a part i, a través d'ell, un Chrome headless. Les pàgines que mira són les dues botigues: `shop-baseline`, construïda des de `main`, i `shop-candidate`, construïda des de la branca que es compara. En aquest pas només s'usa la primera.
+
+## Abans de començar
 
 Amb les imatges descarregades i el preflight en verd, crea la teva branca des de l'inici del taller i aixeca el laboratori:
 
@@ -90,6 +108,29 @@ A cada pas, el codi que fa la feina comença com un `throw` que diu el pas i els
 
    Si una línia surt amb `KO`, la comprovació diu quina ordre falta.
 
+## Punt de control
+
+En pantalla, `step-01 is done.`, i a la carpeta `out/` un `first-trace.json` que s'obre al panell Performance de DevTools.
+
+## Si alguna cosa falla
+
+| Què veus | Per què | Què fer |
+|---|---|---|
+| `fatal: a branch named 'taller' already exists` | Ja vas crear la branca en una altra sessió | `git switch taller` |
+| Els tests del punt 1 passen en lloc de fallar | `agents/src` ja té la solució, d'una sessió anterior | Continua des del punt 4. Per començar de zero, `git checkout workshop-start -- agents/src` |
+| `KO  out/first-trace.json: missing` a la comprovació | Falta el punt 4 | La comprovació escriu l'ordre sota "To make the files of out/, run:" |
+| Amb 8 GB, Compose descarrega i arrenca `ollama` | Falta `COMPOSE_PROFILES=lite` davant de l'ordre | `export COMPOSE_PROFILES=lite` en aquest terminal, i val per a totes les ordres |
+
+Si el laboratori no arrenca, els errors del runtime són a [Preparació](../../setup/#els-errors-més-freqüents).
+
+## Què t'emportes
+
+- Una eina MCP és una acció amb nom i arguments. Un agent "mira" una pàgina cridant-les, i un programa pot fer el mateix.
+- El trace d'una càrrega pesa uns 2 MB: és evidència per a persones i per a eines, no un prompt.
+- El ritme de cada pas: vermell, solució, verd, mesura i comprovació.
+
+Per pensar: del que avui mires a mà a DevTools, què podria demanar un programa pel seu nom?
+
 ## Què fa el codi que has aplicat
 
 Per veure'l:
@@ -105,7 +146,7 @@ Tot passa en aquest codi, dins del contenidor: ningú obre Chrome ni la consola 
 - `connect("devtools")` arrenca el servidor per stdio i retorna un client, que es tanca amb `client.close()` també si alguna cosa falla.
 - `callTool(client, name, args)` demana al servidor que executi l'eina `name` amb `args`, i converteix un error del servidor en una excepció amb el seu missatge.
 
-Una eina MCP és una acció que el servidor publica amb un nom i uns arguments; és el que fa servir un agent quan "mira" una pàgina. Per exemple, obrir la pàgina és `await callTool(client, "navigate_page", { type: "url", url })`. `recordTrace` en fa servir tres:
+Per exemple, obrir la pàgina és `await callTool(client, "navigate_page", { type: "url", url })`. `recordTrace` fa servir tres eines:
 
 | Eina (`name`) | Arguments (`args`) | Per a què |
 |---|---|---|

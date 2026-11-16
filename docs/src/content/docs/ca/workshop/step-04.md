@@ -5,11 +5,33 @@ sidebar:
   order: 14
 ---
 
-## Objectiu
+## Què aprendràs
 
-Ajuntar-ho tot en un veredicte que es pugui defensar. El Judge executa el mateix gate que `ci`: la CLI de WebPerf Snippets decideix si la branca empitjora (Mann-Whitney U, llindars i exit code), trace-engine-cli atribueix i l'LLM local explica la causa de cada mètrica que empitjora. Les troballes dels subagents, els fets que les regles trien del que han mesurat, van a l'informe al costat de l'explicació. En aquest pas passes de l'evidència a la causa i a la proposta de solució, amb la branca `pr/lcp-hero-lazy`.
+- Qui decideix en un gate de rendiment, les regles i la seva estadística, i quin paper li queda a l'LLM.
+- Llegir un informe del Judge: el veredicte, la causa i les troballes que la sostenen.
+- Passar de l'evidència a una proposta de solució.
+
+## Temps
+
+Aquest pas té 20 minuts a l'agenda. El temps de màquina està mesurat al Mac de referència, amb l'[assaig cronometrat](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.ca.md):
+
+| | `llm` | `lite` |
+|---|---|---|
+| Temps de màquina del pas | 4,6 min | 4,0 min |
+| Punt 5, mesurar l'LCP i passar el Judge | 3,9 min | 3,3 min |
+
+## La idea en un minut
+
+Un veredicte que es pugui defensar no pot sortir d'un model de llenguatge. El Judge executa el mateix gate que `ci`, i cada part té un amo:
 
 <img src="/diagrams/gate.svg" alt="El gate mesura el baseline i la branca alternant les seves execucions; si el canvi supera el llindar i p és menor que 0,05, surt amb 1, trace-engine-cli atribueix el canvi i l'LLM l'explica; si supera el llindar i p no hi arriba, mesura dues execucions més per costat i decideix una altra vegada; si no, surt amb 0" width="1120" height="340" loading="lazy" decoding="async">
+
+- **Les regles decideixen.** La CLI de WebPerf Snippets mesura les dues botigues i diu si la branca empitjora, amb un test estadístic (Mann-Whitney U), un llindar per mètrica i un exit code.
+- **trace-engine-cli atribueix.** Sobre els traces dels dos costats, anomena l'element, l'script o la funció que canvia.
+- **L'LLM local explica.** Rep el que ja s'ha mesurat i redacta la causa de cada mètrica que empitjora. Si contradiu les regles, guanyen les regles.
+- **Les troballes dels subagents sostenen.** Són els fets que les regles trien del que van mesurar els passos 2 i 3, i van a l'informe al costat de l'explicació.
+
+Com decideix el gate, i què és p, és a [Conceptes](../../concepts/#com-decideix-el-gate). En aquest pas passes de l'evidència a la causa i a la proposta de solució, amb la branca `pr/lcp-hero-lazy`.
 
 ## Abans de començar
 
@@ -57,7 +79,7 @@ Continues a la teva branca `taller`, amb el laboratori aixecat. Si no has acabat
    CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp judge
    ```
 
-   Són uns 7 minuts. Després de les dues línies de l'LCP, el Judge escriu cada fase; aquestes són les que importen:
+   És l'espera del pas. Després de les dues línies de l'LCP, el Judge escriu cada fase; aquestes són les que importen:
 
    ```text
    [orchestrator] judge: pr/lcp-hero-lazy against main, llm profile
@@ -96,6 +118,35 @@ Continues a la teva branca `taller`, amb el laboratori aixecat. Si no has acabat
 
    step-04 is done.
    ```
+
+## Mentre esperes
+
+El punt 5 mesura el gate sencer: cinc execucions per costat a cada escenari, alternant les dues botigues. Mentrestant:
+
+- Segueix les línies `judge: gate`, `judge: trace` i `judge: explanation`: són les tres parts, en ordre. A quina es decideix el veredicte?
+- Obre `agents/schemas/verdict.schema.json`: és la forma que ha de tenir la resposta de l'LLM. Què passaria amb una resposta que no la compleix?
+- Si l'LLM digués que la branca passa i les regles que falla, què sortiria a l'informe?
+
+## Punt de control
+
+En pantalla, `[orchestrator] judge: gate: fail` i `step-04 is done.`, i a `out/agents/judge/` un `report.md` amb el veredicte, la causa i les troballes de l'LCP.
+
+## Si alguna cosa falla
+
+| Què veus | Per què | Què fer |
+|---|---|---|
+| `judge: gate: pass`, i l'informe porta a dalt el bloc "Inconclusive: run the gate again." | El canvi supera el llindar, però les mesures no basten per afirmar-ho | Repeteix el punt 5. La comprovació del punt 7 diu el mateix |
+| Amb `lite`, la primera línia diu `lite profile` i no surt la d'`explanation` | És l'esperat: no hi ha LLM local | L'informe remet a `handoff.md`, amb la mateixa entrada per a un agent que triïs |
+| L'informe porta el veredicte, i un error on aniria l'explicació | L'LLM local no ha respost, o ha respost alguna cosa que no compleix el schema | El veredicte no en depèn. Comprova amb `docker compose ps` que `ollama` està en marxa i repeteix el punt 5 |
+| L'explicació només anomena `loading="lazy"` | El model local és petit i es queda amb un canvi | Les troballes, al final de l'informe, donen els altres dos |
+
+## Què t'emportes
+
+- Les regles decideixen i l'LLM explica. Si es contradiuen, guanyen les regles i l'informe ho diu.
+- Un veredicte es defensa amb l'estadística, l'atribució i els fets. La frase de l'LLM és l'últim que arriba, no el primer.
+- Amb el perfil `lite`, el veredicte i les troballes són els mateixos, i l'explicació es pot demanar fora amb el handoff.
+
+Per pensar: al teu equip, qui llegiria aquest informe, i què necessita veure per refiar-se'n?
 
 ## Què fa el codi que has aplicat
 

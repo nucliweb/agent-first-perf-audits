@@ -84,6 +84,18 @@ export function rehearsalCommandsOf(text, { section } = {}) {
     });
 }
 
+// The number of the item of the numbered list that a line belongs to: the last "N." at the start of
+// a line above it, or null when a heading comes first
+export function pointOf(text, line) {
+  const lines = text.split("\n");
+  for (let at = line - 1; at >= 1; at--) {
+    const item = lines[at - 1].match(/^(\d+)\.\s/);
+    if (item) return Number(item[1]);
+    if (/^#{1,6}\s/.test(lines[at - 1])) return null;
+  }
+  return null;
+}
+
 // A block that clones the repo, without its git clone and the cd into the clone
 export function withoutCloneLines(command) {
   return command

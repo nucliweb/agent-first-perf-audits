@@ -5,9 +5,30 @@ sidebar:
   order: 12
 ---
 
-## Objectiu
+## Què aprendràs
 
-El primer subagent: mesura l'LCP de la home de cada botiga, desglossat en les seves quatre fases, i com carrega la imatge LCP. En aquest pas veus l'evidència de la primera regressió, la branca `pr/lcp-hero-lazy`, que treu el preload del hero. El subagent mesura, no decideix: el veredicte és del gate, que arriba al pas 4.
+- Llegir l'LCP per les seves quatre fases, i saber quina mirar primer.
+- Demanar a WebPerf Snippets MCP una mètrica amb el seu context: l'element, les fases i com carrega la imatge.
+- Separar mesurar de decidir: el subagent dona l'evidència, i el veredicte és del gate, que arriba al pas 4.
+
+## Temps
+
+Aquest pas té 20 minuts a l'agenda. El temps de màquina està mesurat al Mac de referència, amb l'[assaig cronometrat](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.ca.md):
+
+| | `llm` | `lite` |
+|---|---|---|
+| Temps de màquina del pas | 2,9 min | 2,9 min |
+| Punt 5, mesurar l'LCP de les dues botigues | 1,2 min | 1,2 min |
+
+## La idea en un minut
+
+L'LCP és el temps que triga a pintar-se l'element més gran de la pantalla. El número només diu que alguna cosa va lenta; on es perd el temps ho diuen les seves quatre fases:
+
+<img src="/diagrams/phases.svg" alt="Les fases de l'LCP, de la navegació al pintat de l'element més gran: ttfb, resourceLoadDelay, resourceLoadTime i elementRenderDelay. Les fases de l'INP, d'un clic al següent frame: inputDelay, processingTime i presentationDelay" width="1120" height="340" loading="lazy" decoding="async">
+
+Cada fase apunta a un arranjament diferent. Si creix `resourceLoadDelay`, el navegador descobreix la imatge tard; si creix `resourceLoadTime`, la imatge pesa o la xarxa és lenta; si creix `elementRenderDelay`, alguna cosa bloqueja el pintat. Ho desenvolupa [Conceptes](../../concepts/#lcp-quatre-fases).
+
+El primer subagent mesura això a la home de cada botiga: l'LCP, les seves fases i com carrega la imatge LCP. Aquí veus l'evidència de la primera regressió, la branca `pr/lcp-hero-lazy`, que treu el preload del hero.
 
 ## Abans de començar
 
@@ -55,7 +76,7 @@ Continues a la teva branca `taller`, amb el laboratori aixecat. Si no has acabat
    CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp
    ```
 
-   Triga un minut i mig. Per cada botiga escriu una línia com aquestes (les xifres canvien a cada execució):
+   És l'espera del pas. Per cada botiga escriu una línia com aquestes (les xifres canvien a cada execució):
 
    ```text
    [orchestrator] lcp, baseline: LCP … ms (img.hero__image); slowest phase resourceLoadTime, … ms; image loading=(not set), fetchpriority=high, preloaded
@@ -79,6 +100,35 @@ Continues a la teva branca `taller`, amb el laboratori aixecat. Si no has acabat
 
    step-02 is done.
    ```
+
+## Mentre esperes
+
+El punt 5 mesura cada botiga tres vegades. Mentrestant:
+
+- Obre les dues botigues al navegador, des de [Les branques al navegador](../../previews/). Notes la diferència a simple vista?
+- Quan surti la línia del baseline, obre `out/agents/lcp-baseline.json`. Quina fase pesa més? Quins atributs té la imatge LCP?
+- Per què el subagent es queda amb la mediana de tres mesures i no amb una de sola?
+
+## Punt de control
+
+En pantalla, les dues línies `[orchestrator] lcp`, amb una fase més lenta diferent a cada costat (`resourceLoadTime` al baseline i `resourceLoadDelay` a la branca), i `step-02 is done.`
+
+## Si alguna cosa falla
+
+| Què veus | Per què | Què fer |
+|---|---|---|
+| Les teves xifres no són les de la guia | Cada execució mesura de nou, i cada màquina és diferent | Compara els dos costats entre ells: compta la diferència i la fase que canvia |
+| Les dues línies diuen el mateix, amb `preloaded` als dos costats | La botiga candidata no és la del hero: sense `CANDIDATE`, el laboratori fa servir `pr-noop-refactor` | Repeteix els punts 4 i 5, amb `CANDIDATE=pr-lcp-hero-lazy` davant de les dues ordres |
+| `KO` en un fitxer d'`out/agents/` a la comprovació | Falta el punt 5 | La comprovació escriu l'ordre sota "To make the files of out/, run:" |
+| Els tests del punt 1 passen en lloc de fallar | `agents/src` ja té la solució d'aquest pas | Continua des del punt 4 |
+
+## Què t'emportes
+
+- L'LCP s'arregla per fases. En aquesta branca la imatge no pesa més: es descobreix més tard, i ho diu `resourceLoadDelay`.
+- Un subagent és codi que demana dades a una eina i les deixa en un JSON amb una forma fixa. Aquí no hi ha cap LLM.
+- Tres mesures i la seva mediana: una de sola no distingeix un canvi del soroll.
+
+Per pensar: a la pàgina que més importa del teu producte, quin és l'element LCP i què decideix quan el descobreix el navegador?
 
 ## Què fa el codi que has aplicat
 
