@@ -55,14 +55,14 @@ Continues a la teva branca `taller`, amb el laboratori aixecat. Si no has acabat
    CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp
    ```
 
-   Triga un minut i mig. Per cada botiga escriu una línia com aquestes, aquí amb les xifres dels fixtures dels tests:
+   Triga un minut i mig. Per cada botiga escriu una línia com aquestes (les xifres canvien a cada execució):
 
    ```text
-   [orchestrator] lcp, baseline: LCP 760 ms (img.hero__image); slowest phase resourceLoadTime, 309 ms; image loading=(not set), fetchpriority=high, preloaded
-   [orchestrator] lcp, candidate: LCP 1168 ms (img.hero__image); slowest phase resourceLoadDelay, 741 ms; image loading=lazy, fetchpriority=(not set), not preloaded
+   [orchestrator] lcp, baseline: LCP … ms (img.hero__image); slowest phase resourceLoadTime, … ms; image loading=(not set), fetchpriority=high, preloaded
+   [orchestrator] lcp, candidate: LCP … ms (img.hero__image); slowest phase resourceLoadDelay, … ms; image loading=lazy, fetchpriority=(not set), not preloaded
    ```
 
-   Aquesta és l'evidència de la regressió: l'LCP creix, la fase que més pesa passa a ser el retard de càrrega del recurs (de 188 a 741 ms als fixtures) i la imatge passa a `loading="lazy"`, sense preload ni `fetchpriority`. Les teves xifres seran semblants, no iguals: cada execució mesura de nou. El detall és a `out/agents/lcp-baseline.json` i `lcp-candidate.json`.
+   Aquesta és l'evidència de la regressió: l'LCP creix, la fase que més pesa passa a ser el retard de càrrega del recurs i la imatge passa a `loading="lazy"`, sense preload ni `fetchpriority`. Als fixtures dels tests, l'LCP passa de 760 a 1168 ms i el retard de càrrega del recurs de 188 a 741 ms. Les teves xifres seran semblants, no iguals: cada execució mesura de nou. El detall és a `out/agents/lcp-baseline.json` i `lcp-candidate.json`.
 
 6. Passa la comprovació del pas:
 

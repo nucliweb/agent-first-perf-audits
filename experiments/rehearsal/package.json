@@ -1,0 +1,14 @@
+{
+  "name": "experiment-rehearsal",
+  "private": true,
+  "type": "module",
+  "description": "Ensayo cronometrado del taller: ejecuta desde un clon limpio los comandos del README y de las guías de cada paso, en orden, y guarda por comando el exit code, el tiempo, los recuentos de los tests y si la salida es la de la guía",
+  "scripts": {
+    "rehearse": "node rehearse.mjs",
+    "dry-run": "node rehearse.mjs --dry-run",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

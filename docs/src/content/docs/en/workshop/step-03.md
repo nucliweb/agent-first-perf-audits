@@ -59,7 +59,7 @@ You are still on your `taller` branch, with the lab running. If you did not fini
 
    ```text
    [orchestrator] navigator, baseline: home 5 steps, shop 3 steps, product 3 steps, add-to-cart 3 steps; no page errors
-   [orchestrator] loaf, baseline: home no click, shop INP … ms, product INP … ms, add-to-cart INP … ms; slowest add-to-cart: processing … ms, top script MessagePort.onmessage (…)
+   [orchestrator] loaf, baseline: home no click, shop INP … ms, product INP … ms, add-to-cart INP … ms; slowest …
    [orchestrator] loaf, candidate: home no click, shop INP … ms, product INP … ms, add-to-cart INP … ms; slowest add-to-cart: processing … ms, top script DIV#root.onclick (…)
    ```
 

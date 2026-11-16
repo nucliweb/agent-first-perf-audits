@@ -59,7 +59,7 @@ Sigues en tu rama `taller`, con el laboratorio levantado. Si no has terminado lo
 
    ```text
    [orchestrator] navigator, baseline: home 5 steps, shop 3 steps, product 3 steps, add-to-cart 3 steps; no page errors
-   [orchestrator] loaf, baseline: home no click, shop INP … ms, product INP … ms, add-to-cart INP … ms; slowest add-to-cart: processing … ms, top script MessagePort.onmessage (…)
+   [orchestrator] loaf, baseline: home no click, shop INP … ms, product INP … ms, add-to-cart INP … ms; slowest …
    [orchestrator] loaf, candidate: home no click, shop INP … ms, product INP … ms, add-to-cart INP … ms; slowest add-to-cart: processing … ms, top script DIV#root.onclick (…)
    ```
 
@@ -87,6 +87,7 @@ Sigues en tu rama `taller`, con el laboratorio levantado. Si no has terminado lo
 
 7. Opcional: la regresión de CLS, con la rama del banner:
 
+   <!-- rehearsal: optional -->
    ```bash
    CANDIDATE=pr-cls-promo-banner docker compose up -d
    CANDIDATE=pr-cls-promo-banner docker compose run --rm agents node src/orchestrator.ts cls

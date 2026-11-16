@@ -10,8 +10,9 @@ import { readFileSync, statSync } from "node:fs";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loaf, loafJourneyOf } from "../../src/subagents/loaf.ts";
+import { loaf, loafJourneyOf, type LoafJourney } from "../../src/subagents/loaf.ts";
 import { JOURNEYS, type NavigatorReport } from "../../src/subagents/navigator.ts";
+import { CONDITIONS } from "../../src/subagents/subagent.ts";
 
 const fixture = (name: string) => JSON.parse(readFileSync(new URL(`../fixtures/loaf/${name}.json`, import.meta.url), "utf8"));
 
@@ -50,6 +51,30 @@ test("a step of the workflow that fails stops the subagent with the journey and 
   answer.results.find((r: { id: string }) => r.id === "long-frames").status = "error";
   answer.results.find((r: { id: string }) => r.id === "long-frames").error = "LoAF is not supported";
   assert.throws(() => loafJourneyOf("add-to-cart", answer), /add-to-cart: long-frames: LoAF is not supported/);
+});
+
+const summaryOf = (...journeys: LoafJourney[]) => loaf.summary({ conditions: CONDITIONS, journeys });
+
+test("the summary names the handler of the slowest click with the time it takes", () => {
+  const journey = loafJourneyOf("add-to-cart", fixture("add-to-cart-candidate"));
+  assert.equal(summaryOf(journey), "add-to-cart INP 192 ms; slowest add-to-cart: processing 169 ms, top script DIV#root.onclick (index-BsVNkX21.js, 166 ms)");
+});
+
+test("on a faster machine the handler takes less than the A/B testing script of the load, and the summary still names the handler", () => {
+  // The A/B testing script burns a fixed time while the page loads; the handler does a fixed amount
+  // of work, so a faster CPU shortens it. The figures are the ones of a session on the reference Mac
+  const journey = loafJourneyOf("add-to-cart", fixture("add-to-cart-candidate"));
+  const [handler, ab, ...rest] = journey.longFrames.topScripts;
+  journey.inp!.value = 96;
+  journey.inp!.phases.processingTime = 87;
+  journey.longFrames.topScripts = [ab, { ...handler, totalDurationMs: 85 }, ...rest];
+  assert.equal(summaryOf(journey), "add-to-cart INP 96 ms; slowest add-to-cart: processing 87 ms, top script DIV#root.onclick (index-BsVNkX21.js, 85 ms)");
+});
+
+test("when the long frames of the slowest click only have scripts of the load, the summary names none", () => {
+  const journey = loafJourneyOf("add-to-cart", fixture("add-to-cart-baseline"));
+  journey.longFrames.topScripts = journey.longFrames.topScripts.filter((script) => script.invoker.startsWith("http"));
+  assert.equal(summaryOf(journey), "add-to-cart INP 32 ms; slowest add-to-cart: processing 10 ms");
 });
 
 test("it needs the journeys of the Navigator", async () => {

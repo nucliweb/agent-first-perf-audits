@@ -55,14 +55,14 @@ You are still on your `taller` branch, with the lab running. If you did not fini
    CANDIDATE=pr-lcp-hero-lazy docker compose run --rm agents node src/orchestrator.ts lcp
    ```
 
-   It takes a minute and a half. For each shop it prints a line like these, here with the figures of the test fixtures:
+   It takes a minute and a half. For each shop it prints a line like these (the figures change in every run):
 
    ```text
-   [orchestrator] lcp, baseline: LCP 760 ms (img.hero__image); slowest phase resourceLoadTime, 309 ms; image loading=(not set), fetchpriority=high, preloaded
-   [orchestrator] lcp, candidate: LCP 1168 ms (img.hero__image); slowest phase resourceLoadDelay, 741 ms; image loading=lazy, fetchpriority=(not set), not preloaded
+   [orchestrator] lcp, baseline: LCP … ms (img.hero__image); slowest phase resourceLoadTime, … ms; image loading=(not set), fetchpriority=high, preloaded
+   [orchestrator] lcp, candidate: LCP … ms (img.hero__image); slowest phase resourceLoadDelay, … ms; image loading=lazy, fetchpriority=(not set), not preloaded
    ```
 
-   This is the evidence of the regression: the LCP grows, the heaviest phase becomes the resource load delay (188 to 741 ms in the fixtures) and the image switches to `loading="lazy"`, without preload or `fetchpriority`. Your figures will be similar, not identical: each run measures again. The details are in `out/agents/lcp-baseline.json` and `lcp-candidate.json`.
+   This is the evidence of the regression: the LCP grows, the heaviest phase becomes the resource load delay and the image switches to `loading="lazy"`, without preload or `fetchpriority`. In the test fixtures, the LCP goes from 760 to 1168 ms and the resource load delay from 188 to 741 ms. Your figures will be similar, not identical: each run measures again. The details are in `out/agents/lcp-baseline.json` and `lcp-candidate.json`.
 
 6. Run the check of the step:
 
