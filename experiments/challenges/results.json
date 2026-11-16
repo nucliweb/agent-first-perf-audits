@@ -1,0 +1,872 @@
+{
+  "profile": "llm",
+  "date": "2026-11-16T23:09:58.063Z",
+  "source": "local",
+  "ref": "workshop-pages",
+  "commit": "2a19f8abae45f75b2282f2e5467e1074922ed22a",
+  "only": null,
+  "skipOptional": false,
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpus": 10,
+    "memoryGb": 16,
+    "node": "v25.3.0"
+  },
+  "clone": {
+    "durationMs": 205
+  },
+  "complete": true,
+  "commands": [
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 0,
+      "line": 23,
+      "command": "git fetch origin workshop --tags\ngit switch -c taller workshop-start\ngit checkout step-04-solution -- agents/src\ndocker compose up -d",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 5489,
+      "counts": null,
+      "expected": false,
+      "matched": null,
+      "missing": [],
+      "tail": [
+        " Container agent-first-perf-audits-ollama-1  Creating",
+        " Container agent-first-perf-audits-thirdparty-1  Creating",
+        " Container agent-first-perf-audits-ollama-1  Created",
+        " Container agent-first-perf-audits-thirdparty-1  Created",
+        " Container agent-first-perf-audits-shop-baseline-1  Creating",
+        " Container agent-first-perf-audits-shop-candidate-1  Creating",
+        " Container agent-first-perf-audits-shop-candidate-1  Created",
+        " Container agent-first-perf-audits-shop-baseline-1  Created",
+        " Container agent-first-perf-audits-thirdparty-1  Starting",
+        " Container agent-first-perf-audits-ollama-1  Starting",
+        " Container agent-first-perf-audits-ollama-1  Started",
+        " Container agent-first-perf-audits-thirdparty-1  Started",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Starting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-baseline-1  Starting",
+        " Container agent-first-perf-audits-shop-candidate-1  Started",
+        " Container agent-first-perf-audits-shop-baseline-1  Started"
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 1,
+      "line": 44,
+      "command": "git worktree add -b fix-lcp-hero ../fix-lcp-hero origin/pr/lcp-hero-lazy",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 91,
+      "counts": null,
+      "expected": false,
+      "matched": null,
+      "missing": [],
+      "tail": [
+        "Preparing worktree (new branch 'fix-lcp-hero')",
+        "branch 'fix-lcp-hero' set up to track 'origin/pr/lcp-hero-lazy'.",
+        "HEAD is now at b1fa56f Lazy-load the hero image"
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 2,
+      "line": 50,
+      "command": "git -C ../fix-lcp-hero commit -am \"Load the hero image with high priority\"",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 57,
+      "counts": null,
+      "expected": false,
+      "matched": null,
+      "missing": [],
+      "tail": [
+        "[fix-lcp-hero db58b6f] Load the hero image with high priority",
+        " 1 file changed, 1 insertion(+), 1 deletion(-)"
+      ],
+      "edits": [
+        "fix-attribute"
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 3,
+      "line": 56,
+      "command": "scripts/build-shop.sh fix-lcp-hero\nCANDIDATE=fix-lcp-hero docker compose run --rm -e OUT=/out/ci/fix-lcp-hero ci\necho \"exit $?\"",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 315165,
+      "counts": null,
+      "expected": true,
+      "matched": true,
+      "missing": [],
+      "tail": [
+        " Container agent-first-perf-audits-shop-candidate-1  Recreated",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Starting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Started",
+        "[ci] fix-lcp-hero against main, llm profile",
+        "[ci] gate, home: candidate against baseline, their runs alternating",
+        "[ci] gate, add-to-cart: candidate against baseline, their runs alternating",
+        "[ci] gate: fail",
+        "[ci] trace, home: baseline, load",
+        "[ci] trace, home: candidate, load",
+        "[ci] trace, add-to-cart: baseline, load",
+        "[ci] trace, add-to-cart: baseline, click",
+        "[ci] trace, add-to-cart: candidate, load",
+        "[ci] trace, add-to-cart: candidate, click",
+        "[ci] explanation: 1 call(s) to llama3.2:3b",
+        "[ci] fail: report in report.md, report.html and report.json",
+        "exit 1"
+      ],
+      "reports": [
+        {
+          "dir": "ci/fix-lcp-hero",
+          "branch": "fix-lcp-hero",
+          "verdict": "fail",
+          "conditions": "--cpu 4 --network fast-4g --runs 5 --max-runs 7, chromium 153.0.8010.12",
+          "metrics": {
+            "home": {
+              "LCP": {
+                "baseline": 760,
+                "candidate": 1108,
+                "deltaPercent": 45.8,
+                "p": 0.006,
+                "verdict": "regressed"
+              },
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            },
+            "add-to-cart": {
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              },
+              "INP": {
+                "baseline": 40,
+                "candidate": 32,
+                "deltaPercent": -20,
+                "p": 0.1596,
+                "verdict": "unchanged"
+              }
+            }
+          },
+          "explained": [
+            {
+              "metric": "LCP",
+              "scenario": "home",
+              "source": "llm"
+            }
+          ],
+          "ruleFacts": [
+            {
+              "metric": "LCP",
+              "scenario": "home",
+              "facts": [
+                "The LCP element is IMG class='hero__image' (/images/hero-800.webp) in the baseline and in the branch",
+                "apps/shop/src/products.ts, in lcpImageFor, removes a line that names the LCP image: if (pathname === \"/\") return { href: \"/images/hero-1200.webp\", srcset: heroSrcSet(), sizes: HERO_SIZES };"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 4,
+      "line": 76,
+      "command": "git -C ../fix-lcp-hero commit -am \"Preload the hero image on the home page\"\nscripts/build-shop.sh fix-lcp-hero\nCANDIDATE=fix-lcp-hero docker compose run --rm -e OUT=/out/ci/fix-lcp-hero ci\necho \"exit $?\"",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 148318,
+      "counts": null,
+      "expected": true,
+      "matched": true,
+      "missing": [],
+      "tail": [
+        " Container agent-first-perf-audits-shop-candidate-1  Recreate",
+        " Container agent-first-perf-audits-shop-candidate-1  Recreated",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Starting",
+        " Container agent-first-perf-audits-shop-candidate-1  Started",
+        "[ci] fix-lcp-hero against main, llm profile",
+        "[ci] gate, home: candidate against baseline, their runs alternating",
+        "[ci] gate, add-to-cart: candidate against baseline, their runs alternating",
+        "[ci] gate: pass",
+        "[ci] trace, home: baseline, load",
+        "[ci] trace, home: candidate, load",
+        "[ci] trace, add-to-cart: baseline, load",
+        "[ci] trace, add-to-cart: baseline, click",
+        "[ci] trace, add-to-cart: candidate, load",
+        "[ci] trace, add-to-cart: candidate, click",
+        "[ci] pass: report in report.md, report.html and report.json",
+        "exit 0"
+      ],
+      "edits": [
+        "fix-preload"
+      ],
+      "reports": [
+        {
+          "dir": "ci/fix-lcp-hero",
+          "branch": "fix-lcp-hero",
+          "verdict": "pass",
+          "conditions": "--cpu 4 --network fast-4g --runs 5 --max-runs 7, chromium 153.0.8010.12",
+          "metrics": {
+            "home": {
+              "LCP": {
+                "baseline": 768,
+                "candidate": 764,
+                "deltaPercent": -0.5,
+                "p": 0.3766,
+                "verdict": "unchanged"
+              },
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            },
+            "add-to-cart": {
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              },
+              "INP": {
+                "baseline": 32,
+                "candidate": 32,
+                "deltaPercent": 0,
+                "p": 0.2392,
+                "verdict": "unchanged"
+              }
+            }
+          },
+          "explained": [
+            {
+              "metric": "none",
+              "scenario": null,
+              "source": "rules"
+            }
+          ],
+          "ruleFacts": []
+        }
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 5,
+      "line": 124,
+      "command": "for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler; do\n  CANDIDATE=$branch docker compose run --rm -e OUT=/out/unthrottled/$branch ci\n  echo \"$branch: exit $?\"\ndone",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 636361,
+      "counts": null,
+      "expected": true,
+      "matched": true,
+      "missing": [],
+      "branchExits": [
+        {
+          "branch": "pr-lcp-hero-lazy",
+          "exit": 0
+        },
+        {
+          "branch": "pr-cls-promo-banner",
+          "exit": 1
+        },
+        {
+          "branch": "pr-loaf-cart-handler",
+          "exit": 1
+        }
+      ],
+      "tail": [
+        " Container agent-first-perf-audits-shop-candidate-1  Recreated",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Starting",
+        " Container agent-first-perf-audits-shop-candidate-1  Started",
+        "[ci] pr/loaf-cart-handler against main, llm profile",
+        "[ci] gate, home: candidate against baseline, their runs alternating",
+        "[ci] gate, add-to-cart: candidate against baseline, their runs alternating",
+        "[ci] gate: fail",
+        "[ci] trace, home: baseline, load",
+        "[ci] trace, home: candidate, load",
+        "[ci] trace, add-to-cart: baseline, load",
+        "[ci] trace, add-to-cart: baseline, click",
+        "[ci] trace, add-to-cart: candidate, load",
+        "[ci] trace, add-to-cart: candidate, click",
+        "[ci] explanation: 1 call(s) to llama3.2:3b",
+        "[ci] fail: report in report.md, report.html and report.json",
+        "pr-loaf-cart-handler: exit 1"
+      ],
+      "edits": [
+        "unthrottled"
+      ],
+      "reports": [
+        {
+          "dir": "unthrottled/pr-lcp-hero-lazy",
+          "branch": "pr/lcp-hero-lazy",
+          "verdict": "pass",
+          "conditions": "--runs 5 --max-runs 7, chromium 153.0.8010.12",
+          "metrics": {
+            "home": {
+              "LCP": {
+                "baseline": 536,
+                "candidate": 524,
+                "deltaPercent": -2.2,
+                "p": 0.5,
+                "verdict": "unchanged"
+              },
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            },
+            "add-to-cart": {
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              },
+              "INP": {
+                "baseline": 16,
+                "candidate": 24,
+                "deltaPercent": 50,
+                "p": 0.454,
+                "verdict": "unchanged"
+              }
+            }
+          },
+          "explained": [
+            {
+              "metric": "none",
+              "scenario": null,
+              "source": "rules"
+            }
+          ],
+          "ruleFacts": []
+        },
+        {
+          "dir": "unthrottled/pr-cls-promo-banner",
+          "branch": "pr/cls-promo-banner",
+          "verdict": "fail",
+          "conditions": "--runs 5 --max-runs 7, chromium 153.0.8010.12",
+          "metrics": {
+            "home": {
+              "LCP": {
+                "baseline": 436,
+                "candidate": 520,
+                "deltaPercent": 19.3,
+                "p": 0.1023,
+                "verdict": "unchanged"
+              },
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0.053,
+                "deltaPercent": null,
+                "p": 0.002,
+                "verdict": "regressed"
+              }
+            },
+            "add-to-cart": {
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0.0547,
+                "deltaPercent": null,
+                "p": 0.002,
+                "verdict": "regressed"
+              },
+              "INP": {
+                "baseline": 24,
+                "candidate": 24,
+                "deltaPercent": 0,
+                "p": 0.2119,
+                "verdict": "unchanged"
+              }
+            }
+          },
+          "explained": [
+            {
+              "metric": "CLS",
+              "scenario": "add-to-cart",
+              "source": "llm"
+            }
+          ],
+          "ruleFacts": []
+        },
+        {
+          "dir": "unthrottled/pr-loaf-cart-handler",
+          "branch": "pr/loaf-cart-handler",
+          "verdict": "fail",
+          "conditions": "--runs 5 --max-runs 7, chromium 153.0.8010.12",
+          "metrics": {
+            "home": {
+              "LCP": {
+                "baseline": 452,
+                "candidate": 588,
+                "deltaPercent": 30.1,
+                "p": 0.006,
+                "verdict": "regressed"
+              },
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            },
+            "add-to-cart": {
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              },
+              "INP": {
+                "baseline": 16,
+                "candidate": 40,
+                "deltaPercent": 150,
+                "p": 0.0035,
+                "verdict": "unchanged"
+              }
+            }
+          },
+          "explained": [
+            {
+              "metric": "LCP",
+              "scenario": "home",
+              "source": "llm"
+            }
+          ],
+          "ruleFacts": []
+        }
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 6,
+      "line": 147,
+      "command": "git checkout step-04-solution -- agents/src/judge/gate.ts",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 88,
+      "counts": null,
+      "expected": false,
+      "matched": null,
+      "missing": [],
+      "tail": []
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 7,
+      "line": 161,
+      "command": "git worktree add -b my-regression ../my-regression origin/main",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 170,
+      "counts": null,
+      "expected": false,
+      "matched": null,
+      "missing": [],
+      "tail": [
+        "Preparing worktree (new branch 'my-regression')",
+        "branch 'my-regression' set up to track 'origin/main'.",
+        "HEAD is now at c034192 Merge pull request #8 from nucliweb/step-guides"
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 8,
+      "line": 173,
+      "command": "git -C ../my-regression commit -am \"Load the chat widget without defer\"",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 124,
+      "counts": null,
+      "expected": false,
+      "matched": null,
+      "missing": [],
+      "tail": [
+        "[my-regression 52f8a36] Load the chat widget without defer",
+        " 1 file changed, 1 insertion(+), 1 deletion(-)"
+      ],
+      "edits": [
+        "no-defer"
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 9,
+      "line": 179,
+      "command": "scripts/build-shop.sh my-regression\nCANDIDATE=my-regression docker compose run --rm -e OUT=/out/ci/my-regression ci\necho \"exit $?\"",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 151971,
+      "counts": null,
+      "expected": true,
+      "matched": true,
+      "missing": [],
+      "tail": [
+        " Container agent-first-perf-audits-shop-candidate-1  Recreate",
+        " Container agent-first-perf-audits-shop-candidate-1  Recreated",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Starting",
+        " Container agent-first-perf-audits-shop-candidate-1  Started",
+        "[ci] my-regression against main, llm profile",
+        "[ci] gate, home: candidate against baseline, their runs alternating",
+        "[ci] gate, add-to-cart: candidate against baseline, their runs alternating",
+        "[ci] gate: pass",
+        "[ci] trace, home: baseline, load",
+        "[ci] trace, home: candidate, load",
+        "[ci] trace, add-to-cart: baseline, load",
+        "[ci] trace, add-to-cart: baseline, click",
+        "[ci] trace, add-to-cart: candidate, load",
+        "[ci] trace, add-to-cart: candidate, click",
+        "[ci] pass: report in report.md, report.html and report.json",
+        "exit 0"
+      ],
+      "reports": [
+        {
+          "dir": "ci/my-regression",
+          "branch": "my-regression",
+          "verdict": "pass",
+          "conditions": "--cpu 4 --network fast-4g --runs 5 --max-runs 7, chromium 153.0.8010.12",
+          "metrics": {
+            "home": {
+              "LCP": {
+                "baseline": 1056,
+                "candidate": 1052,
+                "deltaPercent": -0.4,
+                "p": 0.5,
+                "verdict": "unchanged"
+              },
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            },
+            "add-to-cart": {
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              },
+              "INP": {
+                "baseline": 16,
+                "candidate": 16,
+                "deltaPercent": 0,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            }
+          },
+          "explained": [
+            {
+              "metric": "none",
+              "scenario": null,
+              "source": "rules"
+            }
+          ],
+          "ruleFacts": []
+        }
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 10,
+      "line": 199,
+      "command": "git -C ../my-regression commit -am \"Simulate a slow day of the chat provider\"\nscripts/build-shop.sh my-regression\nCANDIDATE=my-regression docker compose run --rm -e OUT=/out/ci/my-regression ci\necho \"exit $?\"",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 207844,
+      "counts": null,
+      "expected": true,
+      "matched": true,
+      "missing": [],
+      "tail": [
+        " Container agent-first-perf-audits-shop-candidate-1  Recreated",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Starting",
+        " Container agent-first-perf-audits-shop-candidate-1  Started",
+        "[ci] my-regression against main, llm profile",
+        "[ci] gate, home: candidate against baseline, their runs alternating",
+        "[ci] gate, add-to-cart: candidate against baseline, their runs alternating",
+        "[ci] gate: fail",
+        "[ci] trace, home: baseline, load",
+        "[ci] trace, home: candidate, load",
+        "[ci] trace, add-to-cart: baseline, load",
+        "[ci] trace, add-to-cart: baseline, click",
+        "[ci] trace, add-to-cart: candidate, load",
+        "[ci] trace, add-to-cart: candidate, click",
+        "[ci] explanation: 1 call(s) to llama3.2:3b",
+        "[ci] fail: report in report.md, report.html and report.json",
+        "exit 1"
+      ],
+      "edits": [
+        "slow-defer"
+      ],
+      "reports": [
+        {
+          "dir": "ci/my-regression",
+          "branch": "my-regression",
+          "verdict": "fail",
+          "conditions": "--cpu 4 --network fast-4g --runs 5 --max-runs 7, chromium 153.0.8010.12",
+          "metrics": {
+            "home": {
+              "LCP": {
+                "baseline": 652,
+                "candidate": 1860,
+                "deltaPercent": 185.3,
+                "p": 0.0058,
+                "verdict": "regressed"
+              },
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            },
+            "add-to-cart": {
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              },
+              "INP": {
+                "baseline": 16,
+                "candidate": 16,
+                "deltaPercent": 0,
+                "p": 0.2119,
+                "verdict": "unchanged"
+              }
+            }
+          },
+          "explained": [
+            {
+              "metric": "LCP",
+              "scenario": "home",
+              "source": "llm"
+            }
+          ],
+          "ruleFacts": []
+        }
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 11,
+      "line": 220,
+      "command": "git -C ../my-regression commit -am \"Load the chat widget with async\"\nscripts/build-shop.sh my-regression\nCANDIDATE=my-regression docker compose run --rm -e OUT=/out/ci/my-regression ci\necho \"exit $?\"",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 148147,
+      "counts": null,
+      "expected": true,
+      "matched": true,
+      "missing": [],
+      "tail": [
+        " Container agent-first-perf-audits-shop-candidate-1  Recreate",
+        " Container agent-first-perf-audits-shop-candidate-1  Recreated",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Starting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Started",
+        "[ci] my-regression against main, llm profile",
+        "[ci] gate, home: candidate against baseline, their runs alternating",
+        "[ci] gate, add-to-cart: candidate against baseline, their runs alternating",
+        "[ci] gate: pass",
+        "[ci] trace, home: baseline, load",
+        "[ci] trace, home: candidate, load",
+        "[ci] trace, add-to-cart: baseline, load",
+        "[ci] trace, add-to-cart: baseline, click",
+        "[ci] trace, add-to-cart: candidate, load",
+        "[ci] trace, add-to-cart: candidate, click",
+        "[ci] pass: report in report.md, report.html and report.json",
+        "exit 0"
+      ],
+      "edits": [
+        "slow-async"
+      ],
+      "reports": [
+        {
+          "dir": "ci/my-regression",
+          "branch": "my-regression",
+          "verdict": "pass",
+          "conditions": "--cpu 4 --network fast-4g --runs 5 --max-runs 7, chromium 153.0.8010.12",
+          "metrics": {
+            "home": {
+              "LCP": {
+                "baseline": 660,
+                "candidate": 608,
+                "deltaPercent": -7.9,
+                "p": 0.006,
+                "verdict": "unchanged"
+              },
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            },
+            "add-to-cart": {
+              "CLS": {
+                "baseline": 0,
+                "candidate": 0,
+                "deltaPercent": null,
+                "p": 1,
+                "verdict": "unchanged"
+              },
+              "INP": {
+                "baseline": 16,
+                "candidate": 16,
+                "deltaPercent": 0,
+                "p": 1,
+                "verdict": "unchanged"
+              }
+            }
+          },
+          "explained": [
+            {
+              "metric": "none",
+              "scenario": null,
+              "source": "rules"
+            }
+          ],
+          "ruleFacts": []
+        }
+      ]
+    },
+    {
+      "step": "challenges",
+      "file": "docs/src/content/docs/es/challenges.md",
+      "index": 12,
+      "line": 245,
+      "command": "docker compose up -d\ngit worktree remove ../fix-lcp-hero\ngit worktree remove ../my-regression\ngit branch -D fix-lcp-hero my-regression\ndocker image rm ghcr.io/nucliweb/agent-first-perf-audits/shop:fix-lcp-hero ghcr.io/nucliweb/agent-first-perf-audits/shop:my-regression",
+      "marker": null,
+      "note": null,
+      "status": "ran",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 11211,
+      "counts": null,
+      "expected": false,
+      "matched": null,
+      "missing": [],
+      "tail": [
+        " Container agent-first-perf-audits-ollama-1  Running",
+        " Container agent-first-perf-audits-thirdparty-1  Running",
+        " Container agent-first-perf-audits-shop-candidate-1  Recreate",
+        " Container agent-first-perf-audits-shop-baseline-1  Running",
+        " Container agent-first-perf-audits-shop-candidate-1  Recreated",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Waiting",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-thirdparty-1  Healthy",
+        " Container agent-first-perf-audits-shop-candidate-1  Starting",
+        " Container agent-first-perf-audits-shop-candidate-1  Started",
+        "Deleted branch fix-lcp-hero (was 9cf36cf).",
+        "Deleted branch my-regression (was 01f5e61).",
+        "Untagged: ghcr.io/nucliweb/agent-first-perf-audits/shop:fix-lcp-hero",
+        "Deleted: sha256:f322eb77a935d90bca26a6f96682ed39622dfa72fcc4d7e294feb7c02cddce2d",
+        "Untagged: ghcr.io/nucliweb/agent-first-perf-audits/shop:my-regression",
+        "Deleted: sha256:6aefc0b4c109c2b762b12fd905522b5e4238d94e0ffc3eff129e3d94ca6b304c"
+      ]
+    }
+  ]
+}
