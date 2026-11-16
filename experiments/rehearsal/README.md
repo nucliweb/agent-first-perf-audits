@@ -42,6 +42,8 @@ npm test                                    # the tests of the rehearsal and the
 
 With `--profiles`, each rehearsal goes in its own clone and stops its lab when it ends, so the next one has the machine alone. `--source` takes a path or a git URL, `--ref` a branch, a tag or a commit, `--skip-optional` leaves out the optional blocks, `--dir` chooses the folder of the clone and `--timeout` gives the minutes to wait per command.
 
+The [`challenges`](../challenges/README.md) experiment uses this same harness with the page of the challenges: `rehearse()` accepts a function that runs before each command, for the changes the page asks to make by hand, and another one after it, to save what the gate leaves.
+
 ## What the tests check
 
 `npm test` runs the tests of the rehearsal itself (reading the guides, comparing the outputs and a whole rehearsal over a test repo) and `claims.test.mjs`, which reads each file in `results/` from a finished rehearsal and checks that:

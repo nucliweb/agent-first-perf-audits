@@ -42,6 +42,8 @@ npm test                                    # els tests de l'assaig i les compro
 
 Amb `--profiles`, cada passada va en el seu propi clon i atura el seu laboratori en acabar, així que la següent té la màquina sola. `--source` accepta una ruta o una URL de git, `--ref` una branca, un tag o un commit, `--skip-optional` deixa fora els blocs opcionals, `--dir` tria la carpeta del clon i `--timeout` dona els minuts d'espera per ordre.
 
+L'experiment [`challenges`](../challenges/README.ca.md) fa servir aquest mateix arnès amb la pàgina dels reptes: `rehearse()` accepta una funció que s'executa abans de cada ordre, per als canvis que la pàgina demana fer a mà, i una altra després, per desar el que deixa el gate.
+
 ## Què comproven els tests
 
 `npm test` passa els tests del mateix assaig (la lectura de les guies, la comparació de les sortides i un assaig sencer sobre un repo de prova) i `claims.test.mjs`, que llegeix cada fitxer de `results/` d'un assaig acabat i comprova que:

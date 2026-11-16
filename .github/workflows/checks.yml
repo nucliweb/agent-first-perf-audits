@@ -61,6 +61,10 @@ jobs:
         working-directory: experiments/rehearsal
         run: npm test
 
+      - name: Run and claims of the challenges
+        working-directory: experiments/challenges
+        run: npm test
+
       - name: Agents, types and the tests that need no browser
         working-directory: agents
         run: |

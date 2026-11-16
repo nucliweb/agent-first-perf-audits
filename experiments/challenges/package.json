@@ -1,0 +1,14 @@
+{
+  "name": "experiment-challenges",
+  "private": true,
+  "type": "module",
+  "description": "Los retos del taller, ejecutados desde un clon limpio con los comandos de su página: aplica cada cambio que la página pide hacer a mano, pasa el gate y guarda el exit code, el veredicto y las métricas de cada informe",
+  "scripts": {
+    "challenges": "node run.mjs",
+    "dry-run": "node run.mjs --dry-run",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}
