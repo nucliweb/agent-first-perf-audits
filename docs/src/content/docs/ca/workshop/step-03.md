@@ -21,7 +21,7 @@ Continues a la teva branca `taller`, amb el laboratori aixecat. Si no has acabat
    docker compose run --rm agents node --test test/subagents/navigator.test.ts test/subagents/cls.test.ts test/subagents/loaf.test.ts
    ```
 
-   De 19 tests, en fallen 14 (`fail 14`) amb missatges com aquest:
+   De 22 tests, en fallen 17 (`fail 17`) amb missatges com aquest:
 
    ```text
    Step 3 of the workshop: run the steps of a journey with open_page, interact and read_results. Its tests: test/subagents/navigator.test.ts
@@ -41,7 +41,7 @@ Continues a la teva branca `taller`, amb el laboratori aixecat. Si no has acabat
    docker compose run --rm agents node --test test/subagents/navigator.test.ts test/subagents/cls.test.ts test/subagents/loaf.test.ts
    ```
 
-   Tots 19 passen (`pass 19`). Triguen una mica més de mig minut: els del Navigator obren una pàgina local amb el servidor real, i un espera que un pas falli.
+   Tots 22 passen (`pass 22`). Triguen una mica més de mig minut: els del Navigator obren una pàgina local amb el servidor real, i un espera que un pas falli.
 
 4. Canvia la botiga candidata per la branca del handler pesat:
 

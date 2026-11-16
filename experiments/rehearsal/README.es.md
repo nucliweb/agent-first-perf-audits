@@ -11,7 +11,7 @@ Ejecuta el taller como lo haría un asistente: clona el repo en limpio, saca los
 3. Ejecuta cada bloque con `bash` desde la raíz del clon, con el perfil de `COMPOSE_PROFILES` (`llm` por defecto, o `lite`) y sin las variables del laboratorio que tenga la terminal (`CANDIDATE`, `BASELINE`, `OUT`, `COMPOSE_PROJECT_NAME` y `COMPOSE_FILE`). Un comando que pasa de 30 minutos se para.
 4. Guarda por comando, en `results/<perfil>.json`: el fichero y la línea de la guía, el exit code, la duración, los recuentos `pass` y `fail` de `node --test`, si la salida tiene las líneas del bloque `text` que sigue al comando en la guía (con `…` como comodín) y las últimas 20 líneas de la salida. La salida completa queda en `rehearsal.log`, en la carpeta temporal.
 
-El fichero se guarda después de cada comando, con `complete: false` hasta que el ensayo termina. El clon y su laboratorio siguen en marcha al acabar; `docker compose down` desde el clon lo para.
+El fichero se guarda después de cada comando, con `complete: false` hasta que el ensayo termina. El clon y su laboratorio siguen en marcha al acabar, salvo con `--profiles`; `docker compose down` desde el clon lo para.
 
 El ensayo mide, así que en la máquina de referencia no corre nada más a la vez. El laboratorio del clon tiene el mismo nombre de proyecto que el del repo de trabajo: hay que parar ese antes de empezar.
 
@@ -35,11 +35,12 @@ Los del taller, que comprueba `scripts/preflight.sh`, y Node 22 o superior, git 
 node rehearse.mjs --dry-run                 # lista los comandos de las guías, sin ejecutar nada
 node rehearse.mjs                           # perfil llm, desde un clon de este repo en main
 COMPOSE_PROFILES=lite node rehearse.mjs     # perfil lite
+node rehearse.mjs --profiles llm,lite       # una pasada con cada perfil, una detrás de otra
 node rehearse.mjs --only step-01,step-02    # solo esos pasos, a results/llm-step-01-step-02.json
 npm test                                    # los tests del ensayo y las comprobaciones sobre results/
 ```
 
-`--source` acepta una ruta o una URL de git, `--ref` una rama, un tag o un commit, `--skip-optional` deja fuera los bloques opcionales, `--dir` escoge la carpeta del clon y `--timeout` da los minutos de espera por comando.
+Con `--profiles`, cada pasada va en su propio clon y para su laboratorio al terminar, así que la siguiente tiene la máquina sola. `--source` acepta una ruta o una URL de git, `--ref` una rama, un tag o un commit, `--skip-optional` deja fuera los bloques opcionales, `--dir` escoge la carpeta del clon y `--timeout` da los minutos de espera por comando.
 
 ## Qué comprueban los tests
 
@@ -53,3 +54,18 @@ npm test                                    # los tests del ensayo y las comprob
 6. Con el perfil `llm`, la salida de cada comando tiene las líneas que enseña su guía. Las guías enseñan la salida de ese perfil.
 
 Sin ficheros en `results/`, esas comprobaciones se saltan y lo dicen.
+
+## Resultados en el Mac de referencia
+
+Una pasada con cada perfil en un Apple Silicon de 16 GB, desde `main` y con las imágenes ya descargadas. El tiempo de máquina de un paso es la suma de sus comandos, sin los bloques opcionales, y el hueco es el de la agenda de [`PLAN.md`](../../PLAN.md):
+
+| Paso | `llm` | `lite` | Hueco |
+|---|---|---|---|
+| 1 | 0,9 min | 0,8 min | 15 min |
+| 2 | 2,9 min | 2,9 min | 20 min |
+| 3 | 6,9 min | 6,9 min | 20 min |
+| 4 | 4,5 min | 4,0 min | 20 min |
+| 5 | 11,2 min | 9,3 min | 20 min |
+| Total | 26,3 min | 23,8 min | 95 min |
+
+El paso 5 da 1, 1, 1 y 0 con los dos perfiles, y con `llm` la salida de cada comando tiene las líneas de su guía. Lo que queda de cada hueco es para explicar y para quien va más despacio que la máquina de referencia.

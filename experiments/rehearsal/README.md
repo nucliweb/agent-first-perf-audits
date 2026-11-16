@@ -11,7 +11,7 @@ Runs the workshop as an attendee would: it clones the repo clean, takes the comm
 3. Runs each block with `bash` from the root of the clone, with the profile of `COMPOSE_PROFILES` (`llm` by default, or `lite`) and without the lab variables the terminal may have (`CANDIDATE`, `BASELINE`, `OUT`, `COMPOSE_PROJECT_NAME` and `COMPOSE_FILE`). A command that takes more than 30 minutes is stopped.
 4. Saves per command, in `results/<profile>.json`: the file and the line of the guide, the exit code, the duration, the `pass` and `fail` counts of `node --test`, whether the output has the lines of the `text` block that follows the command in the guide (with `…` as a wildcard) and the last 20 lines of the output. The whole output goes to `rehearsal.log`, in the temporary folder.
 
-The file is saved after every command, with `complete: false` until the rehearsal ends. The clone and its lab keep running afterwards; `docker compose down` from the clone stops it.
+The file is saved after every command, with `complete: false` until the rehearsal ends. The clone and its lab keep running afterwards, except with `--profiles`; `docker compose down` from the clone stops it.
 
 The rehearsal measures, so nothing else runs on the reference machine at the same time. The lab of the clone has the same project name as the one of the working repo: stop that one before starting.
 
@@ -35,11 +35,12 @@ Those of the workshop, which `scripts/preflight.sh` checks, and Node 22 or later
 node rehearse.mjs --dry-run                 # lists the commands of the guides, without running anything
 node rehearse.mjs                           # llm profile, from a clone of this repo at main
 COMPOSE_PROFILES=lite node rehearse.mjs     # lite profile
+node rehearse.mjs --profiles llm,lite       # one rehearsal with each profile, one after the other
 node rehearse.mjs --only step-01,step-02    # only those steps, to results/llm-step-01-step-02.json
 npm test                                    # the tests of the rehearsal and the checks on results/
 ```
 
-`--source` takes a path or a git URL, `--ref` a branch, a tag or a commit, `--skip-optional` leaves out the optional blocks, `--dir` chooses the folder of the clone and `--timeout` gives the minutes to wait per command.
+With `--profiles`, each rehearsal goes in its own clone and stops its lab when it ends, so the next one has the machine alone. `--source` takes a path or a git URL, `--ref` a branch, a tag or a commit, `--skip-optional` leaves out the optional blocks, `--dir` chooses the folder of the clone and `--timeout` gives the minutes to wait per command.
 
 ## What the tests check
 
@@ -53,3 +54,18 @@ npm test                                    # the tests of the rehearsal and the
 6. With the `llm` profile, the output of each command has the lines its guide shows. The guides show the output of that profile.
 
 Without files in `results/`, those checks are skipped and say so.
+
+## Results on the reference Mac
+
+One rehearsal with each profile on a 16 GB Apple Silicon, from `main` and with the images already downloaded. The machine time of a step is the sum of its commands, without the optional blocks, and the slot is the one of the agenda of [`PLAN.md`](../../PLAN.md):
+
+| Step | `llm` | `lite` | Slot |
+|---|---|---|---|
+| 1 | 0.9 min | 0.8 min | 15 min |
+| 2 | 2.9 min | 2.9 min | 20 min |
+| 3 | 6.9 min | 6.9 min | 20 min |
+| 4 | 4.5 min | 4.0 min | 20 min |
+| 5 | 11.2 min | 9.3 min | 20 min |
+| Total | 26.3 min | 23.8 min | 95 min |
+
+Step 5 gives 1, 1, 1 and 0 with both profiles, and with `llm` the output of each command has the lines of its guide. What is left of each slot is for explaining and for those who go slower than the reference machine.

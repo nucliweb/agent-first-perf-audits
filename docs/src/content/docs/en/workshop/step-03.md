@@ -21,7 +21,7 @@ You are still on your `taller` branch, with the lab running. If you did not fini
    docker compose run --rm agents node --test test/subagents/navigator.test.ts test/subagents/cls.test.ts test/subagents/loaf.test.ts
    ```
 
-   Of 19 tests, 14 fail (`fail 14`) with messages like this one:
+   Of 22 tests, 17 fail (`fail 17`) with messages like this one:
 
    ```text
    Step 3 of the workshop: run the steps of a journey with open_page, interact and read_results. Its tests: test/subagents/navigator.test.ts
@@ -41,7 +41,7 @@ You are still on your `taller` branch, with the lab running. If you did not fini
    docker compose run --rm agents node --test test/subagents/navigator.test.ts test/subagents/cls.test.ts test/subagents/loaf.test.ts
    ```
 
-   All 19 pass (`pass 19`). They take a little over half a minute: the Navigator tests open a local page with the real server, and one waits for a step to fail.
+   All 22 pass (`pass 22`). They take a little over half a minute: the Navigator tests open a local page with the real server, and one waits for a step to fail.
 
 4. Switch the candidate shop to the branch with the heavy handler:
 
