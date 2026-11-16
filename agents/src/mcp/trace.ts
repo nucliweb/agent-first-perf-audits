@@ -11,6 +11,18 @@ export type Emulation = Record<string, unknown>;
 
 export async function recordTrace(url: string, file: string, emulation?: Emulation) {
   // workshop: step 1, record the load of url with Chrome DevTools MCP (test/mcp/trace.test.ts)
-  throw new Error("Step 1 of the workshop: record the load of url with Chrome DevTools MCP. Its tests: test/mcp/trace.test.ts");
+  const devtools = await connect("devtools");
+  try {
+    const temporary = join(await mkdtemp(join(tmpdir(), "trace-")), "trace.json");
+    if (emulation) await callTool(devtools, "emulate", emulation);
+    await callTool(devtools, "navigate_page", { type: "url", url });
+    await callTool(devtools, "performance_start_trace", { reload: true, autoStop: true, filePath: temporary });
+    await mkdir(dirname(file), { recursive: true });
+    await copyFile(temporary, file);
+    // The server writes it for its own user only
+    await chmod(file, 0o644);
+  } finally {
+    await devtools.close();
+  }
   // workshop: end
 }
