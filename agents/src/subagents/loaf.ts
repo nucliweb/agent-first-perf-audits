@@ -140,7 +140,10 @@ export const loaf: Subagent<LoafReport> = {
     const inps = journeys.map((j) => (j.inp ? `${j.name} INP ${j.inp.value} ms` : `${j.name} no click`)).join(", ");
     const worst = journeys.filter((j) => j.inp).sort((a, b) => b.inp!.value - a.inp!.value)[0];
     if (!worst) return inps;
-    const script = worst.longFrames.topScripts[0];
+    // The long frames of a journey are those of its load and of its click. A script the page
+    // evaluates while it loads has its URL as invoker, and a handler or a callback has a name such
+    // as DIV#root.onclick: next to the INP goes the first of these, whatever the load costs
+    const script = worst.longFrames.topScripts.find((s) => !/^[a-z][a-z\d+.-]*:\/\//i.test(s.invoker));
     const by = script ? `, top script ${script.invoker} (${script.source}, ${script.totalDurationMs} ms)` : "";
     return `${inps}; slowest ${worst.name}: processing ${worst.inp!.phases.processingTime} ms${by}`;
   },
