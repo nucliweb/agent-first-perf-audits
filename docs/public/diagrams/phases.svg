@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 340" role="img" aria-labelledby="t d">
+  <title id="t">The phases of the LCP and of the INP</title>
+  <desc id="d">The LCP goes from the start of the navigation to the paint of the largest element, in four phases: ttfb, until the server answers; resourceLoadDelay, until the browser starts to download the image; resourceLoadTime, while the image downloads; and elementRenderDelay, until the image is painted. The INP goes from an interaction to the next paint, in three phases: inputDelay, while the main thread is busy with something else; processingTime, while the event handlers run; and presentationDelay, until the browser paints the frame.</desc>
+  <style>
+    .bg { fill: #f6f8f6; }
+    .box { fill: #ffffff; stroke: #2f3b33; stroke-width: 2; }
+    .name { font: 600 18px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #17201a; text-anchor: middle; }
+    .note { font: 15px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #4f5e54; text-anchor: middle; }
+    .label { font: 600 14px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #5b6a60; }
+    .end { text-anchor: end; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #131915; }
+      .box { fill: #1b231e; stroke: #c9d5cc; }
+      .name { fill: #eef3ef; }
+      .note { fill: #aab8ae; }
+      .label { fill: #9aa89f; }
+    }
+  </style>
+
+  <rect class="bg" width="1120" height="340" rx="16" />
+
+  <text class="label" x="24" y="40">LCP: the navigation starts</text>
+  <text class="label end" x="1096" y="40">the largest element is painted</text>
+
+  <rect class="box" x="24" y="56" width="160" height="56" rx="10" />
+  <text class="name" x="104" y="90">ttfb</text>
+  <text class="note" x="104" y="136">the server answers</text>
+
+  <rect class="box" x="184" y="56" width="340" height="56" rx="10" />
+  <text class="name" x="354" y="90">resourceLoadDelay</text>
+  <text class="note" x="354" y="136">the browser finds the image</text>
+
+  <rect class="box" x="524" y="56" width="340" height="56" rx="10" />
+  <text class="name" x="694" y="90">resourceLoadTime</text>
+  <text class="note" x="694" y="136">the image downloads</text>
+
+  <rect class="box" x="864" y="56" width="232" height="56" rx="10" />
+  <text class="name" x="980" y="90">elementRenderDelay</text>
+  <text class="note" x="980" y="136">the image is painted</text>
+
+  <text class="label" x="24" y="204">INP: a click</text>
+  <text class="label end" x="1096" y="204">the next frame is painted</text>
+
+  <rect class="box" x="24" y="220" width="240" height="56" rx="10" />
+  <text class="name" x="144" y="254">inputDelay</text>
+  <text class="note" x="144" y="300">the main thread is busy</text>
+
+  <rect class="box" x="264" y="220" width="520" height="56" rx="10" />
+  <text class="name" x="524" y="254">processingTime</text>
+  <text class="note" x="524" y="300">the event handlers run</text>
+
+  <rect class="box" x="784" y="220" width="312" height="56" rx="10" />
+  <text class="name" x="940" y="254">presentationDelay</text>
+  <text class="note" x="940" y="300">the browser paints the frame</text>
+</svg>

@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { agendaOf } from "./guide.mjs";
+import { agendaOf, pointOf } from "./guide.mjs";
 import { planOf, stepTimesOf } from "./rehearse.mjs";
 
 const REPO = resolve(import.meta.dirname, "../..");
@@ -53,6 +53,43 @@ test("the table of machine times of the three READMEs is the one of the two rehe
       `| Total | ${min(sum(steps.map((step) => times.llm[step])))} | ${min(sum(steps.map((step) => times.lite[step])))} | ${sum(steps.map((step) => slots[step]))} min |`,
     ];
     for (const row of rows) if (!text.includes(row)) missing.push(`${name}: ${row}`);
+  }
+  assert.deepEqual(missing, []);
+});
+
+// The table of times of the guide of each step, in the three languages: its slot in the agenda, the
+// machine time of the step with each profile and a row for each command that takes a minute or more
+const GUIDES = {
+  es: { mark: ",", minutes: "minutos", total: "Tiempo de máquina del paso", point: "Punto" },
+  ca: { mark: ",", minutes: "minuts", total: "Temps de màquina del pas", point: "Punt" },
+  en: { mark: ".", minutes: "minutes", total: "Machine time of the step", point: "Point" },
+};
+const LONG = 60_000;
+const escaped = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+test("the table of times of each step guide is the one of the two rehearsals, in the three languages", { skip: !bothFull && "it needs a finished rehearsal of each profile" }, () => {
+  const times = { llm: stepTimesOf(full.llm.commands), lite: stepTimesOf(full.lite.commands) };
+  const steps = Object.keys(slots).filter((step) => step in times.llm && step in times.lite);
+  // Where each command is in the guides today: the lines of a rehearsal are the ones of its day
+  const today = planOf(REPO);
+  const missing = [];
+  for (const [language, words] of Object.entries(GUIDES)) {
+    const min = (ms) => `${minutes(ms).replace(".", words.mark)} min`;
+    for (const step of steps) {
+      const file = `docs/src/content/docs/${language}/workshop/${step}.md`;
+      const text = readFileSync(join(REPO, file), "utf8");
+      const spanish = readFileSync(join(REPO, `docs/src/content/docs/es/workshop/${step}.md`), "utf8");
+      if (!text.includes(`${slots[step]} ${words.minutes}`)) missing.push(`${file}: its slot, ${slots[step]} ${words.minutes}`);
+      const total = `| ${words.total} | ${min(times.llm[step])} | ${min(times.lite[step])} |`;
+      if (!text.includes(total)) missing.push(`${file}: ${total}`);
+      const long = full.llm.commands.filter((c) => c.step === step && c.status === "ran" && c.marker !== "optional" && c.durationMs >= LONG);
+      for (const command of long) {
+        const lite = full.lite.commands.find((c) => c.file === command.file && c.index === command.index);
+        const point = pointOf(spanish, today.find((c) => c.file === command.file && c.index === command.index)?.line ?? command.line);
+        const row = new RegExp(`^\\| ${words.point} ${point}\\b[^|]*\\| ${escaped(min(command.durationMs))} \\| ${escaped(min(lite.durationMs))} \\|$`, "m");
+        if (!row.test(text)) missing.push(`${file}: | ${words.point} ${point}, ... | ${min(command.durationMs)} | ${min(lite.durationMs)} |`);
+      }
+    }
   }
   assert.deepEqual(missing, []);
 });

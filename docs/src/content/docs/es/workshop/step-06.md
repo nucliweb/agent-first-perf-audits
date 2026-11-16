@@ -5,9 +5,11 @@ sidebar:
   order: 16
 ---
 
-## Objetivo
+## Qué vas a aprender
 
-Salir del taller con un plan para tu plataforma: qué piezas se quedan tal cual, cuáles cambias y qué decisiones de diseño conviene conservar.
+- Qué piezas del taller se quedan tal cual en tu plataforma y cuáles cambias.
+- Qué decisiones de diseño conviene conservar, y con qué datos se tomaron.
+- Cómo empezar: un plan de una página, con tu aplicación y tus recorridos.
 
 ## Qué cambias
 
@@ -29,3 +31,16 @@ Salir del taller con un plan para tu plataforma: qué piezas se quedan tal cual,
 - **El handoff.** Quien no puede correr un LLM local tiene la misma entrada para un agente de su elección, y cada equipo decide si su código sale de su máquina.
 
 El contexto y los datos de estas decisiones están en [Learnings](../../learnings/) y en [Por qué este stack](../../stack/), que explica cada pieza del stack, qué se descartó y el dato que lo decidió.
+
+## Tu plan
+
+Copia esta tabla y rellena la última columna. Con las seis filas escritas tienes el primer borrador del gate de tu producto:
+
+| Pregunta | En el taller | En tu plataforma |
+|---|---|---|
+| ¿Qué aplicación se mide, y cómo se construyen sus dos versiones? | La tienda, desde `main` y desde la rama, con `scripts/build-shop.sh` | |
+| ¿Qué recorridos protege el gate? | Cargar la home y añadir un producto al carrito | |
+| ¿En qué condiciones se mide? | CPU 4x y `fast-4g`, cinco ejecuciones por lado | |
+| ¿Cuánto tiene que empeorar una métrica para parar una pull request? | Los umbrales de la CLI, en [Conceptos](../../concepts/#cómo-decide-el-gate) | |
+| ¿Dónde corre el gate? | Docker Compose en un portátil, y GitHub Actions en las pull requests | |
+| ¿Quién explica la causa? | Un LLM local, o el handoff a un agente de tu elección | |

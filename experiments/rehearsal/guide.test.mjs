@@ -2,7 +2,7 @@
 // the marker above it and the counts the guide prints after it; and the slot of each step in the agenda.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { agendaOf, rehearsalCommandsOf, withoutCloneLines } from "./guide.mjs";
+import { agendaOf, pointOf, rehearsalCommandsOf, withoutCloneLines } from "./guide.mjs";
 
 const GUIDE = `---
 title: A step
@@ -190,4 +190,11 @@ test("the agenda of PLAN.md gives a slot to the six steps of the workshop", asyn
   assert.deepEqual(Object.keys(agenda), ["step-01", "step-02", "step-03", "step-04", "step-05", "step-06"]);
   assert.equal(agenda["step-05"], 20);
   assert.equal(Object.values(agenda).reduce((a, b) => a + b) + 10, 120, "the six steps and the 10 minutes of context fill the 2 h");
+});
+
+test("a command belongs to the item of the numbered list above it, and to none outside a list", () => {
+  const text = ["## Antes", "", "```bash", "docker compose up -d", "```", "", "## Paso a paso", "", "1. Lanza:", "", "   ```bash", "   npm test", "   ```", "", "2. Mide:", "", "   Un párrafo.", "", "   ```bash", "   npm run measure", "   ```"].join("\n");
+  assert.equal(pointOf(text, 3), null);
+  assert.equal(pointOf(text, 11), 1);
+  assert.equal(pointOf(text, 19), 2);
 });

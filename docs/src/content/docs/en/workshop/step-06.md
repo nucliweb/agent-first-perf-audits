@@ -5,9 +5,11 @@ sidebar:
   order: 16
 ---
 
-## Goal
+## What you will learn
 
-Leave the workshop with a plan for your platform: which pieces stay as they are, which ones you change and which design decisions are worth keeping.
+- Which pieces of the workshop stay as they are on your platform and which ones you change.
+- Which design decisions are worth keeping, and with what data they were made.
+- How to start: a one-page plan, with your application and your journeys.
 
 ## What you change
 
@@ -29,3 +31,16 @@ Leave the workshop with a plan for your platform: which pieces stay as they are,
 - **The handoff.** Whoever cannot run a local LLM has the same input for an agent of their choice, and each team decides whether its code leaves its machine.
 
 The context and the data behind these decisions are in [Learnings](../../learnings/) and in [Why this stack](../../stack/), which explains each piece of the stack, what was discarded and the data that decided it.
+
+## Your plan
+
+Copy this table and fill in the last column. With the six rows written you have the first draft of the gate of your product:
+
+| Question | In the workshop | On your platform |
+|---|---|---|
+| Which application is measured, and how are its two versions built? | The shop, from `main` and from the branch, with `scripts/build-shop.sh` | |
+| Which journeys does the gate protect? | Loading the home and adding a product to the cart | |
+| Under which conditions is it measured? | 4x CPU and `fast-4g`, five runs a side | |
+| How much does a metric have to regress to stop a pull request? | The thresholds of the CLI, in [Concepts](../../concepts/#how-the-gate-decides) | |
+| Where does the gate run? | Docker Compose on a laptop, and GitHub Actions on pull requests | |
+| Who explains the cause? | A local LLM, or the handoff to an agent of your choice | |

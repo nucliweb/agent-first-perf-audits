@@ -5,9 +5,11 @@ sidebar:
   order: 16
 ---
 
-## Objectiu
+## Què aprendràs
 
-Sortir del taller amb un pla per a la teva plataforma: quines peces es queden tal qual, quines canvies i quines decisions de disseny convé conservar.
+- Quines peces del taller es queden tal qual a la teva plataforma i quines canvies.
+- Quines decisions de disseny convé conservar, i amb quines dades es van prendre.
+- Com començar: un pla d'una pàgina, amb la teva aplicació i els teus recorreguts.
 
 ## Què canvies
 
@@ -29,3 +31,16 @@ Sortir del taller amb un pla per a la teva plataforma: quines peces es queden ta
 - **El handoff.** Qui no pot executar un LLM local té la mateixa entrada per a un agent de la seva elecció, i cada equip decideix si el seu codi surt de la seva màquina.
 
 El context i les dades d'aquestes decisions són a [Learnings](../../learnings/) i a [Per què aquest stack](../../stack/), que explica cada peça de l'stack, què es va descartar i la dada que ho va decidir.
+
+## El teu pla
+
+Copia aquesta taula i omple l'última columna. Amb les sis files escrites tens el primer esborrany del gate del teu producte:
+
+| Pregunta | Al taller | A la teva plataforma |
+|---|---|---|
+| Quina aplicació es mesura, i com es construeixen les seves dues versions? | La botiga, des de `main` i des de la branca, amb `scripts/build-shop.sh` | |
+| Quins recorreguts protegeix el gate? | Carregar la home i afegir un producte al carretó | |
+| En quines condicions es mesura? | CPU 4x i `fast-4g`, cinc execucions per costat | |
+| Quant ha d'empitjorar una mètrica per aturar una pull request? | Els llindars de la CLI, a [Conceptes](../../concepts/#com-decideix-el-gate) | |
+| On corre el gate? | Docker Compose en un portàtil, i GitHub Actions a les pull requests | |
+| Qui explica la causa? | Un LLM local, o el handoff a un agent que triïs | |
