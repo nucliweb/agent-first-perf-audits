@@ -11,7 +11,7 @@ Executa el taller com ho faria un assistent: clona el repo en net, treu les ordr
 3. Executa cada bloc amb `bash` des de l'arrel del clon, amb el perfil de `COMPOSE_PROFILES` (`llm` per defecte, o `lite`) i sense les variables del laboratori que tingui el terminal (`CANDIDATE`, `BASELINE`, `OUT`, `COMPOSE_PROJECT_NAME` i `COMPOSE_FILE`). Una ordre que passa de 30 minuts s'atura.
 4. Desa per ordre, a `results/<perfil>.json`: el fitxer i la línia de la guia, l'exit code, la durada, els recomptes `pass` i `fail` de `node --test`, si la sortida té les línies del bloc `text` que segueix l'ordre a la guia (amb `…` com a comodí) i les últimes 20 línies de la sortida. La sortida completa queda a `rehearsal.log`, a la carpeta temporal.
 
-El fitxer es desa després de cada ordre, amb `complete: false` fins que l'assaig acaba. El clon i el seu laboratori continuen en marxa en acabar; `docker compose down` des del clon l'atura.
+El fitxer es desa després de cada ordre, amb `complete: false` fins que l'assaig acaba. El clon i el seu laboratori continuen en marxa en acabar, tret de amb `--profiles`; `docker compose down` des del clon l'atura.
 
 L'assaig mesura, així que a la màquina de referència no hi corre res més alhora. El laboratori del clon té el mateix nom de projecte que el del repo de treball: cal aturar aquest abans de començar.
 
@@ -35,11 +35,12 @@ Els del taller, que comprova `scripts/preflight.sh`, i Node 22 o superior, git i
 node rehearse.mjs --dry-run                 # llista les ordres de les guies, sense executar res
 node rehearse.mjs                           # perfil llm, des d'un clon d'aquest repo a main
 COMPOSE_PROFILES=lite node rehearse.mjs     # perfil lite
+node rehearse.mjs --profiles llm,lite       # una passada amb cada perfil, una darrere l'altra
 node rehearse.mjs --only step-01,step-02    # només aquests passos, a results/llm-step-01-step-02.json
 npm test                                    # els tests de l'assaig i les comprovacions sobre results/
 ```
 
-`--source` accepta una ruta o una URL de git, `--ref` una branca, un tag o un commit, `--skip-optional` deixa fora els blocs opcionals, `--dir` tria la carpeta del clon i `--timeout` dona els minuts d'espera per ordre.
+Amb `--profiles`, cada passada va en el seu propi clon i atura el seu laboratori en acabar, així que la següent té la màquina sola. `--source` accepta una ruta o una URL de git, `--ref` una branca, un tag o un commit, `--skip-optional` deixa fora els blocs opcionals, `--dir` tria la carpeta del clon i `--timeout` dona els minuts d'espera per ordre.
 
 ## Què comproven els tests
 

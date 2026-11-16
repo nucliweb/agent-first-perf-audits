@@ -3,10 +3,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { describePlan, planOf, profileOf, rehearse, runCommand } from "./rehearse.mjs";
+import { describePlan, planOf, profileOf, rehearse, rehearseProfiles, runCommand } from "./rehearse.mjs";
 
 const REPO = resolve(import.meta.dirname, "../..");
 
@@ -226,4 +226,38 @@ test("a rehearsal of some steps, without the optional commands, goes to its own 
   } finally {
     for (const path of [source.root, dir, results]) rmSync(path, { recursive: true, force: true });
   }
+});
+
+test("a rehearsal of several profiles runs one after the other, each in its own clone, and stops the lab of each one when it ends", async () => {
+  const source = sourceRepo();
+  const dir = mkdtempSync(join(tmpdir(), "rehearsal-dir-"));
+  const results = mkdtempSync(join(tmpdir(), "rehearsal-results-"));
+  const stopped = [];
+  try {
+    const files = await rehearseProfiles(
+      ["llm", "lite"],
+      // The shell has the profile of another day: each rehearsal takes its own
+      { source: source.root, ref: "v1", dir, sources: SOURCES, resultsDir: results, env: { ...process.env, COMPOSE_PROFILES: "lite" }, echo: false, log: () => {} },
+      { stopLab: (clone) => stopped.push({ clone, saved: ["llm", "lite"].filter((profile) => existsSync(join(results, `${profile}.json`))) }) },
+    );
+    assert.deepEqual(files, [join(results, "llm.json"), join(results, "lite.json")]);
+    for (const profile of ["llm", "lite"]) {
+      const saved = JSON.parse(readFileSync(join(results, `${profile}.json`), "utf8"));
+      assert.deepEqual({ profile: saved.profile, complete: saved.complete, matched: saved.commands[0].matched }, { profile, complete: true, matched: profile === "lite" }, "the first command prints the profile it runs with");
+    }
+    assert.deepEqual(
+      stopped,
+      [
+        { clone: join(dir, "llm", "agent-first-perf-audits"), saved: ["llm"] },
+        { clone: join(dir, "lite", "agent-first-perf-audits"), saved: ["llm", "lite"] },
+      ],
+      "the lab of llm stops before lite starts",
+    );
+  } finally {
+    for (const path of [source.root, dir, results]) rmSync(path, { recursive: true, force: true });
+  }
+});
+
+test("a rehearsal of several profiles refuses a profile the workshop does not have", async () => {
+  await assert.rejects(rehearseProfiles(["llm", "gpu"], {}), /unknown profile "gpu"; one of llm, lite/);
 });
