@@ -57,6 +57,10 @@ jobs:
           npm ci
           npm test
 
+      - name: Harness and claims of the rehearsal
+        working-directory: experiments/rehearsal
+        run: npm test
+
       - name: Agents, types and the tests that need no browser
         working-directory: agents
         run: |

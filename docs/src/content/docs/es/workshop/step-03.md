@@ -87,6 +87,7 @@ Sigues en tu rama `taller`, con el laboratorio levantado. Si no has terminado lo
 
 7. Opcional: la regresión de CLS, con la rama del banner:
 
+   <!-- rehearsal: optional -->
    ```bash
    CANDIDATE=pr-cls-promo-banner docker compose up -d
    CANDIDATE=pr-cls-promo-banner docker compose run --rm agents node src/orchestrator.ts cls

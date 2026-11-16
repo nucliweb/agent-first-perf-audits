@@ -42,6 +42,7 @@ Descarga las imágenes en casa: son varios GB y la Wi-Fi de un evento no da para
 
 En casa, con buena conexión:
 
+<!-- rehearsal: clone -->
 ```bash
 git clone https://github.com/nucliweb/agent-first-perf-audits.git
 cd agent-first-perf-audits
@@ -61,6 +62,7 @@ Desde WSL2 sirve `scripts/preflight.sh`. El `.ps1` hace lo mismo que el `.sh`, p
 
 Las descargas del preflight, por si prefieres hacerlas a mano:
 
+<!-- rehearsal: skip, the preflight downloads the same images -->
 ```bash
 docker compose --profile llm --profile run pull       # Ollama, los mocks, agents y la tienda de main
 for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler pr-noop-refactor; do
@@ -72,6 +74,7 @@ done
 
 Para pasar el gate a una rama:
 
+<!-- rehearsal: optional -->
 ```bash
 CANDIDATE=pr-lcp-hero-lazy docker compose up -d       # las dos tiendas, los mocks y Ollama
 CANDIDATE=pr-lcp-hero-lazy docker compose run --rm ci
