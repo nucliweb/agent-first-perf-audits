@@ -333,3 +333,65 @@ The milliseconds change from one machine to another; the test checks that with `
 2. Keep the names in that build: `keepNames` in Rolldown and esbuild, `keep_fnames` in Terser.
 3. If you cannot keep them, resolve the source maps before passing the trace to the agent, not after.
 4. Check in a test that the bundle keeps the names. A bundler update can change the default without warning.
+
+## The rules are deterministic, the samples are not
+
+### Context
+
+The gate verdict comes from rules: the median of the branch exceeds the baseline's by more than its threshold, and a statistical test gives p < 0.05. With the same measurements they always decide the same thing, which is why the workshop says the rules decide.
+
+While preparing the workshop, the gate passed `pr/lcp-hero-lazy`, the branch that delays the LCP of the home page. The rules did not fail. They received a sample in which one run of the baseline came out slow, and with 5 runs per side that is enough to leave p at 0.0754. A gate that passes a clear regression, even once in a while, teaches people not to trust it.
+
+There was a second suspicion. The gate measured all the runs of `main` first and then all the runs of the branch, and the reports showed INP differences on branches that do not touch the INP.
+
+### What we tried
+
+Two nights of measurement on the reference Mac, one with the machine idle and one with the local model generating text next to it. Each round measures single runs of `main` and of the four branches in two orders: all the baseline runs first, or alternating one from each shop. Then the code of the CLI itself decides on those same runs with each policy, so all of them are compared on the same data and not on the luck of each night.
+
+The rule for choosing was written before measuring: the cheapest policy that lets no regression escape when idle, lets at most 10 % escape under load and never fails `pr/noop-refactor`, the control branch.
+
+| Machine | Gate | Regressions that escape | Times the control fails |
+|---|---|---|---|
+| Idle | 5 runs per side, all the baseline first | 1 of 75 | 0 of 50 |
+| Idle | 5 per side and 7 if inconclusive, alternating | 0 of 75 | 0 of 50 |
+| With `ollama` generating | 5 runs per side, all the baseline first | 4 of 60 | 3 of 40 |
+| With `ollama` generating | 5 per side and 7 if inconclusive, alternating | 2 of 60 | 0 of 40 |
+
+The data separate two problems that looked like one:
+
+- **Too few runs.** With 5 per side, a single slow baseline run leaves p at 0.0754. With 7, the same slow run leaves it at 0.0131. Always measuring 7 fixes it and makes every run of the gate more expensive; measuring 7 only when the change exceeds its threshold and p does not reach it fixes it almost for free.
+- **The order.** With the machine busy, measuring the whole baseline first makes the control fail 3 times out of 40, and no policy with more runs avoids it. It is not sampling noise: the machine changes speed between the baseline block and the branch block, and the test sees it as a real change. When the runs alternate, whatever happens to the machine happens to both shops.
+
+### Decision
+
+- **The gate alternates the runs of the two shops**, in a single call to the CLI.
+- **It extends once, up to a maximum.** It measures 5 runs per shop and, when a change exceeds its threshold and p does not reach it, up to 7 (`--max-runs 7`). It decides at most twice: looking at p after each added run would end up finding a change by chance.
+- **It says when it cannot decide.** If it is still the same after extending, the metric is left as `inconclusive`. The gate does not fail on it, the report puts it at the top and asks to run it again, and the check of step 5 does the same instead of giving a pass.
+- **It lives in the tool.** The comparison with a live baseline, the extension and the inconclusive verdict belong to the WebPerf Snippets CLI, not to the workshop: it is the learning of [fixing the tool](#fix-the-tool-before-patching-the-workshop).
+
+### What it does not fix
+
+With the machine busy, 2 regressions out of 60 still escape. Alternating and extending make the gate harder to fool, not immune: measuring with the machine to itself, and with a single Chromium at a time, is still part of the method.
+
+### Check it
+
+The experiment is in [`experiments/gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.md), with the runs of the two nights saved:
+
+```bash
+cd experiments/gate-stability
+npm install
+npm test                                                    # the policies decide like the CLI, and the figures in the docs come from the results
+node report.mjs idle --policies 5,7,9,5-7,5-9 --summary     # the idle night, by order and policy
+node report.mjs loaded --policies 5,7,9,5-7,5-9 --summary   # the night with ollama generating
+```
+
+[Concepts](../concepts/#how-the-gate-decides) explains the statistical test and the table of how many slow runs each number of runs tolerates.
+
+### How to apply it to your platform
+
+1. Measure the baseline and the branch on the same machine and alternate their runs, not one block after the other.
+2. Choose how many runs with the tolerance table, not by eye: with 5 per side, one slow run hides a regression.
+3. Extend only once and up to a maximum. Do not look at p after each run.
+4. Give the gate a third outcome. "I do not know, run it again" is a better answer than a pass that does not hold up.
+5. Keep a control branch that changes nothing, and count how many times it fails. It is the only way to know how many false positives your gate gives.
+6. Write the rule for choosing before measuring. After seeing the data, any policy looks reasonable.

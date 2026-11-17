@@ -228,6 +228,45 @@ test("a rehearsal of some steps, without the optional commands, goes to its own 
   }
 });
 
+test("a rehearsal calls before and after around each command it runs, keeps what after returns and names its results file", async () => {
+  const source = sourceRepo();
+  const dir = mkdtempSync(join(tmpdir(), "rehearsal-dir-"));
+  const results = mkdtempSync(join(tmpdir(), "rehearsal-results-"));
+  const calls = [];
+  try {
+    const { file } = await rehearse({
+      source: source.root,
+      ref: "v1",
+      dir,
+      only: ["step-01"],
+      skipOptional: true,
+      sources: SOURCES,
+      resultsDir: results,
+      name: "edited",
+      env: { ...process.env, COMPOSE_PROFILES: "llm" },
+      echo: false,
+      log: () => {},
+      // What an attendee does by hand between two commands: here, an edit of the file the command prints
+      before: (planned, clone) => {
+        calls.push(`before ${planned.index}`);
+        writeFileSync(join(clone, "only-in-the-ref.txt"), "edited before the command\n");
+      },
+      after: (planned, clone, record) => {
+        calls.push(`after ${planned.index}`);
+        return { seen: { exit: record.exitCode, edited: readFileSync(join(clone, "only-in-the-ref.txt"), "utf8").trim() } };
+      },
+    });
+    assert.equal(file, join(results, "edited-step-01.json"));
+    const [tests, optional] = JSON.parse(readFileSync(file, "utf8")).commands;
+    assert.deepEqual(calls, ["before 0", "after 0"], "not for the command it skips");
+    assert.deepEqual({ matched: tests.matched, missing: tests.missing }, { matched: false, missing: ["the file of the ref"] }, "the command ran after the edit");
+    assert.deepEqual(tests.seen, { exit: 0, edited: "edited before the command" });
+    assert.deepEqual([optional.status, "seen" in optional], ["skipped", false]);
+  } finally {
+    for (const path of [source.root, dir, results]) rmSync(path, { recursive: true, force: true });
+  }
+});
+
 test("a rehearsal of several profiles runs one after the other, each in its own clone, and stops the lab of each one when it ends", async () => {
   const source = sourceRepo();
   const dir = mkdtempSync(join(tmpdir(), "rehearsal-dir-"));

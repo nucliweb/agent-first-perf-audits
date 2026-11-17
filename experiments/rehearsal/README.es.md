@@ -42,6 +42,8 @@ npm test                                    # los tests del ensayo y las comprob
 
 Con `--profiles`, cada pasada va en su propio clon y para su laboratorio al terminar, así que la siguiente tiene la máquina sola. `--source` acepta una ruta o una URL de git, `--ref` una rama, un tag o un commit, `--skip-optional` deja fuera los bloques opcionales, `--dir` escoge la carpeta del clon y `--timeout` da los minutos de espera por comando.
 
+El experimento [`challenges`](../challenges/README.es.md) usa este mismo arnés con la página de los retos: `rehearse()` acepta una función que se ejecuta antes de cada comando, para los cambios que la página pide hacer a mano, y otra después, para guardar lo que deja el gate.
+
 ## Qué comprueban los tests
 
 `npm test` pasa los tests del propio ensayo (la lectura de las guías, la comparación de las salidas y un ensayo entero sobre un repo de prueba) y `claims.test.mjs`, que lee cada fichero de `results/` de un ensayo terminado y comprueba que:

@@ -187,13 +187,19 @@ export async function rehearse({
   env = process.env,
   echo = true,
   log = console.log,
+  // The name of the results file, the profile by default
+  name,
+  // What happens by hand between two commands, such as an edit of a file: before runs ahead of each
+  // command that runs, and what after returns is kept with the record of the command
+  before,
+  after,
 }) {
   const profile = profileOf(env);
   const runEnv = Object.fromEntries(Object.entries(env).filter(([name]) => !LAB_VARIABLES.includes(name)));
   const folder = dir ?? mkdtempSync(join(tmpdir(), "rehearsal-"));
   const clone = join(folder, CLONE);
   if (existsSync(clone)) throw new Error(`${clone} already exists: the rehearsal starts from a clean clone, pass another --dir`);
-  const file = join(resultsDir, `${profile}${only ? `-${only.join("-")}` : ""}.json`);
+  const file = join(resultsDir, `${name ?? profile}${only ? `-${only.join("-")}` : ""}.json`);
   const transcript = join(folder, "rehearsal.log");
 
   log(`[rehearsal] cloning ${source} at ${ref} into ${clone}`);
@@ -235,9 +241,11 @@ export async function rehearse({
       }
       const command = runnableOf(planned);
       log(`[rehearsal] ${n + 1}/${plan.length} ${planned.step}, ${where}${planned.marker ? ` (${planned.marker})` : ""}\n$ ${command.replaceAll("\n", "\n$ ")}`);
+      await before?.(planned, clone);
       const run = await runCommand(command, { cwd: clone, env: runEnv, timeoutMs, echo, signal: abort.signal });
       appendFileSync(transcript, `### ${planned.step}, ${where}\n$ ${command}\n${run.output}\n[exit ${run.exitCode}${run.timedOut ? ", timed out" : ""}, ${run.durationMs} ms]\n\n`);
       const record = recordOf(planned, run, hidden);
+      Object.assign(record, await after?.(planned, clone, record));
       results.commands.push(record);
       save(file, results);
       const match = record.matched === null ? "" : record.matched ? ", output as in the guide" : `, ${record.missing.length} expected line(s) missing`;
@@ -261,7 +269,7 @@ export async function rehearse({
 }
 
 // Stops the lab that a rehearsal leaves up, from its clone
-async function stopLabOf(clone, env) {
+export async function stopLabOf(clone, env) {
   const { exitCode, output } = await runCommand("docker compose --profile llm down", { cwd: clone, env, echo: false });
   if (exitCode !== 0) throw new Error(`could not stop the lab of ${clone}:\n${output}`);
 }

@@ -6,7 +6,7 @@ hero:
   tagline: Agents que mesuren una botiga abans i després d'un canvi, decideixen si ha empitjorat i expliquen per què. Les regles decideixen, l'LLM explica.
   actions:
     - text: Comença el taller
-      link: /ca/workshop/step-01/
+      link: /ca/workshop/
       icon: right-arrow
     - text: La botiga d'exemple
       link: https://perf-coffee.vercel.app/
@@ -40,9 +40,11 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 ## Per on començar
 
 <CardGrid>
+  <LinkCard title="Com seguir el taller" description="Xerrada amb demo, taller guiat o pel teu compte." href="/ca/workshop/" />
   <LinkCard title="Preparació" description="Descarrega les imatges a casa i passa el preflight." href="/ca/setup/" />
   <LinkCard title="Conceptes" description="Les mètriques, les seves fases i com decideix el gate." href="/ca/concepts/" />
   <LinkCard title="El taller pas a pas" description="Del primer trace al gate contra les quatre branques." href="/ca/workshop/step-01/" />
+  <LinkCard title="Reptes" description="Arregla una regressió, crea la teva i canvia les condicions de la mesura." href="/ca/challenges/" />
   <LinkCard title="Per què aquest stack" description="Cada peça, què vam descartar i la dada que ho va decidir." href="/ca/stack/" />
   <LinkCard title="Learnings" description="Les decisions de disseny amb el seu context i les seves dades." href="/ca/learnings/" />
   <LinkCard title="Les diapositives del taller" description="La presentació que acompanya el taller, per seguir-la o repassar-la." href="/slides/ca/" />

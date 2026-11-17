@@ -2,7 +2,7 @@
 // the marker above it and the counts the guide prints after it; and the slot of each step in the agenda.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { agendaOf, pointOf, rehearsalCommandsOf, withoutCloneLines } from "./guide.mjs";
+import { agendaOf, agendaRowsOf, pointOf, rehearsalCommandsOf, withoutCloneLines } from "./guide.mjs";
 
 const GUIDE = `---
 title: A step
@@ -182,6 +182,15 @@ const PLAN = `# Plan
 
 test("the slot of each step of the agenda, in minutes, up to the next row or the end of the workshop", () => {
   assert.deepEqual(agendaOf(PLAN), { "step-01": 15, "step-02": 80, "step-06": 15 });
+});
+
+test("the rows of the agenda in order: when each one starts, its step and its minutes, the context included", () => {
+  assert.deepEqual(agendaRowsOf(PLAN), [
+    { start: "0:00", step: null, slot: 10 },
+    { start: "0:10", step: "step-01", slot: 15 },
+    { start: "0:25", step: "step-02", slot: 80 },
+    { start: "1:45", step: "step-06", slot: 15 },
+  ]);
 });
 
 test("the agenda of PLAN.md gives a slot to the six steps of the workshop", async () => {

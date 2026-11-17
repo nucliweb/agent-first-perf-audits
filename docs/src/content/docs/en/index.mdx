@@ -6,7 +6,7 @@ hero:
   tagline: Agents that measure a shop before and after a change, decide whether it got worse and explain why. The rules decide, the LLM explains.
   actions:
     - text: Start the workshop
-      link: /workshop/step-01/
+      link: /workshop/
       icon: right-arrow
     - text: The demo shop
       link: https://perf-coffee.vercel.app/
@@ -40,9 +40,11 @@ import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 ## Where to start
 
 <CardGrid>
+  <LinkCard title="How to follow the workshop" description="A talk with a demo, the guided workshop or on your own." href="/workshop/" />
   <LinkCard title="Setup" description="Pull the images at home and run the preflight." href="/setup/" />
   <LinkCard title="Concepts" description="The metrics, their phases and how the gate decides." href="/concepts/" />
   <LinkCard title="The workshop step by step" description="From the first trace to the gate against the four branches." href="/workshop/step-01/" />
+  <LinkCard title="Challenges" description="Fix a regression, create your own and change the conditions of the measurement." href="/challenges/" />
   <LinkCard title="Why this stack" description="Each piece, what we ruled out and the data that decided it." href="/stack/" />
   <LinkCard title="Learnings" description="The design decisions with their context and their data." href="/learnings/" />
   <LinkCard title="The workshop slides" description="The presentation that goes with the workshop, to follow or review." href="/slides/en/" />

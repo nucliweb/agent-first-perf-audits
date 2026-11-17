@@ -333,3 +333,65 @@ Los milisegundos cambian de una máquina a otra; el test comprueba que con `keep
 2. Conserva los nombres en ese build: `keepNames` en Rolldown y esbuild, `keep_fnames` en Terser.
 3. Si no puedes conservarlos, resuelve los source maps antes de pasarle el trace al agente, no después.
 4. Comprueba en un test que el bundle conserva los nombres. Una actualización del bundler puede cambiar el valor por defecto sin avisar.
+
+## Las reglas son deterministas, las muestras no
+
+### Contexto
+
+El veredicto del gate lo dan unas reglas: la mediana de la rama supera a la del baseline en más que su umbral, y un test estadístico da p < 0,05. Con las mismas medidas deciden siempre lo mismo, y por eso el taller dice que las reglas deciden.
+
+Preparando el taller, el gate dio por buena `pr/lcp-hero-lazy`, la rama que retrasa el LCP de la home. Las reglas no fallaron. Recibieron una muestra en la que una ejecución del baseline salió lenta, y con 5 ejecuciones por lado eso basta para dejar p en 0,0754. Un gate que da por buena una regresión clara, aunque sea una vez de cada tantas, enseña a no fiarse de él.
+
+Había una segunda sospecha. El gate medía primero todas las ejecuciones de `main` y después todas las de la rama, y en los informes aparecían diferencias de INP en ramas que no tocan el INP.
+
+### Qué probamos
+
+Dos noches de medida en el Mac de referencia, una con la máquina en reposo y otra con el modelo local generando texto al lado. Cada ronda mide ejecuciones sueltas de `main` y de las cuatro ramas en dos órdenes: primero todas las del baseline, o alternando una de cada tienda. Después, el código de la propia CLI decide sobre esas mismas ejecuciones con cada política, así que todas se comparan con los mismos datos y no con la suerte de cada noche.
+
+La regla para escoger se escribió antes de medir: la política más barata que no deje escapar ninguna regresión en reposo, que deje escapar como mucho un 10 % con carga y que no haga fallar nunca a `pr/noop-refactor`, la rama de control.
+
+| Máquina | Gate | Regresiones que se escapan | Veces que falla el control |
+|---|---|---|---|
+| En reposo | 5 ejecuciones por lado, primero todas las del baseline | 1 de 75 | 0 de 50 |
+| En reposo | 5 por lado y 7 si no es concluyente, alternando | 0 de 75 | 0 de 50 |
+| Con `ollama` generando | 5 ejecuciones por lado, primero todas las del baseline | 4 de 60 | 3 de 40 |
+| Con `ollama` generando | 5 por lado y 7 si no es concluyente, alternando | 2 de 60 | 0 de 40 |
+
+Los datos separan dos problemas que parecían uno:
+
+- **Pocas ejecuciones.** Con 5 por lado, una sola ejecución lenta del baseline deja p en 0,0754. Con 7, la misma ejecución lenta lo deja en 0,0131. Medir siempre 7 lo arregla y encarece todas las ejecuciones del gate; medir 7 solo cuando el cambio supera su umbral y p no llega lo arregla casi gratis.
+- **El orden.** Con la máquina ocupada, medir primero todo el baseline hace fallar al control 3 veces de 40, y ninguna política con más ejecuciones lo evita. No es ruido de muestreo: la máquina cambia de velocidad entre el bloque del baseline y el de la rama, y el test lo ve como un cambio real. Alternando las ejecuciones, lo que le pase a la máquina les pasa a las dos tiendas.
+
+### Decisión
+
+- **El gate alterna las ejecuciones de las dos tiendas**, en una sola llamada a la CLI.
+- **Amplía una vez, con un máximo.** Mide 5 ejecuciones por tienda y, cuando un cambio supera su umbral y p no llega, hasta 7 (`--max-runs 7`). Decide como mucho dos veces: mirar p después de cada ejecución añadida acabaría encontrando un cambio por casualidad.
+- **Dice cuándo no puede decidir.** Si después de ampliar sigue igual, la métrica queda como `inconclusive`. El gate no falla por ella, el informe lo pone arriba y pide lanzarlo otra vez, y la comprobación del paso 5 hace lo mismo en lugar de dar un pass.
+- **Vive en la herramienta.** La comparación con un baseline vivo, la ampliación y el veredicto no concluyente son de la CLI de WebPerf Snippets, no del taller: es el learning de [arreglar la herramienta](#arreglar-la-herramienta-antes-que-parchear-el-taller).
+
+### Qué no arregla
+
+Con la máquina ocupada todavía se escapan 2 regresiones de 60. Alternar y ampliar hacen el gate más difícil de engañar, no inmune: medir con la máquina sola, y con un solo Chromium a la vez, sigue siendo parte del método.
+
+### Compruébalo
+
+El experimento está en [`experiments/gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.es.md), con las ejecuciones de las dos noches guardadas:
+
+```bash
+cd experiments/gate-stability
+npm install
+npm test                                                    # las políticas deciden como la CLI, y las cifras de los docs salen de los resultados
+node report.mjs idle --policies 5,7,9,5-7,5-9 --summary     # la noche en reposo, por orden y política
+node report.mjs loaded --policies 5,7,9,5-7,5-9 --summary   # la noche con ollama generando
+```
+
+[Conceptos](../concepts/#cómo-decide-el-gate) explica el test estadístico y la tabla de cuántas ejecuciones lentas tolera cada número de ejecuciones.
+
+### Cómo aplicarlo en tu plataforma
+
+1. Mide el baseline y la rama en la misma máquina y alternando sus ejecuciones, no un bloque detrás de otro.
+2. Escoge cuántas ejecuciones con la tabla de tolerancia, no a ojo: con 5 por lado, una ejecución lenta esconde una regresión.
+3. Amplía una sola vez y hasta un máximo. No mires p después de cada ejecución.
+4. Dale al gate una tercera salida. "No lo sé, lánzalo otra vez" es mejor respuesta que un pass que no se sostiene.
+5. Ten una rama de control que no cambia nada, y cuenta cuántas veces falla. Es la única forma de saber cuántos falsos positivos da tu gate.
+6. Escribe la regla para escoger antes de medir. Después de ver los datos, cualquier política parece razonable.

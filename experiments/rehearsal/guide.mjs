@@ -104,9 +104,10 @@ export function withoutCloneLines(command) {
     .join("\n");
 }
 
-// The slot of each step in the agenda of PLAN.md, in minutes: from its row to the next one, and the
-// last one to the end of the workshop, the hours of the heading "Agenda (2 h)"
-export function agendaOf(plan) {
+// The rows of the agenda of PLAN.md in order: when each one starts, as the agenda writes it, its step
+// (null for a row without one, such as the context) and its slot in minutes: from its row to the next
+// one, and the last one to the end of the workshop, the hours of the heading "Agenda (2 h)"
+export function agendaRowsOf(plan) {
   const lines = plan.split("\n");
   const heading = lines.findIndex((line) => /^## Agenda \(\d+ h\)/.test(line));
   if (heading === -1) throw new Error('no heading "## Agenda (N h)" in the plan');
@@ -114,12 +115,13 @@ export function agendaOf(plan) {
   const rows = [];
   for (const line of lines.slice(heading + 1)) {
     if (line.startsWith("## ")) break;
-    const row = line.match(/^\|\s*(\d+):(\d\d)\s*\|\s*(?:(\d+)\.)?/);
-    if (row) rows.push({ start: Number(row[1]) * 60 + Number(row[2]), step: row[3] ? `step-${row[3].padStart(2, "0")}` : null });
+    const row = line.match(/^\|\s*((\d+):(\d\d))\s*\|\s*(?:(\d+)\.)?/);
+    if (row) rows.push({ start: row[1], minute: Number(row[2]) * 60 + Number(row[3]), step: row[4] ? `step-${row[4].padStart(2, "0")}` : null });
   }
-  const slots = {};
-  rows.forEach((row, i) => {
-    if (row.step) slots[row.step] = (rows[i + 1]?.start ?? total) - row.start;
-  });
-  return slots;
+  return rows.map(({ start, minute, step }, i) => ({ start, step, slot: (rows[i + 1]?.minute ?? total) - minute }));
+}
+
+// The slot of each step in the agenda of PLAN.md, in minutes
+export function agendaOf(plan) {
+  return Object.fromEntries(agendaRowsOf(plan).filter((row) => row.step).map((row) => [row.step, row.slot]));
 }
