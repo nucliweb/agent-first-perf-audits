@@ -132,3 +132,26 @@ for (const lang of Object.keys(PAGES)) {
     }
   });
 }
+
+// The demo of the gate on GitHub, for the slides: demo.mjs captures the check and the comment of the
+// pull request of pr/lcp-hero-lazy, and demo.json keeps what the captures show
+const DEMO = ["gate-check.png", "gate-comment-metrics.png", "gate-comment-explanation.png", "gate-comment-facts.png"];
+
+test("the captures of the gate on GitHub are of the pull request of the hero, with a gate that fails for the LCP of the home", () => {
+  const demo = JSON.parse(readFileSync(new URL("./demo.json", import.meta.url), "utf8"));
+  assert.equal(demo.branch, "pr/lcp-hero-lazy");
+  assert.equal(demo.check.conclusion, "failure");
+  assert.ok(demo.check.annotations.some((text) => /^LCP regressed in home/.test(text)), JSON.stringify(demo.check.annotations));
+  assert.match(demo.comment.verdict, /^Verdict of the rules: fail\./);
+});
+
+for (const lang of ["es", "ca", "en"]) {
+  test(`the captures of the gate on GitHub exist, and the slides in ${lang} show them`, () => {
+    const slides = readFileSync(new URL(`../../docs/public/slides/${lang === "es" ? "" : `${lang}/`}index.html`, import.meta.url), "utf8");
+    for (const file of DEMO) {
+      const bytes = readFileSync(new URL(`../../docs/public/evidence/${file}`, import.meta.url)).length;
+      assert.ok(bytes > 10_000, `${file}: ${bytes} bytes`);
+      assert.ok(slides.includes(`/evidence/${file}`), `the slides show ${file}`);
+    }
+  });
+}

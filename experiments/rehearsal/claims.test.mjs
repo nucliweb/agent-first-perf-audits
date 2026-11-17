@@ -120,6 +120,32 @@ test("the agenda of the page that says how to follow the workshop is the one of 
   assert.deepEqual(missing, []);
 });
 
+// The slides, in the three languages: the agenda is the one of PLAN.md, each block of the deck plans the
+// minutes of its slot (what the presenter view counts against), and the checkpoint of each step gives
+// its slot and its machine time with the llm profile
+const DECKS = { es: ["docs/public/slides/index.html", ","], ca: ["docs/public/slides/ca/index.html", ","], en: ["docs/public/slides/en/index.html", "."] };
+
+test("the slides give the agenda of PLAN.md, plan each block with its slot and show the time of each step at its checkpoint", { skip: !bothFull && "it needs a finished rehearsal of each profile" }, () => {
+  const times = stepTimesOf(full.llm.commands);
+  const rows = agendaRowsOf(readFileSync(join(REPO, "PLAN.md"), "utf8"));
+  const missing = [];
+  for (const [language, [file, mark]] of Object.entries(DECKS)) {
+    const html = readFileSync(join(REPO, file), "utf8");
+    const sections = [...html.matchAll(/<section\b([^>]*)>([\s\S]*?)<\/section>/g)].map(([, attrs, body]) => ({ block: attrs.match(/data-block="([^"]*)"/)?.[1], minutes: attrs.match(/data-minutes="(\d+)"/)?.[1], body }));
+    const tableRows = [...html.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map(([, row]) => row);
+    for (const row of rows) {
+      if (!tableRows.some((cells) => cells.includes(`<td>${row.start}</td>`) && cells.includes(`<td>${row.slot} min</td>`))) missing.push(`${language}: the row of the agenda that starts at ${row.start}, ${row.slot} min`);
+      const block = row.step ?? "context";
+      const planned = sections.find((s) => s.block === block)?.minutes;
+      if (Number(planned) !== row.slot) missing.push(`${language}: the block ${block} plans ${planned ?? "no"} minutes, its slot is ${row.slot}`);
+      if (!row.step || !(row.step in times)) continue;
+      const machine = `${minutes(times[row.step]).replace(".", mark)} min`;
+      if (!sections.some((s) => s.block === row.step && s.body.includes(`${row.slot} min`) && s.body.includes(machine))) missing.push(`${language}: no slide of ${row.step} with ${row.slot} min and ${machine}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
+
 for (const name of files) {
   const results = JSON.parse(readFileSync(join(RESULTS, name), "utf8"));
   const unfinished = !results.complete && `${name} is from a rehearsal that did not finish`;

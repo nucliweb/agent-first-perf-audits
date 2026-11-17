@@ -1,0 +1,19 @@
+{
+  "pull": 1,
+  "branch": "pr/lcp-hero-lazy",
+  "commit": "b1fa56fec7515efbb150fd2fb70bf46b27abdee8",
+  "check": {
+    "id": 131917200785,
+    "conclusion": "failure",
+    "completedAt": "2026-11-13T13:37:51Z",
+    "annotations": [
+      "Process completed with exit code 1.",
+      "LCP regressed in home: 724 ms to 1132 ms"
+    ]
+  },
+  "comment": {
+    "id": 6851718143,
+    "updatedAt": "2026-11-13T13:37:44Z",
+    "verdict": "Verdict of the rules: fail. Compared with main, with --cpu 4 --network fast-4g --runs 5, chromium 153.0.8010.12."
+  }
+}

@@ -35,6 +35,7 @@ En el equipo con el que presentas:
 - Ensaya el [paso 5](../workshop/step-05/) entero una vez, con la máquina sola. Tiene que dar tres fallos y un pass.
 - Deja libres la CPU y el disco. Cierra copias de seguridad, videollamadas y otros contenedores: `docker ps` no debería listar nada que no sea el laboratorio, y `docker system df` dice cuánto ocupa Docker.
 - Abre en pestañas las slides, [Las ramas en el navegador](../previews/) y las pull requests de [`pr/lcp-hero-lazy`](https://github.com/nucliweb/agent-first-perf-audits/pull/1) y de [`pr/noop-refactor`](https://github.com/nucliweb/agent-first-perf-audits/pull/4). Guarda capturas del check y del comentario de cada una, por si la red de la sala falla.
+- Prueba la vista de quien presenta de las slides: la tecla `n` abre una segunda ventana con las notas de cada slide, el slide siguiente, el tiempo total y el tiempo del bloque frente a su hueco en la agenda. La tecla `r` pone el reloj a cero.
 - Sube el tamaño de letra de la terminal: las líneas que hay que leer en cada punto de control son largas.
 
 El día del taller, presenta con el portátil enchufado. El INP de `pr/loaf-cart-handler` depende de lo rápido que vaya la CPU, y con ella cambian las cifras que salen en pantalla.

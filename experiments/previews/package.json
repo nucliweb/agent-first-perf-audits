@@ -6,6 +6,7 @@
   "scripts": {
     "measure": "node measure.mjs",
     "evidence": "node evidence.mjs",
+    "demo": "node demo.mjs",
     "test": "node --test"
   },
   "dependencies": {

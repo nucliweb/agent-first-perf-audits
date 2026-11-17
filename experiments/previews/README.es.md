@@ -11,6 +11,7 @@ Reproduce las cifras de la página "Las ramas en el navegador": la tienda de `ma
 3. Lo repite cinco veces por sitio en dos condiciones: CPU 4x sin limitar la red, y CPU 4x con `fast-4g`, el preset de WebPerf Snippets 1.15.0 que usa el gate del taller.
 4. Guarda cada ejecución y las medianas en [`results.json`](results.json), con la fecha.
 5. `evidence.mjs` genera las imágenes de la página y de las slides en `docs/public/evidence/`, en los tres idiomas: el filmstrip de la carga de `main` y de `pr/lcp-hero-lazy` (de cinco cargas, la del LCP mediano), la home de `pr/cls-promo-banner` justo después de su desplazamiento, junto a la de `main`, y las fases del click de `pr/loaf-cart-handler` frente a `main`, con las medianas de `results.json`. Guarda en [`evidence.json`](evidence.json) las cifras que citan los pies de las imágenes.
+6. `demo.mjs` captura la demo del gate en GitHub para las slides: el check de la pull request de `pr/lcp-hero-lazy` con sus anotaciones, y el comentario que deja `ci`, en tres imágenes (el veredicto con las métricas, la explicación y los hechos de las reglas). Lee la API y las páginas públicas de GitHub, sin iniciar sesión, y guarda en [`demo.json`](demo.json) qué check y qué comentario ha capturado.
 
 Los tests no miden: comprueban las conclusiones de la página sobre `results.json` y `evidence.json`, que las cifras de la página y de las slides en los tres idiomas son las de esos ficheros, y que las imágenes existen y se muestran.
 
@@ -25,6 +26,7 @@ Los tests no miden: comprueban las conclusiones de la página sobre `results.jso
 npm install
 npm run measure     # mide los cinco sitios y reescribe results.json, unos 7 minutos
 npm run evidence    # genera las imágenes y evidence.json, unos 2 minutos
+npm run demo        # captura el check y el comentario de la pull request de la demo
 npm test            # comprueba las conclusiones y las cifras de la página
 ```
 
