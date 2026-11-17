@@ -11,6 +11,7 @@ Reproduces the figures of "The branches in the browser" page: the `main` shop in
 3. Repeats it five times per site under two conditions: 4x CPU without network throttling, and 4x CPU with `fast-4g`, the WebPerf Snippets 1.15.0 preset that the workshop gate uses.
 4. Saves each run and the medians in [`results.json`](results.json), with the date.
 5. `evidence.mjs` generates the images of the page and the slides in `docs/public/evidence/`, in the three languages: the filmstrip of the load of `main` and `pr/lcp-hero-lazy` (out of five loads, the one with the median LCP), the home of `pr/cls-promo-banner` right after its shift, next to the one of `main`, and the phases of the click of `pr/loaf-cart-handler` against `main`, with the medians of `results.json`. It saves in [`evidence.json`](evidence.json) the figures that the image captions quote.
+6. `demo.mjs` captures the demo of the gate on GitHub for the slides: the check of the pull request of `pr/lcp-hero-lazy` with its annotations, and the comment that `ci` leaves, in three images (the verdict with the metrics, the explanation and the facts of the rules). It reads the GitHub API and public pages, without logging in, and saves in [`demo.json`](demo.json) which check and which comment it captured.
 
 The tests do not measure: they check the conclusions of the page against `results.json` and `evidence.json`, that the figures of the page and the slides in the three languages are the ones in those files, and that the images exist and are shown.
 
@@ -25,6 +26,7 @@ The tests do not measure: they check the conclusions of the page against `result
 npm install
 npm run measure     # measures the five sites and rewrites results.json, about 7 minutes
 npm run evidence    # generates the images and evidence.json, about 2 minutes
+npm run demo        # captures the check and the comment of the demo pull request
 npm test            # checks the conclusions and the figures of the page
 ```
 

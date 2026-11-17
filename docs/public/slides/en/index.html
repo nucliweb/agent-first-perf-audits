@@ -8,20 +8,70 @@
 <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../slides.css">
 </head>
-<body data-deck="Multi-Agent Performance Audits">
+<body data-deck="Multi-Agent Performance Audits" data-label-next="Next" data-label-notes="Notes" data-label-no-notes="This slide has no notes" data-label-end="End of the slides" data-label-clock="Time">
 <div class="progress" aria-hidden="true"></div>
 <main class="deck" aria-live="polite">
 
-<section class="slide dark spread" data-title="Cover">
+<section class="slide dark spread" data-title="Cover" data-block="context" data-minutes="10" data-block-title="Context">
   <p class="eyebrow">PerfReviews · Workshop</p>
   <div style="display:flex;flex-direction:column;gap:32px">
     <h1>Multi-Agent Performance Audits</h1>
     <p class="lead">Automating Core Web Vitals on your internal platform with MCP</p>
   </div>
   <p class="lead" style="font-size:28px">The rules decide, the LLM explains</p>
+  <aside class="notes"><p>Before you start, ask who has the preflight green: decide the format with the room in front of you.</p></aside>
 </section>
 
-<section class="slide" data-title="Disclaimer">
+<section class="slide accent spread" data-title="The problem" data-block="context">
+  <p class="eyebrow">The problem</p>
+  <p class="statement">The app’s tests pass on all four branches. Classic CI sees no regression.</p>
+  <p class="lead">And all three regressions stay within “good”: only a comparison with the baseline shows them</p>
+  <aside class="notes"><p>Start with the problem, not the tools. The app's tests pass on the four branches, and three of them make worse what the people using the shop notice.</p></aside>
+</section>
+
+<section class="slide" data-title="The four branches" data-block="context">
+  <p class="eyebrow">Perf Coffee</p>
+  <h2>Four pull requests against the shop</h2>
+  <table>
+    <tr><th style="width:28%">Branch</th><th style="width:52%">Change</th><th style="width:20%">Regresses</th></tr>
+    <tr><td><code>pr/lcp-hero-lazy</code></td><td>The hero loses its preload and fetchpriority, and becomes loading=“lazy”</td><td>LCP</td></tr>
+    <tr><td><code>pr/cls-promo-banner</code></td><td>A third-party banner without reserved space and a font swap</td><td>CLS</td></tr>
+    <tr><td><code>pr/loaf-cart-handler</code></td><td>A synchronous A/B testing script and recommendations in the cart handler</td><td>INP and LCP</td></tr>
+    <tr><td><code>pr/noop-refactor</code></td><td>Extracts the hero into a component</td><td>Nothing</td></tr>
+  </table>
+  <aside class="notes"><p>Four pull requests. The fourth is the control: a refactor that changes nothing, and the gate has to let it through.</p></aside>
+</section>
+
+<section class="slide evidence" data-title="LCP in the browser" data-block="context">
+  <p class="eyebrow">LCP · pr/lcp-hero-lazy</p>
+  <h2>The hero arrives late</h2>
+  <img class="evidence" src="/evidence/lcp-filmstrip-en.jpg" alt="The load of the home page of main and of pr/lcp-hero-lazy, frame by frame: on the branch, the page has its text before the hero image">
+  <p class="lead">The page already has its text, but the slot of the hero is still empty</p>
+  <aside class="notes"><p>Show it live too, from The branches in the browser. No test sees this.</p></aside>
+</section>
+
+<section class="slide" data-title="Agenda" data-block="context">
+        <p class="eyebrow">Today</p>
+        <h2>Two hours, six steps</h2>
+        <table class="compact">
+          <tr>
+            <th style="width: 12%">Start</th>
+            <th>Block</th>
+            <th style="width: 16%">Time</th>
+          </tr>
+          <tr><td>0:00</td><td>Context: why classic CI does not see these regressions</td><td>10 min</td></tr>
+          <tr><td>0:10</td><td>1. The first call to an MCP</td><td>15 min</td></tr>
+          <tr><td>0:25</td><td>2. The LCP subagent</td><td>20 min</td></tr>
+          <tr><td>0:45</td><td>3. Navigator, CLS and LoAF/INP</td><td>20 min</td></tr>
+          <tr><td>1:05</td><td>4. The Judge</td><td>20 min</td></tr>
+          <tr><td>1:25</td><td>5. The gate in ci against the four branches</td><td>20 min</td></tr>
+          <tr><td>1:45</td><td>6. Take it to your platform, learnings and questions</td><td>15 min</td></tr>
+        </table>
+        <p class="small">No coding: each step applies its solution with git, and has its guide on the workshop site</p>
+        <aside class="notes"><p>Six steps. Each one has a long measurement, and that wait is for questions.</p></aside>
+      </section>
+
+<section class="slide" data-title="Disclaimer" data-block="context">
   <p class="eyebrow">Disclaimer</p>
   <h2>It is called agent-first, but scripts decide</h2>
   <div class="grid three">
@@ -30,20 +80,10 @@
     <div class="card"><h3>LLM</h3><p>A single local model that writes the explanation. With no regression, it is not even asked</p></div>
   </div>
   <p class="lead">A gate has to give the same result for the same branch: what is not deterministic does not decide</p>
+  <aside class="notes"><p>What is not deterministic does not decide. The idea comes back in step 4.</p></aside>
 </section>
 
-<section class="slide" data-title="What we will do">
-  <p class="eyebrow">Today</p>
-  <h2>What we will do</h2>
-  <div class="grid two">
-    <div class="card"><h3>1. Get aligned</h3><p>What Web Performance is and what the Core Web Vitals measure</p></div>
-    <div class="card"><h3>2. The problem</h3><p>Why classic CI does not see performance regressions</p></div>
-    <div class="card"><h3>3. Walk through it</h3><p>Subagents with MCP, a Judge and a performance gate for pull requests, step by step and without coding</p></div>
-    <div class="card"><h3>4. Take it home</h3><p>What to change and what to keep on your platform</p></div>
-  </div>
-</section>
-
-<section class="slide" data-title="Web Performance">
+<section class="slide" data-title="Web Performance" data-block="context">
   <p class="eyebrow">Web Performance</p>
   <h2>What users perceive, measured</h2>
   <div class="grid three">
@@ -52,9 +92,10 @@
     <div class="card"><h3>Responsiveness</h3><p>Does it react as soon as I touch something?</p></div>
   </div>
   <p class="lead">Each question has a metric, and each metric breaks down to show where the time goes</p>
+  <aside class="notes"><p>Three questions from the person using the page. Each one has its metric.</p></aside>
 </section>
 
-<section class="slide" data-title="Core Web Vitals">
+<section class="slide" data-title="Core Web Vitals" data-block="context">
   <p class="eyebrow">Core Web Vitals</p>
   <h2>Three metrics, three “good” thresholds</h2>
   <div class="grid three">
@@ -63,9 +104,75 @@
     <div class="card"><h3>INP</h3><p class="big">≤ 200 ms</p><p>Interaction to Next Paint: how long it takes to respond to an interaction</p></div>
   </div>
   <p class="small">The thresholds WebPerf Snippets returns with each measurement, Google’s for the 75th percentile</p>
+  <aside class="notes"><p>The three regressions of the workshop stay inside these thresholds. Keep that in mind for step 5.</p></aside>
 </section>
 
-<section class="slide" data-title="LCP in four phases">
+<section class="slide evidence" data-title="The lab" data-block="context">
+  <p class="eyebrow">Architecture</p>
+  <h2>All on your laptop, with no internet access</h2>
+  <img class="evidence diagram" src="/diagrams/lab.svg" alt="The services of the lab: agents and ci measure shop-baseline and shop-candidate, which load the scripts of thirdparty; agents asks ollama for the explanation and writes the reports in out/" />
+  <p class="lead"><code>thirdparty</code> serves the third-party scripts: analytics, chat, a promo banner and A/B testing</p>
+  <aside class="notes"><p>Two shops, the third-party mocks, the agents and the model, on a network with no way out.</p></aside>
+</section>
+
+<section class="slide dark" data-title="Before you start" data-block="step-01" data-minutes="15" data-block-title="Step 1">
+  <p class="eyebrow">Before you start</p>
+  <h2>Your branch, from the start of the workshop</h2>
+  <pre><span class="comment"># with the images pulled and the preflight green</span>
+git fetch origin workshop --tags
+git switch -c taller workshop-start
+docker compose up -d</pre>
+  <p class="lead">With 8 GB, put <code>COMPOSE_PROFILES=lite</code> before every docker compose command. Each step has its guide on the workshop site</p>
+  <aside class="notes"><p>Wait until the whole room has the lab up. With 8 GB, the lite profile.</p></aside>
+</section>
+
+<section class="slide" data-title="Each step" data-block="step-01">
+  <p class="eyebrow">Each step</p>
+  <h2>Red, solution, green and measure</h2>
+  <ul class="list">
+    <li>The tests of the step fail: its code is still a <code>throw</code></li>
+    <li>You apply the solution with <code>git checkout step-0N-solution -- agents/src</code></li>
+    <li>The tests pass and you measure the regression of the step</li>
+    <li>The tags are cumulative: you can start any step</li>
+  </ul>
+  <p class="lead">Writing the code yourself is optional: the guide of each step has the hints</p>
+  <aside class="notes"><p>Explain the rhythm once: red, solution, green, measurement and check.</p></aside>
+</section>
+
+<section class="slide" data-title="Step 1" data-block="step-01">
+  <p class="eyebrow">Step 1</p>
+  <h2>The first call to an MCP</h2>
+  <div class="columns">
+    <div><h3>The code of the step</h3><ul class="list"><li><code>recordTrace</code> in <code>agents/src/mcp/trace.ts</code></li><li>The trace of the home page load, to a file</li></ul></div>
+    <div><h3>With Chrome DevTools MCP</h3><ul class="list"><li><code>emulate</code></li><li><code>navigate_page</code></li><li><code>performance_start_trace</code></li></ul></div>
+  </div>
+  <pre>git checkout step-01-solution -- agents/src
+docker compose run --rm agents npm run check -- step-01</pre>
+  <aside class="notes"><p>An MCP server publishes tools, and whoever calls them can be a program.</p></aside>
+</section>
+
+<section class="slide dark" data-title="Step 1: checkpoint" data-block="step-01">
+        <p class="eyebrow">Step 1 · Checkpoint</p>
+        <h2>This has to be on your screen</h2>
+        <pre>step-01 is done.</pre>
+        <p class="lead">And in <code>out/</code>, a <code>first-trace.json</code> that opens in the Performance panel of DevTools</p>
+        <p class="small">15 min in the agenda · 0.8 min on the machine</p>
+        <aside class="notes"><p>Do not go on until most screens show the line. Open your trace in DevTools.</p></aside>
+      </section>
+
+<section class="slide" data-title="Step 1: what you take away" data-block="step-01">
+        <p class="eyebrow">Step 1 · What you take away</p>
+        <h2>A program calls an MCP too</h2>
+        <ul class="list">
+          <li>An MCP tool is an action with a name and arguments</li>
+          <li>The trace of a load is evidence for people and for tools, not a prompt</li>
+          <li>The rhythm of each step: red, solution, green, measurement and check</li>
+        </ul>
+        <p class="lead">To think about: of what you look at by hand in DevTools today, what could a program ask for by name?</p>
+        <aside class="notes"><p>Leave the question hanging: it does not need an answer now.</p></aside>
+      </section>
+
+<section class="slide" data-title="LCP in four phases" data-block="step-02" data-minutes="20" data-block-title="Step 2">
   <p class="eyebrow">LCP</p>
   <h2>LCP breaks down into four phases</h2>
   <div class="phases" role="img" aria-label="The four phases of LCP, one after the other">
@@ -80,19 +187,71 @@
     <li><b>Load time:</b> how long it takes to download</li>
     <li><b>Render delay:</b> from when it arrives until it is painted</li>
   </ul>
+  <aside class="notes"><p>Only LCP for now. INP and CLS come during the wait of step 3.</p></aside>
 </section>
 
-<section class="slide" data-title="CLS">
-  <p class="eyebrow">CLS</p>
-  <h2>Not every shift counts</h2>
+<section class="slide" data-title="The subagents" data-block="step-02">
+  <p class="eyebrow">The subagents</p>
+  <h2>Each one measures one thing, none of them decides</h2>
+  <table>
+    <tr><th style="width:22%">Subagent</th><th>What it does</th></tr>
+    <tr><td>Navigator</td><td>Goes through the shop step by step and checks that each journey completes</td></tr>
+    <tr><td>LCP</td><td>The LCP of the home page, its four phases and how the image loads</td></tr>
+    <tr><td>CLS</td><td>The shifts of each journey and the nodes that move</td></tr>
+    <tr><td>LoAF/INP</td><td>The INP, the long animation frames and the function that blocks</td></tr>
+    <tr><td>Judge</td><td>The gate, the explanation and the findings of the others</td></tr>
+  </table>
+  <aside class="notes"><p>None of them decides. Each one leaves a JSON.</p></aside>
+</section>
+
+<section class="slide" data-title="Step 2" data-block="step-02">
+  <p class="eyebrow">Step 2</p>
+  <h2>The LCP subagent</h2>
   <div class="columns">
-    <div class="card"><h3>They count</h3><p>The ones the user did not cause: a banner that comes in without reserved space, a font that changes size when it loads</p></div>
-    <div class="card"><h3>They do not count</h3><p>The ones right after an interaction, like a panel that opens on a click</p></div>
+    <div><h3>The code of the step</h3><ul class="list"><li><code>askWebPerf</code> and <code>lcpReportOf</code> in <code>lcp.ts</code></li><li>The LCP of each shop, its phases and how the image loads</li></ul></div>
+    <div><h3>With WebPerf Snippets MCP</h3><ul class="list"><li><code>run_workflow</code> core-web-vitals</li><li><code>run_snippet</code> LCP-Subparts</li></ul></div>
   </div>
-  <p class="lead">To fix it, the number is not enough: you need to know which nodes move</p>
+  <pre>git checkout step-02-solution -- agents/src
+docker compose run --rm agents npm run check -- step-02</pre>
+  <aside class="notes"><p>Start the measurement and ask them to open the two shops in the browser: can they see the difference at a glance?</p></aside>
 </section>
 
-<section class="slide" data-title="INP and LoAF">
+<section class="slide dark" data-title="Step 2: checkpoint" data-block="step-02">
+        <p class="eyebrow">Step 2 · Checkpoint</p>
+        <h2>This has to be on your screen</h2>
+        <pre class="wide">[orchestrator] lcp, baseline: … slowest phase resourceLoadTime …
+[orchestrator] lcp, candidate: … slowest phase resourceLoadDelay …
+step-02 is done.</pre>
+        <p class="lead">A different slowest phase on each side: the image of the branch is discovered late</p>
+        <p class="small">20 min in the agenda · 2.9 min on the machine</p>
+        <aside class="notes"><p>If the two lines say the same to someone, they are missing CANDIDATE=pr-lcp-hero-lazy in front of the commands.</p></aside>
+      </section>
+
+<section class="slide" data-title="Step 2: what you take away" data-block="step-02">
+        <p class="eyebrow">Step 2 · What you take away</p>
+        <h2>LCP is fixed by phases</h2>
+        <ul class="list">
+          <li>On this branch the image is not heavier: it is discovered later, and <code>resourceLoadDelay</code> says so</li>
+          <li>A subagent is code that asks for data and leaves it in a JSON. There is no LLM here</li>
+          <li>Three measurements and their median: a single one cannot tell a change from noise</li>
+        </ul>
+        <p class="lead">To think about: on the page that matters most in your product, which element is the LCP and what decides when the browser discovers it?</p>
+        <aside class="notes"><p>Ask before showing the slide: why the median of three measurements and not a single one?</p></aside>
+      </section>
+
+<section class="slide" data-title="Step 3" data-block="step-03" data-minutes="20" data-block-title="Step 3">
+  <p class="eyebrow">Step 3</p>
+  <h2>Navigator, CLS and LoAF/INP</h2>
+  <div class="columns">
+    <div><h3>The code of the step</h3><ul class="list"><li>The journey of the Navigator</li><li>The CLS and LoAF/INP measurements on its journeys</li></ul></div>
+    <div><h3>With WebPerf Snippets MCP</h3><ul class="list"><li><code>open_page</code>, <code>interact</code> and <code>read_results</code></li><li><code>run_snippet</code> Layout-Shift-Loading-and-Interaction</li><li><code>run_workflow</code> interaction</li></ul></div>
+  </div>
+  <pre>git checkout step-03-solution -- agents/src
+docker compose run --rm agents npm run check -- step-03</pre>
+  <aside class="notes"><p>Start the measurement: it is the longest wait of the first four steps. The next four slides are for it.</p></aside>
+</section>
+
+<section class="slide" data-title="INP and LoAF" data-block="step-03">
   <p class="eyebrow">INP and LoAF</p>
   <h2>An interaction has three phases</h2>
   <div class="grid three">
@@ -101,9 +260,112 @@
     <div class="card"><h3>Presentation delay</h3><p>Until the browser paints the next frame</p></div>
   </div>
   <p class="lead"><b style="color:var(--ink)">Long Animation Frames (LoAF):</b> name the script that blocks and what invokes it. A trace of the click names the function</p>
+  <aside class="notes"><p>The three phases of an interaction. The long animation frames name the script; the trace of the click, the function.</p></aside>
 </section>
 
-<section class="slide" data-title="Lab and field">
+<section class="slide" data-title="CLS" data-block="step-03">
+  <p class="eyebrow">CLS</p>
+  <h2>Not every shift counts</h2>
+  <div class="columns">
+    <div class="card"><h3>They count</h3><p>The ones the user did not cause: a banner that comes in without reserved space, a font that changes size when it loads</p></div>
+    <div class="card"><h3>They do not count</h3><p>The ones right after an interaction, like a panel that opens on a click</p></div>
+  </div>
+  <p class="lead">To fix it, the number is not enough: you need to know which nodes move</p>
+  <aside class="notes"><p>Shifts that follow an interaction do not count.</p></aside>
+</section>
+
+<section class="slide evidence" data-title="INP in the browser" data-block="step-03">
+  <p class="eyebrow">INP · pr/loaf-cart-handler</p>
+  <h2>The extra time is in the handler</h2>
+  <img class="evidence" src="/evidence/inp-phases-en.png" alt="The three phases of the Add to cart click on main and on pr/loaf-cart-handler: processing is the one that grows">
+  <p class="lead">The input delay and the presentation delay barely change: processing grows</p>
+  <aside class="notes"><p>Processing grows: the extra time is in the handler.</p></aside>
+</section>
+
+<section class="slide evidence" data-title="CLS in the browser" data-block="step-03">
+  <p class="eyebrow">CLS · pr/cls-promo-banner</p>
+  <h2>The banner pushes the page</h2>
+  <img class="evidence" src="/evidence/cls-shift-en.jpg" alt="The home page of main, with the space of the banner reserved, next to the one of pr/cls-promo-banner, where the content moves down when the banner arrives">
+  <aside class="notes"><p>The banner arrives with no reserved space and pushes the content down.</p></aside>
+</section>
+
+<section class="slide dark" data-title="Step 3: checkpoint" data-block="step-03">
+        <p class="eyebrow">Step 3 · Checkpoint</p>
+        <h2>This has to be on your screen</h2>
+        <pre class="wide">[orchestrator] loaf, candidate: … slowest add-to-cart: processing … ms, top script DIV#root.onclick (…)
+step-03 is done.</pre>
+        <p class="lead"><code>add-to-cart</code> is the slowest journey, and the script that blocks it is the click handler</p>
+        <p class="small">20 min in the agenda · 6.9 min on the machine</p>
+        <aside class="notes"><p>An INP different from the guide's is normal: it depends on the machine. Point 7, the CLS of the banner, is optional: if you are late, show it on your screen.</p></aside>
+      </section>
+
+<section class="slide" data-title="Step 3: what you take away" data-block="step-03">
+        <p class="eyebrow">Step 3 · What you take away</p>
+        <h2>From symptom to function</h2>
+        <ul class="list">
+          <li>A journey is a JSON that serves the Navigator, the subagents and the gate</li>
+          <li>The INP points to the slow interaction; the long animation frames, to the script; the trace of the click, to the function: <code>recommendFor</code></li>
+          <li>Not every shift is CLS: the ones that follow an interaction do not count</li>
+        </ul>
+        <p class="lead">To think about: which three journeys of your product would you save in <code>agents/journeys/</code>?</p>
+        <aside class="notes"><p>Question from the guide: why does the Navigator go before the other two?</p></aside>
+      </section>
+
+<section class="slide" data-title="The rules decide" data-block="step-04" data-minutes="20" data-block-title="Step 4">
+  <p class="eyebrow">Agent-First Design</p>
+  <h2>The rules decide, the LLM explains</h2>
+  <div class="grid three">
+    <div class="card"><h3>Verdict</h3><p>The WebPerf Snippets CLI: Mann-Whitney U, thresholds and exit code</p></div>
+    <div class="card"><h3>Attribution</h3><p>trace-engine-cli: the function, the URL and the line</p></div>
+    <div class="card"><h3>Explanation</h3><p>A local model with JSON output validated by a schema. If it contradicts the rules, the rules win</p></div>
+  </div>
+  <p class="lead">Without a regression, the LLM is not even asked</p>
+  <aside class="notes"><p>The idea of the whole workshop.</p></aside>
+</section>
+
+<section class="slide evidence" data-title="How the gate decides" data-block="step-04">
+  <p class="eyebrow">Agent-First Design</p>
+  <h2>How the gate decides</h2>
+  <img class="evidence diagram" src="/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" />
+  <p class="lead">When the data is not enough, it measures more. When it still is not, it says so</p>
+  <aside class="notes"><p>Two questions per metric: is the change big, and is it not noise. If the data is not enough, it measures more; if it still is not, it says so.</p></aside>
+</section>
+
+<section class="slide" data-title="Step 4" data-block="step-04">
+  <p class="eyebrow">Step 4</p>
+  <h2>The Judge</h2>
+  <div class="columns">
+    <div><h3>The code of the step</h3><ul class="list"><li><code>lcpFacts</code>, <code>clsFacts</code> and <code>inpFacts</code> in <code>findings.ts</code></li><li>The facts that back the explanation</li></ul></div>
+    <div><h3>No MCP</h3><ul class="list"><li>Rules over the JSON of the subagents</li><li>The LLM does not see these facts: its prompt is the benchmarked one</li></ul></div>
+  </div>
+  <pre>git checkout step-04-solution -- agents/src
+docker compose run --rm agents npm run check -- step-04</pre>
+  <aside class="notes"><p>While it measures: on which of the three judge lines is the verdict decided?</p></aside>
+</section>
+
+<section class="slide dark" data-title="Step 4: checkpoint" data-block="step-04">
+        <p class="eyebrow">Step 4 · Checkpoint</p>
+        <h2>This has to be on your screen</h2>
+        <pre>[orchestrator] judge: gate: fail
+step-04 is done.</pre>
+        <p class="lead">And in <code>out/agents/judge/</code>, a <code>report.md</code> with the verdict, the cause and the findings</p>
+        <p class="small">20 min in the agenda · 4.6 min on the machine</p>
+        <aside class="notes"><p>With lite there is no explanation from the model and the report points to handoff.md: say it before they ask.</p></aside>
+      </section>
+
+<section class="slide" data-title="Step 4: what you take away" data-block="step-04">
+        <p class="eyebrow">Step 4 · What you take away</p>
+        <h2>A verdict you can defend</h2>
+        <ul class="list">
+          <li>The rules decide and the LLM explains. If they contradict each other, the rules win and the report says so</li>
+          <li>The statistics, the attribution and the facts come first. The sentence of the LLM is the last thing to arrive</li>
+          <li>With <code>lite</code>, the same verdict and the same findings: the explanation is asked for elsewhere, with the handoff</li>
+        </ul>
+        <p class="lead">To think about: in your team, who would read this report, and what do they need to see to trust it?</p>
+        <aside class="notes"><p>Ask: what would show in the report if the LLM said the opposite of the rules?</p></aside>
+      </section>
+
+<section class="slide" data-title="Lab and field" data-block="step-05" data-minutes="20" data-block-title="Step 5">
   <p class="eyebrow">How we measure</p>
   <h2>Lab and field</h2>
   <div class="columns">
@@ -111,27 +373,21 @@
     <div class="card"><h3>Lab</h3><p>Fixed, repeatable conditions: what a gate needs before a merge</p></div>
   </div>
   <p class="lead">In the workshop: 4x CPU and Fast 4G, several runs and their median, and each branch compared with its baseline on the same machine</p>
+  <aside class="notes"><p>The gate is lab: fixed conditions, and each branch against its base version on the same machine.</p></aside>
 </section>
 
-<section class="slide accent spread" data-title="The problem">
-  <p class="eyebrow">The problem</p>
-  <p class="statement">The app’s tests pass on all four branches. Classic CI sees no regression.</p>
-  <p class="lead">And all three regressions stay within “good”: only a comparison with the baseline shows them</p>
+<section class="slide dark" data-title="Step 5" data-block="step-05">
+  <p class="eyebrow">Step 5</p>
+  <h2>The gate in the CI of every pull request</h2>
+  <pre class="wide">for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler pr-noop-refactor; do
+  CANDIDATE=$branch docker compose run --rm -e OUT=/out/ci/$branch ci
+  echo "$branch: exit $?"
+done</pre>
+  <p class="lead">Three failures and one pass. Read the <code>report.md</code> of each branch: the verdict, the explanation and what backs it</p>
+  <aside class="notes"><p>Start the loop as soon as the block begins. It is the longest wait of the workshop, and the next five slides are for it.</p></aside>
 </section>
 
-<section class="slide" data-title="The four branches">
-  <p class="eyebrow">Perf Coffee</p>
-  <h2>Four pull requests against the shop</h2>
-  <table>
-    <tr><th style="width:28%">Branch</th><th style="width:52%">Change</th><th style="width:20%">Regresses</th></tr>
-    <tr><td><code>pr/lcp-hero-lazy</code></td><td>The hero loses its preload and fetchpriority, and becomes loading=“lazy”</td><td>LCP</td></tr>
-    <tr><td><code>pr/cls-promo-banner</code></td><td>A third-party banner without reserved space and a font swap</td><td>CLS</td></tr>
-    <tr><td><code>pr/loaf-cart-handler</code></td><td>A synchronous A/B testing script and recommendations in the cart handler</td><td>INP and LCP</td></tr>
-    <tr><td><code>pr/noop-refactor</code></td><td>Extracts the hero into a component</td><td>Nothing</td></tr>
-  </table>
-</section>
-
-<section class="slide" data-title="In the browser">
+<section class="slide" data-title="In the browser" data-block="step-05">
   <p class="eyebrow">On Vercel</p>
   <h2>The four branches, in your browser</h2>
   <table class="compact">
@@ -144,160 +400,111 @@
   </table>
   <p class="lead">With 4x CPU and Fast 4G in DevTools. On a fast network, LCP barely moves</p>
   <p class="small">Median of 5 runs · <a href="/previews/">agent-first-perf-audits.vercel.app/previews</a></p>
+  <aside class="notes"><p>The same branches, deployed. On a fast network the LCP barely changes: the conditions decide what you see.</p></aside>
 </section>
 
-<section class="slide evidence" data-title="LCP in the browser">
-  <p class="eyebrow">LCP · pr/lcp-hero-lazy</p>
-  <h2>The hero arrives late</h2>
-  <img class="evidence" src="/evidence/lcp-filmstrip-en.jpg" alt="The load of the home page of main and of pr/lcp-hero-lazy, frame by frame: on the branch, the page has its text before the hero image">
-  <p class="lead">The page already has its text, but the slot of the hero is still empty</p>
-</section>
+<section class="slide evidence" data-title="On GitHub: the check" data-block="step-05">
+        <p class="eyebrow">On GitHub · pr/lcp-hero-lazy</p>
+        <h2>The check fails, and says why</h2>
+        <img class="evidence" src="/evidence/gate-check.png" alt="The Checks tab of the pull request of pr/lcp-hero-lazy: the gate job has failed and its annotations say that the LCP of the home page gets worse" />
+        <p class="lead">The annotation names the metric and the change. The exit code of <code>ci</code> is the result of the check</p>
+        <aside class="notes"><p>If there is a network, open the pull request live. These screenshots are the backup.</p></aside>
+      </section>
 
-<section class="slide evidence" data-title="CLS in the browser">
-  <p class="eyebrow">CLS · pr/cls-promo-banner</p>
-  <h2>The banner pushes the page</h2>
-  <img class="evidence" src="/evidence/cls-shift-en.jpg" alt="The home page of main, with the space of the banner reserved, next to the one of pr/cls-promo-banner, where the content moves down when the banner arrives">
-</section>
+<section class="slide evidence" data-title="On GitHub: the verdict" data-block="step-05">
+        <p class="eyebrow">On GitHub · pr/lcp-hero-lazy</p>
+        <h2>The verdict, with its numbers</h2>
+        <img class="evidence" src="/evidence/gate-comment-metrics.png" alt="The comment of ci on the pull request: the verdict of the rules is fail, with the metrics table of the two scenarios and the LCP of the home page as the one that gets worse" />
+        <p class="lead">The rules decide it: the change beats its threshold and the statistics separate it from noise</p>
+        <aside class="notes"><p>The verdict is the rules': the table, the change and the p.</p></aside>
+      </section>
 
-<section class="slide evidence" data-title="INP in the browser">
-  <p class="eyebrow">INP · pr/loaf-cart-handler</p>
-  <h2>The extra time is in the handler</h2>
-  <img class="evidence" src="/evidence/inp-phases-en.png" alt="The three phases of the Add to cart click on main and on pr/loaf-cart-handler: processing is the one that grows">
-  <p class="lead">The input delay and the presentation delay barely change: processing grows</p>
-</section>
+<section class="slide evidence" data-title="On GitHub: the explanation" data-block="step-05">
+        <p class="eyebrow">On GitHub · pr/lcp-hero-lazy</p>
+        <h2>The explanation, from a model</h2>
+        <img class="evidence" src="/evidence/gate-comment-explanation.png" alt="The explanation in the comment: the model relates the LCP of the home page to the fetchPriority, the loading lazy and the preload that the hero image loses" />
+        <p class="lead">On GitHub Actions, Claude Sonnet 5.5 writes it, with the same input the local model receives</p>
+        <aside class="notes"><p>A larger model connects the three changes of the diff. The verdict is the same.</p></aside>
+      </section>
 
-<section class="slide" data-title="The rules decide">
-  <p class="eyebrow">Agent-First Design</p>
-  <h2>The rules decide, the LLM explains</h2>
-  <div class="grid three">
-    <div class="card"><h3>Verdict</h3><p>The WebPerf Snippets CLI: Mann-Whitney U, thresholds and exit code</p></div>
-    <div class="card"><h3>Attribution</h3><p>trace-engine-cli: the function, the URL and the line</p></div>
-    <div class="card"><h3>Explanation</h3><p>A local model with JSON output validated by a schema. If it contradicts the rules, the rules win</p></div>
-  </div>
-  <p class="lead">Without a regression, the LLM is not even asked</p>
-</section>
+<section class="slide evidence" data-title="On GitHub: the facts" data-block="step-05">
+        <p class="eyebrow">On GitHub · pr/lcp-hero-lazy</p>
+        <h2>The facts, from the rules</h2>
+        <img class="evidence" src="/evidence/gate-comment-facts.png" alt="The facts of the rules in the comment: the LCP element and the diff lines of pages.tsx and products.ts that relate to it" />
+        <p class="lead">The diff lines the rules relate to the metric. The LLM does not see them</p>
+        <aside class="notes"><p>The rules provide the facts, and the model does not see them.</p></aside>
+      </section>
 
-<section class="slide evidence" data-title="How the gate decides">
-  <p class="eyebrow">Agent-First Design</p>
-  <h2>How the gate decides</h2>
-  <img class="evidence diagram" src="/diagrams/gate.svg" alt="The gate measures the baseline and the branch alternating their runs; if the change beats the threshold and p is under 0.05, it exits with 1, trace-engine-cli attributes the change and the LLM explains it; if it beats the threshold and p does not get there, it measures two more runs a side and decides once more; otherwise it exits with 0" />
-  <p class="lead">When the data is not enough, it measures more. When it still is not, it says so</p>
-</section>
+<section class="slide dark" data-title="Step 5: checkpoint" data-block="step-05">
+        <p class="eyebrow">Step 5 · Checkpoint</p>
+        <h2>This has to be on your screen</h2>
+        <pre>pr-lcp-hero-lazy: exit 1
+pr-cls-promo-banner: exit 1
+pr-loaf-cart-handler: exit 1
+pr-noop-refactor: exit 0
+step-05 is done.</pre>
+        <p class="lead">A branch with a regression that exits with 0 was left as inconclusive: run it again</p>
+        <p class="small">20 min in the agenda · 11.3 min on the machine</p>
+        <aside class="notes"><p>If pr-noop-refactor exits with 1, the machine was busy. If you are late, show the branches that have not finished on their pull requests.</p></aside>
+      </section>
 
-<section class="slide evidence" data-title="The lab">
-  <p class="eyebrow">Architecture</p>
-  <h2>All on your laptop, with no internet access</h2>
-  <img class="evidence diagram" src="/diagrams/lab.svg" alt="The services of the lab: agents and ci measure shop-baseline and shop-candidate, which load the scripts of thirdparty; agents asks ollama for the explanation and writes the reports in out/" />
-  <p class="lead"><code>thirdparty</code> serves the third-party scripts: analytics, chat, a promo banner and A/B testing</p>
-</section>
+<section class="slide" data-title="Step 5: what you take away" data-block="step-05">
+        <p class="eyebrow">Step 5 · What you take away</p>
+        <h2>Three exits, and one more answer</h2>
+        <ul class="list">
+          <li>Classic CI saw none of the three: the app tests pass on the four branches</li>
+          <li>The gate sees them because it compares with the base version, on the same machine and in the same run</li>
+          <li>0, 1 and 2, and an inconclusive result that is said out loud instead of passing as good</li>
+        </ul>
+        <p class="lead">To think about: which pull request of the last few months would this gate have stopped in your product?</p>
+        <aside class="notes"><p>Leave the question for the end: it often opens the conversation of step 6.</p></aside>
+      </section>
 
-<section class="slide" data-title="The subagents">
-  <p class="eyebrow">The subagents</p>
-  <h2>Each one measures one thing, none of them decides</h2>
-  <table>
-    <tr><th style="width:22%">Subagent</th><th>What it does</th></tr>
-    <tr><td>Navigator</td><td>Goes through the shop step by step and checks that each journey completes</td></tr>
-    <tr><td>LCP</td><td>The LCP of the home page, its four phases and how the image loads</td></tr>
-    <tr><td>CLS</td><td>The shifts of each journey and the nodes that move</td></tr>
-    <tr><td>LoAF/INP</td><td>The INP, the long animation frames and the function that blocks</td></tr>
-    <tr><td>Judge</td><td>The gate, the explanation and the findings of the others</td></tr>
-  </table>
-</section>
-
-<section class="slide dark" data-title="Before you start">
-  <p class="eyebrow">Before you start</p>
-  <h2>Your branch, from the start of the workshop</h2>
-  <pre><span class="comment"># with the images pulled and the preflight green</span>
-git fetch origin workshop --tags
-git switch -c taller workshop-start
-docker compose up -d</pre>
-  <p class="lead">With 8 GB, put <code>COMPOSE_PROFILES=lite</code> before every docker compose command. Each step has its guide on the workshop site</p>
-</section>
-
-<section class="slide" data-title="Each step">
-  <p class="eyebrow">Each step</p>
-  <h2>Red, solution, green and measure</h2>
-  <ul class="list">
-    <li>The tests of the step fail: its code is still a <code>throw</code></li>
-    <li>You apply the solution with <code>git checkout step-0N-solution -- agents/src</code></li>
-    <li>The tests pass and you measure the regression of the step</li>
-    <li>The tags are cumulative: you can start any step</li>
-  </ul>
-  <p class="lead">Writing the code yourself is optional: the guide of each step has the hints</p>
-</section>
-
-<section class="slide" data-title="Step 1">
-  <p class="eyebrow">Step 1</p>
-  <h2>The first call to an MCP</h2>
-  <div class="columns">
-    <div><h3>The code of the step</h3><ul class="list"><li><code>recordTrace</code> in <code>agents/src/mcp/trace.ts</code></li><li>The trace of the home page load, to a file</li></ul></div>
-    <div><h3>With Chrome DevTools MCP</h3><ul class="list"><li><code>emulate</code></li><li><code>navigate_page</code></li><li><code>performance_start_trace</code></li></ul></div>
-  </div>
-  <pre>git checkout step-01-solution -- agents/src
-docker compose run --rm agents npm run check -- step-01</pre>
-</section>
-
-<section class="slide" data-title="Step 2">
-  <p class="eyebrow">Step 2</p>
-  <h2>The LCP subagent</h2>
-  <div class="columns">
-    <div><h3>The code of the step</h3><ul class="list"><li><code>askWebPerf</code> and <code>lcpReportOf</code> in <code>lcp.ts</code></li><li>The LCP of each shop, its phases and how the image loads</li></ul></div>
-    <div><h3>With WebPerf Snippets MCP</h3><ul class="list"><li><code>run_workflow</code> core-web-vitals</li><li><code>run_snippet</code> LCP-Subparts</li></ul></div>
-  </div>
-  <pre>git checkout step-02-solution -- agents/src
-docker compose run --rm agents npm run check -- step-02</pre>
-</section>
-
-<section class="slide" data-title="Step 3">
-  <p class="eyebrow">Step 3</p>
-  <h2>Navigator, CLS and LoAF/INP</h2>
-  <div class="columns">
-    <div><h3>The code of the step</h3><ul class="list"><li>The journey of the Navigator</li><li>The CLS and LoAF/INP measurements on its journeys</li></ul></div>
-    <div><h3>With WebPerf Snippets MCP</h3><ul class="list"><li><code>open_page</code>, <code>interact</code> and <code>read_results</code></li><li><code>run_snippet</code> Layout-Shift-Loading-and-Interaction</li><li><code>run_workflow</code> interaction</li></ul></div>
-  </div>
-  <pre>git checkout step-03-solution -- agents/src
-docker compose run --rm agents npm run check -- step-03</pre>
-</section>
-
-<section class="slide" data-title="Step 4">
-  <p class="eyebrow">Step 4</p>
-  <h2>The Judge</h2>
-  <div class="columns">
-    <div><h3>The code of the step</h3><ul class="list"><li><code>lcpFacts</code>, <code>clsFacts</code> and <code>inpFacts</code> in <code>findings.ts</code></li><li>The facts that back the explanation</li></ul></div>
-    <div><h3>No MCP</h3><ul class="list"><li>Rules over the JSON of the subagents</li><li>The LLM does not see these facts: its prompt is the benchmarked one</li></ul></div>
-  </div>
-  <pre>git checkout step-04-solution -- agents/src
-docker compose run --rm agents npm run check -- step-04</pre>
-</section>
-
-<section class="slide dark" data-title="Step 5">
-  <p class="eyebrow">Step 5</p>
-  <h2>The gate in the CI of every pull request</h2>
-  <pre class="wide">for branch in pr-lcp-hero-lazy pr-cls-promo-banner pr-loaf-cart-handler pr-noop-refactor; do
-  CANDIDATE=$branch docker compose run --rm -e OUT=/out/ci/$branch ci
-  echo "$branch: exit $?"
-done</pre>
-  <p class="lead">Three failures and one pass. Read the <code>report.md</code> of each branch: the verdict, the explanation and what backs it</p>
-</section>
-
-<section class="slide" data-title="Take it to your platform">
+<section class="slide" data-title="Take it to your platform" data-block="step-06" data-minutes="15" data-block-title="Step 6">
   <p class="eyebrow">Step 6</p>
   <h2>Take it to your platform</h2>
   <div class="columns">
     <div class="card"><h3>What you change</h3><p>Your app built from two refs, your third parties, your journeys, the pages the gate protects and the conditions of your users</p></div>
     <div class="card"><h3>What you keep</h3><p>The rules decide and the LLM explains, compare with the baseline, measure one at a time, function names in the build and the handoff</p></div>
   </div>
+  <aside class="notes"><p>Leave a few minutes for the Your plan table of the guide, and ask two people to read a row of theirs.</p></aside>
 </section>
 
-<section class="slide dark spread" data-title="Thank you">
-  <p class="eyebrow">Thank you</p>
-  <h2 style="font-size:84px">Questions</h2>
-  <div class="grid three">
-    <div class="card"><h3>The site</h3><p><a href="https://agent-first-perf-audits.vercel.app/">agent-first-perf-audits.vercel.app</a></p></div>
-    <div class="card"><h3>The repo</h3><p><a href="https://github.com/nucliweb/agent-first-perf-audits">github.com/nucliweb/agent-first-perf-audits</a></p></div>
-    <div class="card"><h3>The shop</h3><p><a href="https://perf-coffee.vercel.app/">perf-coffee.vercel.app</a></p></div>
-  </div>
-</section>
+<section class="slide" data-title="Five ideas" data-block="step-06">
+        <p class="eyebrow">What you take away</p>
+        <h2>Five ideas for your platform</h2>
+        <ul class="list">
+          <li>The rules decide, the LLM explains</li>
+          <li>Compare with the base version, not with a threshold</li>
+          <li>Measure one at a time, and alternate the two versions</li>
+          <li>A gate has to say when the data is not enough</li>
+          <li>Not everything has to be an MCP</li>
+        </ul>
+        <aside class="notes"><p>Close with these five. For whoever wants to keep going: the challenges and the learnings.</p></aside>
+      </section>
+
+<section class="slide dark spread" data-title="Thanks" data-block="step-06">
+        <p class="eyebrow">Thanks</p>
+        <h2 style="font-size: 84px">Questions</h2>
+        <div class="grid three">
+          <div class="card qr">
+            <img src="/slides/qr/web-en.svg" alt="QR code of the workshop site" width="180" height="180" />
+            <h3>The site</h3>
+            <p><a href="https://agent-first-perf-audits.vercel.app/">agent-first-perf-audits.vercel.app</a></p>
+          </div>
+          <div class="card qr">
+            <img src="/slides/qr/repo-en.svg" alt="QR code of the repository" width="180" height="180" />
+            <h3>The repo</h3>
+            <p><a href="https://github.com/nucliweb/agent-first-perf-audits">github.com/nucliweb/agent-first-perf-audits</a></p>
+          </div>
+          <div class="card qr">
+            <img src="/slides/qr/slides-en.svg" alt="QR code of these slides" width="180" height="180" />
+            <h3>The slides</h3>
+            <p><a href="https://agent-first-perf-audits.vercel.app/slides/en/">agent-first-perf-audits.vercel.app/slides/en</a></p>
+          </div>
+        </div>
+        <aside class="notes"><p>The challenges are for continuing at home: fix a regression and watch the gate pass.</p></aside>
+      </section>
 
 </main>
 <nav class="controls" aria-label="Slides">

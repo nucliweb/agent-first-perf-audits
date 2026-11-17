@@ -11,6 +11,7 @@ Reprodueix les xifres de la pàgina "Les branques al navegador": la botiga de `m
 3. Ho repeteix cinc vegades per lloc en dues condicions: CPU 4x sense limitar la xarxa, i CPU 4x amb `fast-4g`, el preset de WebPerf Snippets 1.15.0 que fa servir el gate del taller.
 4. Desa cada execució i les medianes a [`results.json`](results.json), amb la data.
 5. `evidence.mjs` genera les imatges de la pàgina i de les slides a `docs/public/evidence/`, en els tres idiomes: el filmstrip de la càrrega de `main` i de `pr/lcp-hero-lazy` (de cinc càrregues, la de l'LCP medià), la home de `pr/cls-promo-banner` just després del seu desplaçament, al costat de la de `main`, i les fases del clic de `pr/loaf-cart-handler` davant de `main`, amb les medianes de `results.json`. Desa a [`evidence.json`](evidence.json) les xifres que citen els peus de les imatges.
+6. `demo.mjs` captura la demo del gate a GitHub per a les slides: el check de la pull request de `pr/lcp-hero-lazy` amb les seves anotacions, i el comentari que deixa `ci`, en tres imatges (el veredicte amb les mètriques, l'explicació i els fets de les regles). Llegeix l'API i les pàgines públiques de GitHub, sense iniciar sessió, i desa a [`demo.json`](demo.json) quin check i quin comentari ha capturat.
 
 Els tests no mesuren: comproven les conclusions de la pàgina sobre `results.json` i `evidence.json`, que les xifres de la pàgina i de les slides en els tres idiomes són les d'aquests fitxers, i que les imatges existeixen i es mostren.
 
@@ -25,6 +26,7 @@ Els tests no mesuren: comproven les conclusions de la pàgina sobre `results.jso
 npm install
 npm run measure     # mesura els cinc llocs i reescriu results.json, uns 7 minuts
 npm run evidence    # genera les imatges i evidence.json, uns 2 minuts
+npm run demo        # captura el check i el comentari de la pull request de la demo
 npm test            # comprova les conclusions i les xifres de la pàgina
 ```
 

@@ -35,6 +35,7 @@ On the computer you will present with:
 - Rehearse the whole of [step 5](../workshop/step-05/) once, with the machine to itself. It has to give three failures and a pass.
 - Keep the CPU and the disk free. Close backups, video calls and other containers: `docker ps` should not list anything that is not the lab, and `docker system df` says how much Docker takes up.
 - Open in tabs the slides, [The branches in the browser](../previews/) and the pull requests for [`pr/lcp-hero-lazy`](https://github.com/nucliweb/agent-first-perf-audits/pull/1) and [`pr/noop-refactor`](https://github.com/nucliweb/agent-first-perf-audits/pull/4). Save screenshots of the check and the comment of each one, in case the room's network fails.
+- Try the presenter view of the slides: the `n` key opens a second window with the notes of each slide, the next slide, the total time and the time of the block against its slot in the agenda. The `r` key resets the clock.
 - Raise the font size of the terminal: the lines to read at each checkpoint are long.
 
 On the day of the workshop, present with the laptop plugged in. The INP of `pr/loaf-cart-handler` depends on how fast the CPU goes, and the figures on screen change with it.
