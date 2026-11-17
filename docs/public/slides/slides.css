@@ -233,6 +233,43 @@ a { color: inherit; }
   z-index: 10;
 }
 
+/* The notes of the presenter never show in the deck */
+.slide .notes { display: none; }
+
+/* The presenter view: the slide, the next one and the notes, over the deck, which stays hidden */
+.is-presenter .deck, .is-presenter .progress { display: none; }
+
+.presenter {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+  gap: 20px;
+  padding: 20px;
+  align-items: start;
+  background: #0b120e;
+  color: #d6e0d8;
+  font: 16px/1.4 var(--sans);
+  overflow: auto;
+}
+
+.presenter .frame { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--light); border-radius: 8px; }
+.presenter .frame .slide { left: 0; top: 0; transform-origin: 0 0; }
+
+.presenter-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.presenter-side small { font: 13px/1 var(--mono); letter-spacing: 1px; text-transform: uppercase; color: var(--green-light); }
+.presenter-status { display: flex; justify-content: space-between; align-items: baseline; font-size: 28px; }
+.presenter-status b { font-family: var(--mono); font-size: 40px; }
+.presenter-block { margin: 0; padding: 8px 12px; border: 1px solid #2f4a3a; border-radius: 8px; font: 22px/1.2 var(--mono); }
+.presenter-block.is-over { background: #8a1c1c; border-color: #e05a5a; color: #fff; }
+.presenter-side .frame { width: 60%; }
+.presenter-end, .presenter-empty { margin: 0; padding: 16px; font-size: 18px; color: #8fa397; }
+.presenter-end { display: grid; place-items: center; height: 100%; color: var(--ink-soft); }
+.presenter-notes { font-size: 22px; line-height: 1.45; }
+.presenter-notes :is(p, li) { font-size: 22px; line-height: 1.45; margin: 0 0 0.6em; }
+
+@media (max-width: 800px) { .presenter { grid-template-columns: 1fr; } }
+
 @media (prefers-reduced-motion: reduce) {
   .progress { transition: none; }
 }
@@ -240,7 +277,13 @@ a { color: inherit; }
 @media print {
   @page { size: 1600px 900px; margin: 0; }
   html, body { overflow: visible; height: auto; background: none; }
-  .deck { position: static; display: block; }
+  .deck, body.is-presenter .deck { position: static; display: block; }
+  .presenter { display: none; }
   .slide { display: flex !important; position: relative; transform: none !important; page-break-after: always; break-after: page; }
   .controls, .progress { display: none; }
 }
+
+/* A card with a QR code above its link, on the last slide: the code on white, whatever the slide */
+.card.qr { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.card.qr img { width: 180px; height: 180px; background: #fff; border-radius: 8px; padding: 6px; }
+.card.qr p { overflow-wrap: anywhere; }
