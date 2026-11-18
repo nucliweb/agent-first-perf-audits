@@ -1,6 +1,6 @@
 ---
 title: Retos
-description: Cuatro retos para después del paso 5. Arreglar una regresión y ver el gate pasar, pedir la explicación a otro modelo, quitar el throttling y crear una regresión propia.
+description: Cuatro retos para después del paso 5. Arreglar una regresión y ver pasar el gate, pedir la explicación a otro modelo, quitar el throttling y crear una regresión propia.
 sidebar:
   order: 17
 ---
@@ -9,9 +9,9 @@ El taller enseña a detectar una regresión y a explicarla. Estos retos responde
 
 | Reto | La pregunta | Qué necesita |
 |---|---|---|
-| [1. Arregla una regresión](#reto-1-arregla-una-regresión-y-mira-el-gate-pasar) | ¿Cómo sé que el arreglo está completo? | Internet, para construir una tienda |
+| [1. Arregla una regresión](#reto-1-arregla-una-regresión-y-mira-pasar-el-gate) | ¿Cómo sé que el arreglo está completo? | Internet, para construir una tienda |
 | [2. Pide la explicación a otro modelo](#reto-2-pide-la-explicación-a-otro-modelo) | ¿Qué cambia con un modelo más grande? | Un agente o un chat con un LLM |
-| [3. Quita el throttling](#reto-3-quita-el-throttling-y-mira-qué-deja-de-verse) | ¿Por qué el gate no mide a toda velocidad? | Nada más |
+| [3. Quita el throttling](#reto-3-quita-el-throttling-y-mira-qué-deja-de-verse) | ¿Por qué el gate no mide a toda velocidad? | Solo el laboratorio |
 | [4. Crea tu propia regresión](#reto-4-crea-tu-propia-regresión) | ¿Qué ve el gate, y qué no? | Internet, para construir una tienda |
 
 ## Antes de empezar
@@ -27,6 +27,8 @@ git checkout step-04-solution -- agents/src
 docker compose up -d
 ```
 
+Hace falta el laboratorio descargado ([Preparación](../setup/)). Con el perfil `lite`, antepón `COMPOSE_PROFILES=lite` a cada comando de `docker compose`, como en los pasos.
+
 Los retos 2 y 3 comparan con los informes del paso 5. Si no los tienes, lanza antes el punto 1 de su guía.
 
 Los retos 1 y 4 cambian la tienda. El gate compara dos imágenes de la tienda, y cada una se construye desde una ref de git, así que probar un cambio son tres cosas:
@@ -35,7 +37,7 @@ Los retos 1 y 4 cambian la tienda. El gate compara dos imágenes de la tienda, y
 2. **La imagen de esa rama.** La construye `scripts/build-shop.sh`, con el nombre de la rama como tag. Usa `docker build`, que descarga la imagen base de Node y las dependencias de la tienda: necesita internet.
 3. **El gate**, con ese tag en `CANDIDATE`.
 
-## Reto 1: arregla una regresión y mira el gate pasar
+## Reto 1: arregla una regresión y mira pasar el gate
 
 El paso 4 termina con una propuesta de solución para `pr/lcp-hero-lazy`, y nadie la prueba. Un arreglo está hecho cuando el gate pasa.
 
@@ -45,7 +47,7 @@ El paso 4 termina con una propuesta de solución para `pr/lcp-hero-lazy`, y nadi
    git worktree add -b fix-lcp-hero ../fix-lcp-hero origin/pr/lcp-hero-lazy
    ```
 
-2. Arregla lo que nombra la explicación del LLM. En `../fix-lcp-hero/apps/shop/src/pages.tsx`, la imagen del hero lleva `loading="lazy"`: cámbialo por `fetchPriority="high"` y guarda el cambio en un commit:
+2. Empieza por lo que nombra la explicación del LLM. En `../fix-lcp-hero/apps/shop/src/pages.tsx`, la imagen del hero lleva `loading="lazy"`: cámbialo por `fetchPriority="high"`, el atributo que tenía en `main`, y guarda el cambio en un commit:
 
    ```bash
    git -C ../fix-lcp-hero commit -am "Load the hero image with high priority"
@@ -86,7 +88,7 @@ El paso 4 termina con una propuesta de solución para `pr/lcp-hero-lazy`, y nadi
 
    El informe dice que nada ha empeorado y lo firman las reglas: sin regresión, el LLM no llega a ser consultado.
 
-**Qué te llevas.** La regresión tenía dos causas y la explicación del LLM nombraba una. La otra estaba en los hechos de las reglas, y lo que dice que el arreglo está completo es el gate en verde, no la explicación.
+**Qué te llevas.** La rama cambiaba tres cosas del hero y la explicación del LLM nombraba una. Con los atributos arreglados el gate seguía en rojo, y lo que faltaba, el preload, estaba en los hechos de las reglas, como en los hallazgos del paso 4. Lo que dice que el arreglo está completo es el gate en verde, no la explicación.
 
 ## Reto 2: pide la explicación a otro modelo
 
@@ -140,7 +142,7 @@ El gate mide con la CPU cuatro veces más lenta y con la red de `fast-4g`. Esas 
 
    - `pr/lcp-hero-lazy` pasa. El cambio del LCP ya no supera su umbral.
    - `pr/cls-promo-banner` falla igual. Un desplazamiento no depende de la velocidad de la máquina ni de la red.
-   - `pr/loaf-cart-handler` sigue fallando por el LCP. Su INP también es peor y la estadística lo ve, pero el cambio queda cerca de su umbral: por debajo en un equipo rápido, por encima en uno más lento.
+   - `pr/loaf-cart-handler` sigue fallando por el LCP. Su INP también es peor y la estadística lo ve, pero el cambio no supera su umbral en el Mac de referencia; en un equipo más lento puede superarlo.
 
 4. Devuelve las condiciones del taller:
 

@@ -33,7 +33,7 @@ scripts/preflight.sh
 |---|---|---|
 | Docker stops responding, or a download hangs halfway | The disk of the Docker virtual machine is full | `docker system df` says how much each thing takes up. Free some space and restart the runtime before going on: an image downloaded with a full disk may have ended up broken |
 | With 8 GB, Compose downloads or starts `ollama` | `COMPOSE_PROFILES=lite` is missing in that terminal | `export COMPOSE_PROFILES=lite`, and it applies to all the commands |
-| You do not know which profile you are measuring with | The profile comes from `COMPOSE_PROFILES`, or from the `.env` file of the repo, which says `llm` | The first line of `ci` says it: `llm profile` or `lite profile` |
+| You do not know which profile you are measuring with | The profile comes from `COMPOSE_PROFILES`, or from the `.env` file of the repo, which says `llm` | The first line that `ci` writes says it: `[ci] <branch> against main, llm profile` or `lite profile` |
 | On Linux, a command cannot write to `out/` | Docker created the folder as root | `sudo chown -R "$(id -u):$(id -g)" out` |
 | The shop of the lab does not open in the browser | The lab does not publish ports, and its network has no access to the internet | The same shops are deployed: [The branches in the browser](../previews/) |
 | A command inside the container cannot download anything | It is the same network with no access: what the gate measures does not depend on the internet | Whatever has to be downloaded is downloaded outside, with the preflight or with `scripts/build-shop.sh` |
@@ -71,7 +71,7 @@ Anyone who writes the subagents instead of applying the solution, or takes the f
 | `navigate_page` returns a validation error | Chrome DevTools MCP asks for a `pageId` in every page tool | Start the server with `--no-page-id-routing` |
 | `Access denied` when saving a trace | The server only writes to its temporary directory | Record there and copy the file, or give it the folder with `--workspace` |
 | `No usable sandbox!` | Chromium has no sandbox inside the container | `--chromeArg=--no-sandbox`, only in the container |
-| The server cannot find the browser | The stdio client does not pass it your environment variables, `PLAYWRIGHT_BROWSERS_PATH` included | Install the Playwright Chromium in its default path |
+| The server cannot find the browser | The stdio client does not pass it your environment variables, `PLAYWRIGHT_BROWSERS_PATH` included | Pass it the path of the browser with `--executablePath`, as the workshop does, or install the Playwright Chromium in its default path |
 
 The context of the four is in [Learnings](../learnings/#chrome-devtools-mcp-outside-the-editor), and the flags the workshop starts the server with are in `agents/src/mcp/client.ts`.
 
@@ -88,3 +88,5 @@ docker compose up -d
 ```
 
 The `out/` folder is created empty by hand so that on Linux Docker does not create it as root. It only has what the workshop commands write: the traces, the JSON of the subagents and the reports. The downloaded images are kept.
+
+With the `lite` profile, export `COMPOSE_PROFILES=lite` first. On Linux, if `rm` cannot delete `out/`, run the `chown` of the table of the lab first.

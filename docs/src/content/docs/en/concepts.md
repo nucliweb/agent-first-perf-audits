@@ -78,7 +78,7 @@ To read more: [Why lab and field data can be different](https://web.dev/articles
 
 ## Compare with the baseline, not with the threshold
 
-The three regressions of the workshop leave their metrics inside "good". A gate that only looked at Google's thresholds would let all three pass, and the page would get worse merge after merge until it crossed the threshold with no single change to blame.
+With the machine alone, the three regressions of the workshop leave their metrics inside "good" almost always: in the [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.md) experiment, only the INP of `pr/loaf-cart-handler` leaves "good", 4 times out of 50. The figures change with the computer and with the CPU load at the time of measuring: with the local model generating text at the same time, that INP leaves "good" all 40 times. A gate that only looked at Google's thresholds would let the three regressions pass with the machine alone, and with a busy machine it would fail because of the machine, not the change. On top of that, the page would get worse merge after merge until it crossed the threshold with no single change to blame.
 
 That is why the gate compares each branch with its base version: the shop of `main` (the baseline) and the shop of the branch (the candidate), measured on the same machine in the same call, alternating one run of each. This way the difference between laptops does not count: a slow laptop measures both shops equally slow. Neither does whatever happens to the laptop halfway through the measurement, because it happens to both.
 

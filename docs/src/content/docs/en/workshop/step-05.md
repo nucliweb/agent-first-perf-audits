@@ -41,7 +41,7 @@ The branches you will compare with `main`:
 | `pr/loaf-cart-handler` | A synchronous A/B testing script and recommendations computed in the add to cart handler | INP and LCP |
 | `pr/noop-refactor` | Extracts the hero into a component | Nothing: the false positive control |
 
-The app tests pass on all four: classic CI sees no regression. The three stay within "good" in absolute value; the gate detects them because it compares with `main`, not with Google's thresholds.
+The app tests pass on all four: classic CI sees no regression. With the machine alone, the three almost always stay within "good" in absolute value, but the figures change with the computer and with the CPU load at the time of measuring: with a busy CPU, the INP of `pr/loaf-cart-handler` leaves "good" ([Concepts](../../concepts/#compare-with-the-baseline-not-with-the-threshold)). The gate detects them because it compares with `main` on the same machine, not with Google's thresholds.
 
 The four branches are also deployed on Vercel, to see them in the browser without Docker: [The branches in the browser](../../previews/).
 

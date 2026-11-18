@@ -150,6 +150,46 @@ for (const lang of LANGS) {
   });
 }
 
+// The three regressions against the thresholds of "good" of Google, with the median of the first 5 runs
+// of the branch in each round, as the gate of 5 runs a side sees it. The figures change with the machine
+// and with the load of its CPU: idle, only the INP of the cart handler leaves "good", in a few rounds;
+// with ollama generating, it leaves it in every round
+const GOOD = { LCP: 2500, CLS: 0.1, INP: 200 };
+const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
+function outsideGood(night) {
+  const out = {};
+  for (const record of NIGHTS[night].records) {
+    if (record.branch === "pr/noop-refactor") continue;
+    const values = {};
+    for (const run of record.candidate.slice(0, 5)) for (const m of run.results) if (m.status === "ok") (values[m.metric] ??= []).push(m.value);
+    for (const [metric, list] of Object.entries(values)) {
+      const key = `${record.branch} ${record.scenario} ${metric}`;
+      out[key] ??= { rounds: 0, outside: 0 };
+      out[key].rounds++;
+      if (median(list) > GOOD[metric]) out[key].outside++;
+    }
+  }
+  return Object.fromEntries(Object.entries(out).filter(([, o]) => o.outside > 0));
+}
+const CART_INP = "pr/loaf-cart-handler add-to-cart INP";
+
+test("idle, only the INP of the cart handler leaves good, in a few rounds; with ollama generating, in all of them", () => {
+  assert.deepEqual(outsideGood("idle"), { [CART_INP]: { rounds: 50, outside: 4 } });
+  assert.deepEqual(outsideGood("loaded"), { [CART_INP]: { rounds: 40, outside: 40 } });
+});
+
+const ALL = { es: (n) => `las ${n} veces`, ca: (n) => `les ${n} vegades`, en: (n) => `all ${n} times` };
+
+for (const lang of LANGS) {
+  test(`the page of concepts in ${lang} says how often the INP of the cart handler leaves good, idle and loaded`, () => {
+    const text = read(`../../docs/src/content/docs/${lang}/concepts.md`);
+    const idle = outsideGood("idle")[CART_INP];
+    const loaded = outsideGood("loaded")[CART_INP];
+    assert.equal(loaded.outside, loaded.rounds);
+    for (const phrase of [TIMES[lang](idle.outside, idle.rounds), ALL[lang](loaded.rounds)]) assert.ok(text.includes(phrase), `${lang}: ${phrase}`);
+  });
+}
+
 // What the learning about the samples tells of the two nights: the gate that measured the whole baseline
 // first with 5 runs a side, and the one that alternates and measures up to 7, idle and loaded
 const LEARNING = [

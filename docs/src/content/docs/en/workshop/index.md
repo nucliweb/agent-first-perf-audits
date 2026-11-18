@@ -1,11 +1,11 @@
 ---
 title: How to follow the workshop
-description: Three ways through the same material, depending on how much time you have and whether you will start the lab. A talk with a demo, the guided workshop or on your own.
+description: Three ways through the same material, depending on how much time you have and whether you will start the lab. A talk with a demo, the guided workshop or the workshop on your own.
 sidebar:
   order: 1
 ---
 
-The workshop builds a performance gate for pull requests: agents measure a shop before and after a change, rules decide whether it got worse and an LLM explains the cause. There is one set of material, and you can go through it in three ways.
+The workshop builds a performance gate for pull requests: agents measure a shop before and after a change, rules decide whether it got worse and an LLM explains the cause. It is one set of material, with three ways through it.
 
 ## Three routes
 
@@ -31,7 +31,7 @@ On GitHub Actions, Claude Sonnet 5.5 writes the explanation instead of the local
 
 ## Guided workshop
 
-Two hours with a presenter, who has their own [guide](../facilitator/). Attendees arrive with the lab downloaded and the preflight green: [Setup](../setup/) is done at home, because the images weigh several GB.
+Two hours, with a presenter who sets the pace; for that person there is the [presenter's guide](../facilitator/). Attendees arrive with the lab downloaded and the preflight green: [Setup](../setup/) is done at home, because the images weigh several GB.
 
 The agenda, with the machine time of each step. What is left of each slot is for explaining, looking at the results and waiting for whoever goes slower:
 
@@ -46,22 +46,22 @@ The agenda, with the machine time of each step. What is left of each slot is for
 | 1:45 | [6. Take it to your platform](step-06/), learnings and questions | 15 min | | |
 | | Total | 120 min | 26.5 min | 24.0 min |
 
-The machine times are those of the reference Mac, measured with the [timed rehearsal](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.md), which runs the commands of the guides on a clean clone. On another computer they change.
+The machine times are those of the reference Mac, measured with the [timed rehearsal](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.md), which runs the commands of the guides on a clean clone. On another computer they change. The total is added up before rounding.
 
 ## On your own
 
-The same six steps, with nobody setting the pace. Each guide is written to be followed alone:
+The same six steps, with nobody setting the pace. The guides of steps 1 to 5 are written to be followed alone:
 
 - **What you will learn** and **The idea in a minute** put the concept before the commands.
 - **Step by step** gives each command with the output it has to produce.
-- **While you wait** says what to look at during the long measurements.
+- **While you wait** says what to look at during the long measurements, from step 2 to 5.
 - **Checkpoint** and **If something fails** say when to consider the step done and what to do when it does not work out.
 
 The order:
 
 1. [Setup](../setup/): check your computer and download the lab.
 2. [Concepts](../concepts/): the metrics and how the gate decides. If a term is unfamiliar, it is in the [Glossary](../glossary/).
-3. The steps, from [1](step-01/) to [6](step-06/). You do not need to write code: each step applies its solution with `git`, and writing the code yourself is optional.
-4. The [Challenges](../challenges/), once the gate works for you: fix a regression and watch it pass, create your own and change the conditions of the measurement.
+3. The steps, from [1](step-01/) to [6](step-06/). You do not need to write code: steps 1 to 4 apply their code with `git checkout`, and writing it yourself is optional.
+4. The [Challenges](../challenges/), once the gate works for you: fix a regression and watch the gate pass, ask another model for the explanation, remove the throttling to see what stops showing and create your own regression.
 
-You can split it over several days. `docker compose down` stops the lab and `docker compose up -d` starts it again; what you have done stays in your `taller` branch and in the `out/` folder.
+You can split it over several days. `docker compose down` stops the lab and `docker compose up -d` starts it again; what you have done stays in your `taller` branch and in the `out/` folder. With `lite`, put `COMPOSE_PROFILES=lite` in front, as in the rest of the workshop.

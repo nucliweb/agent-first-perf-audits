@@ -41,7 +41,7 @@ Les branques que compararàs amb `main`:
 | `pr/loaf-cart-handler` | Un script síncron d'A/B testing i recomanacions calculades al handler d'afegir al carretó | INP i LCP |
 | `pr/noop-refactor` | Extreu el hero a un component | Res: el control de falsos positius |
 
-Els tests de l'app passen a les quatre: el CI clàssic no veu cap regressió. Les tres queden dins de "good" en valor absolut; el gate les detecta perquè compara amb `main`, no amb els llindars de Google.
+Els tests de l'app passen a les quatre: el CI clàssic no veu cap regressió. Amb la màquina sola, les tres queden gairebé sempre dins de "good" en valor absolut, però les xifres canvien amb l'equip i amb la càrrega de la CPU en el moment de mesurar: amb la CPU ocupada, l'INP de `pr/loaf-cart-handler` surt de "good" ([Conceptes](../../concepts/#comparar-amb-el-baseline-no-amb-el-llindar)). El gate les detecta perquè compara amb `main` a la mateixa màquina, no amb els llindars de Google.
 
 Les quatre branques també estan desplegades a Vercel, per veure-les al navegador sense Docker: [Les branques al navegador](../../previews/).
 

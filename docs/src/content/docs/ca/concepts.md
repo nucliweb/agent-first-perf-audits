@@ -78,7 +78,7 @@ Per llegir més: [Why lab and field data can be different](https://web.dev/artic
 
 ## Comparar amb el baseline, no amb el llindar
 
-Les tres regressions del taller deixen les seves mètriques dins de "good". Un gate que només mirés els llindars de Google les deixaria passar totes tres, i la pàgina aniria empitjorant de merge en merge fins a creuar el llindar sense que cap canvi concret en tingués la culpa.
+Amb la màquina sola, les tres regressions del taller deixen les seves mètriques dins de "good" gairebé sempre: a l'experiment [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.ca.md), només l'INP de `pr/loaf-cart-handler` surt de "good", 4 vegades de 50. Les xifres canvien amb l'equip i amb la càrrega de la CPU en el moment de mesurar: amb el model local generant text alhora, aquest INP surt de "good" les 40 vegades. Un gate que només mirés els llindars de Google deixaria passar les tres regressions amb la màquina sola, i amb la màquina ocupada fallaria per la màquina i no pel canvi. La pàgina, a més, aniria empitjorant de merge en merge fins a creuar el llindar sense que cap canvi concret en tingués la culpa.
 
 Per això el gate compara cada branca amb la seva versió base: la botiga de `main` (el baseline) i la de la branca (el candidate), mesurades a la mateixa màquina i en la mateixa crida, alternant una execució de cada una. Així la diferència entre portàtils no compta: un portàtil lent mesura les dues botigues igual de lentes. I tampoc no compta el que li passi al portàtil a mitja mesura, perquè els passa a les dues.
 
