@@ -11,7 +11,7 @@ The workshop teaches how to detect a regression and explain it. These challenges
 |---|---|---|
 | [1. Fix a regression](#challenge-1-fix-a-regression-and-watch-the-gate-pass) | How do I know the fix is complete? | Internet, to build a shop |
 | [2. Ask another model for the explanation](#challenge-2-ask-another-model-for-the-explanation) | What changes with a larger model? | An agent or a chat with an LLM |
-| [3. Remove the throttling](#challenge-3-remove-the-throttling-and-see-what-stops-showing) | Why does the gate not measure at full speed? | Nothing else |
+| [3. Remove the throttling](#challenge-3-remove-the-throttling-and-see-what-stops-showing) | Why does the gate not measure at full speed? | Only the lab |
 | [4. Create your own regression](#challenge-4-create-your-own-regression) | What does the gate see, and what does it not? | Internet, to build a shop |
 
 ## Before you start
@@ -26,6 +26,8 @@ git switch -c taller workshop-start
 git checkout step-04-solution -- agents/src
 docker compose up -d
 ```
+
+You need the lab downloaded ([Setup](../setup/)). With the `lite` profile, put `COMPOSE_PROFILES=lite` in front of each `docker compose` command, as in the steps.
 
 Challenges 2 and 3 compare with the reports of step 5. If you do not have them, run point 1 of its guide first.
 
@@ -45,7 +47,7 @@ Step 4 ends with a proposed fix for `pr/lcp-hero-lazy`, and nobody tests it. A f
    git worktree add -b fix-lcp-hero ../fix-lcp-hero origin/pr/lcp-hero-lazy
    ```
 
-2. Fix what the LLM explanation names. In `../fix-lcp-hero/apps/shop/src/pages.tsx`, the hero image has `loading="lazy"`: change it to `fetchPriority="high"` and save the change in a commit:
+2. Start with what the LLM explanation names. In `../fix-lcp-hero/apps/shop/src/pages.tsx`, the hero image has `loading="lazy"`: change it to `fetchPriority="high"`, the attribute it had on `main`, and save the change in a commit:
 
    ```bash
    git -C ../fix-lcp-hero commit -am "Load the hero image with high priority"
@@ -86,7 +88,7 @@ Step 4 ends with a proposed fix for `pr/lcp-hero-lazy`, and nobody tests it. A f
 
    The report says nothing got worse, and the rules sign it: with no regression, the LLM is never consulted.
 
-**What you take away.** The regression had two causes and the LLM explanation named one. The other was in the facts of the rules, and what says the fix is complete is the green gate, not the explanation.
+**What you take away.** The branch changed three things of the hero and the LLM explanation named one. With the attributes fixed the gate was still red, and what was missing, the preload, was in the facts of the rules, as in the findings of step 4. What says the fix is complete is the green gate, not the explanation.
 
 ## Challenge 2: ask another model for the explanation
 
@@ -140,7 +142,7 @@ The gate measures with the CPU four times slower and with the `fast-4g` network.
 
    - `pr/lcp-hero-lazy` passes. The change in LCP no longer goes beyond its threshold.
    - `pr/cls-promo-banner` fails all the same. A shift does not depend on the speed of the machine or the network.
-   - `pr/loaf-cart-handler` still fails because of the LCP. Its INP is also worse and the statistics see it, but the change lands close to its threshold: below it on a fast computer, above it on a slower one.
+   - `pr/loaf-cart-handler` still fails because of the LCP. Its INP is also worse and the statistics see it, but the change does not beat its threshold on the reference Mac; on a slower computer it may.
 
 4. Put the workshop conditions back:
 

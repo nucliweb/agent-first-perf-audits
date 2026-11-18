@@ -1,6 +1,6 @@
 ---
 title: Reptes
-description: Quatre reptes per després del pas 5. Arreglar una regressió i veure el gate passar, demanar l'explicació a un altre model, treure el throttling i crear una regressió pròpia.
+description: Quatre reptes per després del pas 5. Arreglar una regressió i veure passar el gate, demanar l'explicació a un altre model, treure el throttling i crear una regressió pròpia.
 sidebar:
   order: 17
 ---
@@ -11,7 +11,7 @@ El taller ensenya a detectar una regressió i a explicar-la. Aquests reptes resp
 |---|---|---|
 | [1. Arregla una regressió](#repte-1-arregla-una-regressió-i-mira-passar-el-gate) | Com sé que l'arranjament és complet? | Internet, per construir una botiga |
 | [2. Demana l'explicació a un altre model](#repte-2-demana-lexplicació-a-un-altre-model) | Què canvia amb un model més gran? | Un agent o un xat amb un LLM |
-| [3. Treu el throttling](#repte-3-treu-el-throttling-i-mira-què-deixa-de-veures) | Per què el gate no mesura a tota velocitat? | Res més |
+| [3. Treu el throttling](#repte-3-treu-el-throttling-i-mira-què-deixa-de-veures) | Per què el gate no mesura a tota velocitat? | Només el laboratori |
 | [4. Crea la teva pròpia regressió](#repte-4-crea-la-teva-pròpia-regressió) | Què veu el gate, i què no? | Internet, per construir una botiga |
 
 ## Abans de començar
@@ -26,6 +26,8 @@ git switch -c taller workshop-start
 git checkout step-04-solution -- agents/src
 docker compose up -d
 ```
+
+Cal el laboratori descarregat ([Preparació](../setup/)). Amb el perfil `lite`, posa `COMPOSE_PROFILES=lite` davant de cada ordre de `docker compose`, com als passos.
 
 Els reptes 2 i 3 comparen amb els informes del pas 5. Si no els tens, llança abans el punt 1 de la seva guia.
 
@@ -45,7 +47,7 @@ El pas 4 acaba amb una proposta de solució per a `pr/lcp-hero-lazy`, i ningú n
    git worktree add -b fix-lcp-hero ../fix-lcp-hero origin/pr/lcp-hero-lazy
    ```
 
-2. Arregla el que anomena l'explicació de l'LLM. A `../fix-lcp-hero/apps/shop/src/pages.tsx`, la imatge del hero porta `loading="lazy"`: canvia-ho per `fetchPriority="high"` i desa el canvi en un commit:
+2. Comença pel que anomena l'explicació de l'LLM. A `../fix-lcp-hero/apps/shop/src/pages.tsx`, la imatge del hero porta `loading="lazy"`: canvia-ho per `fetchPriority="high"`, l'atribut que tenia a `main`, i desa el canvi en un commit:
 
    ```bash
    git -C ../fix-lcp-hero commit -am "Load the hero image with high priority"
@@ -86,7 +88,7 @@ El pas 4 acaba amb una proposta de solució per a `pr/lcp-hero-lazy`, i ningú n
 
    L'informe diu que res no ha empitjorat i ho signen les regles: sense regressió, l'LLM no arriba a ser consultat.
 
-**Què t'emportes.** La regressió tenia dues causes i l'explicació de l'LLM n'anomenava una. L'altra era als fets de les regles, i el que diu que l'arranjament és complet és el gate en verd, no l'explicació.
+**Què t'emportes.** La branca canviava tres coses del hero i l'explicació de l'LLM n'anomenava una. Amb els atributs arreglats el gate continuava en vermell, i el que faltava, el preload, era als fets de les regles, com a les troballes del pas 4. El que diu que l'arranjament és complet és el gate en verd, no l'explicació.
 
 ## Repte 2: demana l'explicació a un altre model
 
@@ -140,7 +142,7 @@ El gate mesura amb la CPU quatre vegades més lenta i amb la xarxa de `fast-4g`.
 
    - `pr/lcp-hero-lazy` passa. El canvi de l'LCP ja no supera el seu llindar.
    - `pr/cls-promo-banner` falla igual. Un desplaçament no depèn de la velocitat de la màquina ni de la xarxa.
-   - `pr/loaf-cart-handler` continua fallant per l'LCP. El seu INP també és pitjor i l'estadística el veu, però el canvi queda a prop del seu llindar: per sota en un equip ràpid, per sobre en un de més lent.
+   - `pr/loaf-cart-handler` continua fallant per l'LCP. El seu INP també és pitjor i l'estadística el veu, però el canvi no supera el seu llindar al Mac de referència; en un equip més lent el pot superar.
 
 4. Torna les condicions del taller:
 
