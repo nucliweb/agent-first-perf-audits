@@ -1,11 +1,11 @@
 ---
 title: Cómo seguir el taller
-description: Tres formas de recorrer el mismo material, según el tiempo que tengas y si vas a levantar el laboratorio. Una charla con demo, el taller guiado o por tu cuenta.
+description: Tres formas de recorrer el mismo material, según el tiempo que tengas y si vas a levantar el laboratorio. Una charla con demo, el taller guiado o el taller por tu cuenta.
 sidebar:
   order: 1
 ---
 
-El taller construye un gate de rendimiento para pull requests: unos agentes miden una tienda antes y después de un cambio, unas reglas deciden si ha empeorado y un LLM explica la causa. El material es uno solo y se puede recorrer de tres formas.
+El taller construye un gate de rendimiento para pull requests: unos agentes miden una tienda antes y después de un cambio, unas reglas deciden si ha empeorado y un LLM explica la causa. Es un solo material, y se recorre de tres formas.
 
 ## Tres recorridos
 
@@ -15,7 +15,7 @@ El taller construye un gate de rendimiento para pull requests: unos agentes mide
 | [Taller guiado](#taller-guiado) | 2 h | El laboratorio, descargado en casa | Los seis pasos, con alguien que marca el ritmo |
 | [Por tu cuenta](#por-tu-cuenta) | 2 a 3 h | El laboratorio | Los mismos seis pasos a tu ritmo, y los retos |
 
-Los tres cuentan lo mismo: el CI clásico no ve las regresiones de rendimiento, las reglas deciden y el LLM explica. Cambia cuánto ejecutas tú.
+Los tres cuentan lo mismo: el CI clásico no ve las regresiones de rendimiento, las reglas deciden y el LLM explica. Lo que cambia es cuánto ejecutas tú.
 
 Con 8 GB de RAM, los dos recorridos con laboratorio se siguen con el perfil `lite`, sin modelo local: lo explica [Preparación](../setup/#con-8-gb-el-perfil-lite).
 
@@ -31,7 +31,7 @@ En GitHub Actions la explicación la redacta Claude Sonnet 5.5 en lugar del mode
 
 ## Taller guiado
 
-Dos horas con alguien que presenta, que tiene su propia [guía](../facilitator/). Los asistentes llegan con el laboratorio descargado y el preflight en verde: [Preparación](../setup/) se hace en casa, porque las imágenes pesan varios GB.
+Dos horas, con alguien que presenta y marca el ritmo; para esa persona está la [guía de quien presenta](../facilitator/). Los asistentes llegan con el laboratorio descargado y el preflight en verde: [Preparación](../setup/) se hace en casa, porque las imágenes pesan varios GB.
 
 La agenda, con el tiempo de máquina de cada paso. Lo que queda de cada hueco es para explicar, mirar los resultados y esperar a quien va más despacio:
 
@@ -46,22 +46,22 @@ La agenda, con el tiempo de máquina de cada paso. Lo que queda de cada hueco es
 | 1:45 | [6. Llevarlo a tu plataforma](step-06/), learnings y preguntas | 15 min | | |
 | | Total | 120 min | 26,5 min | 24,0 min |
 
-Los tiempos de máquina son los del Mac de referencia, medidos con el [ensayo cronometrado](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.es.md), que ejecuta los comandos de las guías en un clon limpio. En otro equipo cambian.
+Los tiempos de máquina son los del Mac de referencia, medidos con el [ensayo cronometrado](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/rehearsal/README.es.md), que ejecuta los comandos de las guías en un clon limpio. En otro equipo cambian. El total se suma antes de redondear.
 
 ## Por tu cuenta
 
-Los mismos seis pasos, sin nadie que marque el ritmo. Cada guía está escrita para seguirse sola:
+Los mismos seis pasos, sin nadie que marque el ritmo. Las guías de los pasos 1 a 5 están escritas para seguirse solas:
 
 - **Qué vas a aprender** y **La idea en un minuto** ponen el concepto antes de los comandos.
 - **Paso a paso** da cada comando con la salida que tiene que dar.
-- **Mientras esperas** dice qué mirar durante las medidas largas.
+- **Mientras esperas** dice qué mirar durante las medidas largas, del paso 2 al 5.
 - **Punto de control** y **Si algo falla** dicen cuándo dar el paso por bueno y qué hacer cuando no sale.
 
 El orden:
 
 1. [Preparación](../setup/): comprueba tu equipo y descarga el laboratorio.
 2. [Conceptos](../concepts/): las métricas y cómo decide el gate. Si un término no te suena, está en el [Glosario](../glossary/).
-3. Los pasos, del [1](step-01/) al [6](step-06/). No hace falta programar: cada paso aplica su solución con `git`, y escribir el código tú es opcional.
-4. Los [Retos](../challenges/), cuando el gate ya te funciona: arreglar una regresión y verlo pasar, crear la tuya y cambiar las condiciones de la medida.
+3. Los pasos, del [1](step-01/) al [6](step-06/). No hace falta programar: los pasos 1 a 4 aplican su código con `git checkout`, y escribirlo tú es opcional.
+4. Los [Retos](../challenges/), cuando el gate ya te funcione: arreglar una regresión y ver pasar el gate, pedir la explicación a otro modelo, quitar el throttling para ver qué deja de verse y crear tu propia regresión.
 
-Se puede partir en varios días. `docker compose down` para el laboratorio y `docker compose up -d` lo levanta otra vez; lo que has hecho sigue en tu rama `taller` y en la carpeta `out/`.
+Se puede partir en varios días. `docker compose down` para el laboratorio y `docker compose up -d` lo levanta otra vez; lo que has hecho sigue en tu rama `taller` y en la carpeta `out/`. Con `lite`, antepón `COMPOSE_PROFILES=lite`, como en el resto del taller.
