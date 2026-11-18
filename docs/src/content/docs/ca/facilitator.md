@@ -34,7 +34,7 @@ A l'equip amb què presentes:
 - Actualitza el repo i passa el preflight: `scripts/preflight.sh`.
 - Assaja el [pas 5](../workshop/step-05/) sencer una vegada, amb la màquina sola. Ha de donar tres fallades i un pass.
 - Deixa lliures la CPU i el disc. Tanca còpies de seguretat, videotrucades i altres contenidors: `docker ps` no hauria de llistar res que no sigui el laboratori, i `docker system df` diu quant ocupa Docker.
-- Obre en pestanyes les diapositives, [Les branques al navegador](../previews/) i les pull requests de [`pr/lcp-hero-lazy`](https://github.com/nucliweb/agent-first-perf-audits/pull/1) i de [`pr/noop-refactor`](https://github.com/nucliweb/agent-first-perf-audits/pull/4). Desa captures del check i del comentari de cadascuna, per si la xarxa de la sala falla.
+- Obre en pestanyes les diapositives, [Les branques al navegador](../previews/) i les pull requests de [`pr/lcp-hero-lazy`](https://github.com/nucliweb/agent-first-perf-audits/pull/1) i de [`pr/noop-refactor`](https://github.com/nucliweb/agent-first-perf-audits/pull/4). Les diapositives ja porten captures del check i del comentari de `pr/lcp-hero-lazy`; desa tu les de `pr/noop-refactor`, per si la xarxa de la sala falla.
 - Prova la vista de qui presenta de les diapositives: la tecla `n` obre una segona finestra amb les notes de cada diapositiva, la diapositiva següent, el temps total i el temps del bloc davant del seu forat a l'agenda. La tecla `r` posa el rellotge a zero.
 - Puja la mida de lletra del terminal: les línies que cal llegir a cada punt de control són llargues.
 
@@ -95,13 +95,13 @@ Els temps de cada bloc són a [l'agenda](../workshop/#taller-guiat), amb el temp
 ### Pas 6 i tancament
 
 - **Què expliques.** Què canvia i què es conserva en portar-ho a una altra plataforma. Deixa uns minuts per a la taula "El teu pla" i demana a dues persones que llegeixin una fila de la seva.
-- **Amb què tanques.** Tres idees: les regles decideixen i l'LLM explica; es compara amb la versió base, no amb un llindar; i un gate ha de dir quan les dades no li basten. Per a qui vulgui continuar, els [Reptes](../challenges/) i els [Learnings](../learnings/).
+- **Amb què tanques.** Les cinc idees de l'última diapositiva: les regles decideixen i l'LLM explica; es compara amb la versió base, no amb un llindar; es mesura d'una en una, alternant les dues versions; un gate ha de dir quan les dades no li arriben; i no tot ha de ser un MCP. Per a qui vulgui continuar, els [Reptes](../challenges/) i els [Learnings](../learnings/).
 
 ## Si alguna cosa es torça
 
 | Què passa | Què fas |
 |---|---|
-| La xarxa de la sala no va | Els passos no la necessiten després del `git fetch` del pas 1. La demo de GitHub, amb les captures de la vigília |
+| La xarxa de la sala no va | Els passos no la necessiten després del `git fetch` del pas 1. La demo de GitHub, amb les captures de les diapositives i les teves |
 | A algú no li arrenca el laboratori | Perfil `lite` si és la memòria, o en parella. [Problemes freqüents](../troubleshooting/) per a després de la sessió |
 | Vas tard | Retalla per aquest ordre: el punt 7 del pas 3, la taula del pas 6 i el final del bucle del pas 5. El pas 4 no es retalla |
 | El teu equip falla | Passa a la xerrada amb demo: diapositives, les branques al navegador i les pull requests |
@@ -115,4 +115,4 @@ El mateix fil en menys temps i sense terminal:
 2. Els conceptes, amb les diapositives: les mètriques, les seves fases i com decideix el gate.
 3. Les altres dues regressions al navegador, amb DevTools obert. [Les branques al navegador](../previews/#com-veure-cada-regressió) diu què mirar a cadascuna.
 4. El gate a les pull requests: la que falla, amb el seu check i el seu comentari, i la que passa.
-5. El tancament, amb les mateixes tres idees.
+5. El tancament, amb les mateixes cinc idees.

@@ -34,7 +34,7 @@ On the computer you will present with:
 - Update the repo and run the preflight: `scripts/preflight.sh`.
 - Rehearse the whole of [step 5](../workshop/step-05/) once, with the machine to itself. It has to give three failures and a pass.
 - Keep the CPU and the disk free. Close backups, video calls and other containers: `docker ps` should not list anything that is not the lab, and `docker system df` says how much Docker takes up.
-- Open in tabs the slides, [The branches in the browser](../previews/) and the pull requests for [`pr/lcp-hero-lazy`](https://github.com/nucliweb/agent-first-perf-audits/pull/1) and [`pr/noop-refactor`](https://github.com/nucliweb/agent-first-perf-audits/pull/4). Save screenshots of the check and the comment of each one, in case the room's network fails.
+- Open in tabs the slides, [The branches in the browser](../previews/) and the pull requests for [`pr/lcp-hero-lazy`](https://github.com/nucliweb/agent-first-perf-audits/pull/1) and [`pr/noop-refactor`](https://github.com/nucliweb/agent-first-perf-audits/pull/4). The slides already carry screenshots of the check and the comment of `pr/lcp-hero-lazy`; save the ones of `pr/noop-refactor` yourself, in case the room's network fails.
 - Try the presenter view of the slides: the `n` key opens a second window with the notes of each slide, the next slide, the total time and the time of the block against its slot in the agenda. The `r` key resets the clock.
 - Raise the font size of the terminal: the lines to read at each checkpoint are long.
 
@@ -95,13 +95,13 @@ The times of each block are in [the agenda](../workshop/#guided-workshop), with 
 ### Step 6 and closing
 
 - **What you say.** What changes and what stays when you take it to another platform. Leave a few minutes for the "Your plan" table and ask two people to read a row of theirs.
-- **How you close.** Three ideas: the rules decide and the LLM explains; you compare with the base version, not with a threshold; and a gate has to say when the data is not enough. For whoever wants to go on, the [Challenges](../challenges/) and the [Learnings](../learnings/).
+- **How you close.** The five ideas of the last slide: the rules decide and the LLM explains; you compare with the base version, not with a threshold; you measure one at a time, alternating the two versions; a gate has to say when the data is not enough; and not everything has to be an MCP. For whoever wants to go on, the [Challenges](../challenges/) and the [Learnings](../learnings/).
 
 ## If something goes wrong
 
 | What happens | What you do |
 |---|---|
-| The room's network does not work | The steps do not need it after the `git fetch` of step 1. The GitHub demo, with the screenshots from the day before |
+| The room's network does not work | The steps do not need it after the `git fetch` of step 1. The GitHub demo, with the screenshots of the slides and your own |
 | Someone's lab does not start | `lite` profile if it is memory, or work in pairs. [Common problems](../troubleshooting/) for after the session |
 | You are running late | Cut in this order: point 7 of step 3, the table of step 6 and the end of the loop of step 5. Step 4 is not cut |
 | Your computer fails | Switch to the talk with a demo: slides, the branches in the browser and the pull requests |
@@ -115,4 +115,4 @@ The same thread in less time and with no terminal:
 2. The concepts, with the slides: the metrics, their phases and how the gate decides.
 3. The other two regressions in the browser, with DevTools open. [The branches in the browser](../previews/#how-to-see-each-regression) says what to look at in each one.
 4. The gate on the pull requests: the one that fails, with its check and its comment, and the one that passes.
-5. The close, with the same three ideas.
+5. The close, with the same five ideas.

@@ -34,7 +34,7 @@ En el equipo con el que presentas:
 - Actualiza el repo y pasa el preflight: `scripts/preflight.sh`.
 - Ensaya el [paso 5](../workshop/step-05/) entero una vez, con la máquina sola. Tiene que dar tres fallos y un pass.
 - Deja libres la CPU y el disco. Cierra copias de seguridad, videollamadas y otros contenedores: `docker ps` no debería listar nada que no sea el laboratorio, y `docker system df` dice cuánto ocupa Docker.
-- Abre en pestañas las slides, [Las ramas en el navegador](../previews/) y las pull requests de [`pr/lcp-hero-lazy`](https://github.com/nucliweb/agent-first-perf-audits/pull/1) y de [`pr/noop-refactor`](https://github.com/nucliweb/agent-first-perf-audits/pull/4). Guarda capturas del check y del comentario de cada una, por si la red de la sala falla.
+- Abre en pestañas las slides, [Las ramas en el navegador](../previews/) y las pull requests de [`pr/lcp-hero-lazy`](https://github.com/nucliweb/agent-first-perf-audits/pull/1) y de [`pr/noop-refactor`](https://github.com/nucliweb/agent-first-perf-audits/pull/4). Las slides ya llevan capturas del check y del comentario de `pr/lcp-hero-lazy`; guarda tú las de `pr/noop-refactor`, por si la red de la sala falla.
 - Prueba la vista de quien presenta de las slides: la tecla `n` abre una segunda ventana con las notas de cada slide, el slide siguiente, el tiempo total y el tiempo del bloque frente a su hueco en la agenda. La tecla `r` pone el reloj a cero.
 - Sube el tamaño de letra de la terminal: las líneas que hay que leer en cada punto de control son largas.
 
@@ -95,13 +95,13 @@ Los tiempos de cada bloque están en [la agenda](../workshop/#taller-guiado), co
 ### Paso 6 y cierre
 
 - **Qué cuentas.** Qué cambia y qué se conserva al llevarlo a otra plataforma. Deja unos minutos para la tabla "Tu plan" y pide a dos personas que lean una fila de la suya.
-- **Con qué cierras.** Tres ideas: las reglas deciden y el LLM explica; se compara con la versión base, no con un umbral; y un gate tiene que decir cuándo los datos no le alcanzan. Para quien quiera seguir, los [Retos](../challenges/) y los [Learnings](../learnings/).
+- **Con qué cierras.** Las cinco ideas del último slide: las reglas deciden y el LLM explica; se compara con la versión base, no con un umbral; se mide de una en una, alternando las dos versiones; un gate tiene que decir cuándo los datos no le alcanzan; y no todo tiene que ser un MCP. Para quien quiera seguir, los [Retos](../challenges/) y los [Learnings](../learnings/).
 
 ## Si algo se tuerce
 
 | Qué pasa | Qué haces |
 |---|---|
-| La red de la sala no va | Los pasos no la necesitan después del `git fetch` del paso 1. La demo de GitHub, con las capturas de la víspera |
+| La red de la sala no va | Los pasos no la necesitan después del `git fetch` del paso 1. La demo de GitHub, con las capturas de las slides y las tuyas |
 | A alguien no le arranca el laboratorio | Perfil `lite` si es la memoria, o en pareja. [Problemas frecuentes](../troubleshooting/) para después de la sesión |
 | Vas tarde | Recorta por este orden: el punto 7 del paso 3, la tabla del paso 6 y el final del bucle del paso 5. El paso 4 no se recorta |
 | Tu equipo falla | Pasa a la charla con demo: slides, las ramas en el navegador y las pull requests |
@@ -115,4 +115,4 @@ El mismo hilo en menos tiempo y sin terminal:
 2. Los conceptos, con las slides: las métricas, sus fases y cómo decide el gate.
 3. Las otras dos regresiones en el navegador, con DevTools abierto. [Las ramas en el navegador](../previews/#cómo-ver-cada-regresión) dice qué mirar en cada una.
 4. El gate en las pull requests: la que falla, con su check y su comentario, y la que pasa.
-5. El cierre, con las mismas tres ideas.
+5. El cierre, con las mismas cinco ideas.
