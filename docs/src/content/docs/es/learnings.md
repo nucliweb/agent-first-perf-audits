@@ -366,12 +366,14 @@ Los datos separan dos problemas que parecían uno:
 
 - **El gate alterna las ejecuciones de las dos tiendas**, en una sola llamada a la CLI.
 - **Amplía una vez, con un máximo.** Mide 5 ejecuciones por tienda y, cuando un cambio supera su umbral y p no llega, hasta 7 (`--max-runs 7`). Decide como mucho dos veces: mirar p después de cada ejecución añadida acabaría encontrando un cambio por casualidad.
-- **Dice cuándo no puede decidir.** Si después de ampliar sigue igual, la métrica queda como `inconclusive`. El gate no falla por ella, el informe lo pone arriba y pide lanzarlo otra vez, y la comprobación del paso 5 hace lo mismo en lugar de dar un pass.
+- **Dice cuándo no puede decidir.** Si después de ampliar sigue igual, la métrica queda como `inconclusive`. El gate no falla por ella, el informe lo pone arriba y pide lanzarlo otra vez, y las comprobaciones de los pasos 4 y 5 hacen lo mismo en lugar de dar un pass.
 - **Vive en la herramienta.** La comparación con un baseline vivo, la ampliación y el veredicto no concluyente son de la CLI de WebPerf Snippets, no del taller: es el learning de [arreglar la herramienta](#arreglar-la-herramienta-antes-que-parchear-el-taller).
 
 ### Qué no arregla
 
 Con la máquina ocupada todavía se escapan 2 regresiones de 60. Alternar y ampliar hacen el gate más difícil de engañar, no inmune: medir con la máquina sola, y con un solo Chromium a la vez, sigue siendo parte del método.
+
+Tampoco hace estables las cifras absolutas, que cambian con el equipo y con la carga de la CPU en el momento de medir: [Conceptos](../concepts/#comparar-con-el-baseline-no-con-el-umbral) lo cuenta con el INP de la rama del carrito. El gate compara las dos tiendas entre sí, y por eso su veredicto aguanta lo que las cifras no.
 
 ### Compruébalo
 

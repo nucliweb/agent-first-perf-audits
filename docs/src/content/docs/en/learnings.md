@@ -366,12 +366,14 @@ The data separate two problems that looked like one:
 
 - **The gate alternates the runs of the two shops**, in a single call to the CLI.
 - **It extends once, up to a maximum.** It measures 5 runs per shop and, when a change exceeds its threshold and p does not reach it, up to 7 (`--max-runs 7`). It decides at most twice: looking at p after each added run would end up finding a change by chance.
-- **It says when it cannot decide.** If it is still the same after extending, the metric is left as `inconclusive`. The gate does not fail on it, the report puts it at the top and asks to run it again, and the check of step 5 does the same instead of giving a pass.
+- **It says when it cannot decide.** If it is still the same after extending, the metric is left as `inconclusive`. The gate does not fail on it, the report puts it at the top and asks to run it again, and the checks of steps 4 and 5 do the same instead of giving a pass.
 - **It lives in the tool.** The comparison with a live baseline, the extension and the inconclusive verdict belong to the WebPerf Snippets CLI, not to the workshop: it is the learning of [fixing the tool](#fix-the-tool-before-patching-the-workshop).
 
 ### What it does not fix
 
 With the machine busy, 2 regressions out of 60 still escape. Alternating and extending make the gate harder to fool, not immune: measuring with the machine to itself, and with a single Chromium at a time, is still part of the method.
+
+Nor does it make the absolute figures stable: they change with the computer and with the CPU load at the time of measuring, and [Concepts](../concepts/#compare-with-the-baseline-not-with-the-threshold) tells it with the INP of the cart branch. The gate compares the two shops with each other, which is why its verdict holds where the figures do not.
 
 ### Check it
 

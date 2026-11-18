@@ -366,12 +366,14 @@ Les dades separen dos problemes que semblaven un:
 
 - **El gate alterna les execucions de les dues botigues**, en una sola crida a la CLI.
 - **Amplia una vegada, amb un màxim.** Mesura 5 execucions per botiga i, quan un canvi supera el seu llindar i p no arriba, fins a 7 (`--max-runs 7`). Decideix com a molt dues vegades: mirar p després de cada execució afegida acabaria trobant un canvi per casualitat.
-- **Diu quan no pot decidir.** Si després d'ampliar continua igual, la mètrica queda com a `inconclusive`. El gate no falla per ella, l'informe ho posa a dalt i demana llançar-lo una altra vegada, i la comprovació del pas 5 fa el mateix en lloc de donar un pass.
+- **Diu quan no pot decidir.** Si després d'ampliar continua igual, la mètrica queda com a `inconclusive`. El gate no falla per ella, l'informe ho posa a dalt i demana llançar-lo una altra vegada, i les comprovacions dels passos 4 i 5 fan el mateix en lloc de donar un pass.
 - **Viu a l'eina.** La comparació amb un baseline viu, l'ampliació i el veredicte no concloent són de la CLI de WebPerf Snippets, no del taller: és el learning d'[arreglar l'eina](#arreglar-leina-abans-que-apedaçar-el-taller).
 
 ### Què no arregla
 
 Amb la màquina ocupada encara s'escapen 2 regressions de 60. Alternar i ampliar fan el gate més difícil d'enganyar, no immune: mesurar amb la màquina sola, i amb un sol Chromium alhora, continua sent part del mètode.
+
+Tampoc fa estables les xifres absolutes, que canvien amb l'equip i amb la càrrega de la CPU en el moment de mesurar: [Conceptes](../concepts/#comparar-amb-el-baseline-no-amb-el-llindar) ho explica amb l'INP de la branca del carretó. El gate compara les dues botigues entre si, i per això el seu veredicte aguanta el que les xifres no aguanten.
 
 ### Comprova-ho
 
