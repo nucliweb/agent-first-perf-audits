@@ -33,7 +33,7 @@ scripts/preflight.sh
 |---|---|---|
 | Docker deixa de respondre, o una descàrrega es queda a mitges | El disc de la màquina virtual de Docker és ple | `docker system df` diu quant ocupa cada cosa. Allibera espai i reinicia el runtime abans de continuar: una imatge que es va descarregar amb el disc ple pot haver quedat malament |
 | Amb 8 GB, Compose descarrega o arrenca `ollama` | Falta `COMPOSE_PROFILES=lite` en aquest terminal | `export COMPOSE_PROFILES=lite`, i val per a totes les ordres |
-| No saps amb quin perfil estàs mesurant | El perfil surt de `COMPOSE_PROFILES`, o del fitxer `.env` del repo, que posa `llm` | La primera línia de `ci` ho diu: `llm profile` o `lite profile` |
+| No saps amb quin perfil estàs mesurant | El perfil surt de `COMPOSE_PROFILES`, o del fitxer `.env` del repo, que posa `llm` | La primera línia que escriu `ci` ho diu: `[ci] <branca> against main, llm profile` o `lite profile` |
 | A Linux, una ordre no pot escriure a `out/` | Docker va crear la carpeta com a root | `sudo chown -R "$(id -u):$(id -g)" out` |
 | La botiga del laboratori no s'obre al navegador | El laboratori no publica ports, i la seva xarxa no té sortida a internet | Les mateixes botigues estan desplegades: [Les branques al navegador](../previews/) |
 | Una ordre dins del contenidor no pot descarregar res | És la mateixa xarxa sense sortida: el que mesura el gate no depèn d'internet | El que calgui descarregar es descarrega fora, amb el preflight o amb `scripts/build-shop.sh` |
@@ -71,7 +71,7 @@ Qui escriu els subagents en lloc d'aplicar la solució, o porta el flux a la sev
 | `navigate_page` retorna un error de validació | Chrome DevTools MCP demana un `pageId` a cada tool de pàgina | Arrenca el servidor amb `--no-page-id-routing` |
 | `Access denied` en desar un trace | El servidor només escriu al seu directori temporal | Grava allà i copia el fitxer, o dona-li la carpeta amb `--workspace` |
 | `No usable sandbox!` | Chromium no té sandbox dins del contenidor | `--chromeArg=--no-sandbox`, només al contenidor |
-| El servidor no troba el navegador | El client stdio no li passa les teves variables d'entorn, tampoc `PLAYWRIGHT_BROWSERS_PATH` | Instal·la el Chromium de Playwright a la seva ruta per defecte |
+| El servidor no troba el navegador | El client stdio no li passa les teves variables d'entorn, tampoc `PLAYWRIGHT_BROWSERS_PATH` | Passa-li la ruta del navegador amb `--executablePath`, com fa el taller, o instal·la el Chromium de Playwright a la seva ruta per defecte |
 
 El context dels quatre és a [Learnings](../learnings/#chrome-devtools-mcp-fora-de-leditor), i els flags amb què el taller arrenca el servidor, a `agents/src/mcp/client.ts`.
 
@@ -88,3 +88,5 @@ docker compose up -d
 ```
 
 La carpeta `out/` es crea buida a mà perquè a Linux no la creï Docker com a root. Només té el que escriuen les ordres del taller: els traces, els JSON dels subagents i els informes. Les imatges descarregades es conserven.
+
+Amb el perfil `lite`, exporta abans `COMPOSE_PROFILES=lite`. A Linux, si `rm` no pot esborrar `out/`, fes abans el `chown` de la taula del laboratori.
