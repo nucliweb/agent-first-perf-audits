@@ -78,7 +78,7 @@ Para leer más: [Why lab and field data can be different](https://web.dev/articl
 
 ## Comparar con el baseline, no con el umbral
 
-Las tres regresiones del taller dejan sus métricas dentro de "good". Un gate que solo mirase los umbrales de Google las dejaría pasar las tres, y la página iría empeorando merge a merge hasta cruzar el umbral sin que ningún cambio concreto tuviera la culpa.
+Con la máquina sola, las tres regresiones del taller dejan sus métricas dentro de "good" casi siempre: en el experimento [`gate-stability`](https://github.com/nucliweb/agent-first-perf-audits/blob/main/experiments/gate-stability/README.es.md), solo el INP de `pr/loaf-cart-handler` sale de "good", 4 veces de 50. Las cifras cambian con el equipo y con la carga de la CPU en el momento de medir: con el modelo local generando texto a la vez, ese INP sale de "good" las 40 veces. Un gate que solo mirase los umbrales de Google dejaría pasar las tres regresiones con la máquina sola, y con la máquina ocupada fallaría por la máquina y no por el cambio. La página, además, iría empeorando merge a merge hasta cruzar el umbral sin que ningún cambio concreto tuviera la culpa.
 
 Por eso el gate compara cada rama con su versión base: la tienda de `main` (el baseline) y la de la rama (el candidate), medidas en la misma máquina y en la misma llamada, alternando una ejecución de cada una. Así la diferencia entre portátiles no cuenta: un portátil lento mide las dos tiendas igual de lentas. Y tampoco cuenta lo que le pase al portátil a mitad de la medida, porque les pasa a las dos.
 

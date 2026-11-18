@@ -86,7 +86,7 @@ Els temps de cada bloc són a [l'agenda](../workshop/#taller-guiat), amb el temp
 
 ### Pas 5: el gate a ci
 
-- **Què expliques.** Tot l'anterior cap en un servei i un exit code. El gate compara amb `main`, no amb els llindars de Google: les tres regressions queden dins de "good".
+- **Què expliques.** Tot l'anterior cap en un servei i un exit code. El gate compara amb `main`, no amb els llindars de Google: amb la màquina sola, les tres regressions queden gairebé sempre dins de "good". Avisa que les xifres canvien amb l'equip i amb la càrrega de la CPU: en un portàtil lent o amb la CPU ocupada, l'INP de la branca del carretó pot sortir de "good" a la teva pantalla, i és el millor argument per comparar amb la versió base.
 - **L'espera.** És la més llarga del taller. Llança el bucle tot just començar el bloc i explica la resta mentre corre. Quan acabi la primera branca, llegeix-ne el `report.md` en pantalla. Després ensenya el mateix gate a GitHub: el check i el comentari de la pull request de `pr/lcp-hero-lazy`, i la de `pr/noop-refactor`, que passa sense que ningú pregunti res al model.
 - **Punt de control.** Els quatre exit codes, `1`, `1`, `1` i `0`.
 - **Si no surt.** Una branca amb regressió que surt amb 0 ha quedat com a no concloent: es llança una altra vegada aquesta branca. Si `pr-noop-refactor` surt amb 1, la màquina estava ocupada.

@@ -86,7 +86,7 @@ The times of each block are in [the agenda](../workshop/#guided-workshop), with 
 
 ### Step 5: the gate in ci
 
-- **What you say.** Everything so far fits in one service and an exit code. The gate compares with `main`, not with Google's thresholds: the three regressions stay within "good".
+- **What you say.** Everything so far fits in one service and an exit code. The gate compares with `main`, not with Google's thresholds: with the machine alone, the three regressions almost always stay within "good". Warn that the figures change with the computer and with the CPU load: on a slow laptop or with a busy CPU, the INP of the cart branch can leave "good" on your screen, and that is the best argument for comparing with the base version.
 - **The wait.** It is the longest of the workshop. Start the loop as soon as the block begins and explain the rest while it runs. When the first branch finishes, read its `report.md` on screen. Then show the same gate on GitHub: the check and the comment of the pull request for `pr/lcp-hero-lazy`, and the one for `pr/noop-refactor`, which passes without anyone asking the model.
 - **Checkpoint.** The four exit codes, `1`, `1`, `1` and `0`.
 - **If it does not work.** A branch with a regression that exits with 0 was left as inconclusive: run that branch again. If `pr-noop-refactor` exits with 1, the machine was busy.

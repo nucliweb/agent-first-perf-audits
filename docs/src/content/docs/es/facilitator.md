@@ -86,7 +86,7 @@ Los tiempos de cada bloque están en [la agenda](../workshop/#taller-guiado), co
 
 ### Paso 5: el gate en ci
 
-- **Qué cuentas.** Todo lo anterior cabe en un servicio y un exit code. El gate compara con `main`, no con los umbrales de Google: las tres regresiones quedan dentro de "good".
+- **Qué cuentas.** Todo lo anterior cabe en un servicio y un exit code. El gate compara con `main`, no con los umbrales de Google: con la máquina sola, las tres regresiones quedan casi siempre dentro de "good". Avisa de que las cifras cambian con el equipo y con la carga de la CPU: en un portátil lento o con la CPU ocupada, el INP de la rama del carrito puede salir de "good" en tu pantalla, y es el mejor argumento para comparar con la versión base.
 - **La espera.** Es la más larga del taller. Lanza el bucle nada más empezar el bloque y cuenta lo demás mientras corre. Cuando termine la primera rama, lee su `report.md` en pantalla. Después enseña el mismo gate en GitHub: el check y el comentario de la pull request de `pr/lcp-hero-lazy`, y la de `pr/noop-refactor`, que pasa sin que nadie le pregunte al modelo.
 - **Punto de control.** Los cuatro exit codes, `1`, `1`, `1` y `0`.
 - **Si no sale.** Una rama con regresión que sale con 0 quedó como no concluyente: se lanza otra vez esa rama. Si `pr-noop-refactor` sale con 1, la máquina estaba ocupada.
